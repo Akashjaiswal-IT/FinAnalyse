@@ -28,6 +28,7 @@ export type Unit = z.infer<typeof Unit>;
 
 export const NodeName = z.enum([
   "planner",
+  "event",
   "weather",
   "sentiment",
   "macro",
@@ -60,12 +61,21 @@ export const TemplateText = z.object({
 export type TemplateText = z.infer<typeof TemplateText>;
 
 export const Sector = z.enum([
-  "integrated",
-  "e&p",
+  "energy",
   "refiner",
-  "energy_etf",
   "commodity_proxy",
+  "gold",
+  "tech",
+  "semis",
+  "banks",
+  "defense",
+  "aerospace",
   "airlines",
+  "consumer",
+  "rates",
+  "fx",
+  "china",
+  "agriculture",
   "market",
   "factor",
 ]);

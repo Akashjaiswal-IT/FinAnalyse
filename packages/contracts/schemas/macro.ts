@@ -11,21 +11,19 @@ export type MacroObservation = z.infer<typeof MacroObservation>;
 export const InventoryFlag = z.enum(["tight", "normal", "loose"]);
 export const VixFlag = z.enum(["calm", "elevated", "stressed"]);
 
+const Inventory = z.object({
+  value: z.number(),
+  fiveYearAvg: z.number(),
+  deviation: z.number().describe("fraction vs the 5-year same-week average"),
+  flag: InventoryFlag,
+});
+
+/** Inventories are null when the portfolio has no energy exposure (SPEC 5.5). */
 export const MacroSnapshot = z.object({
   asOf: IsoDateTime,
-  gasolineStocks: z.object({
-    value: z.number(),
-    fiveYearAvg: z.number(),
-    deviation: z.number().describe("fraction vs the 5-year same-week average"),
-    flag: InventoryFlag,
-  }),
-  crudeStocks: z.object({
-    value: z.number(),
-    fiveYearAvg: z.number(),
-    deviation: z.number(),
-    flag: InventoryFlag,
-  }),
-  vix: z.object({ value: z.number(), flag: VixFlag }),
+  gasolineStocks: Inventory.nullable(),
+  crudeStocks: Inventory.nullable(),
+  vix: z.object({ value: z.number(), z: z.number().nullable(), flag: VixFlag }),
   yield10y: z.object({ value: z.number(), change20d: z.number() }),
   dollarIndex: z.object({ value: z.number(), change20d: z.number() }),
   fedFunds: z.number(),

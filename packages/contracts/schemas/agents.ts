@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { Confidence, Skipped, TemplateText, Unavailable } from "./common";
+import { Confidence, Sector, Skipped, TemplateText, Unavailable } from "./common";
 import { EvidenceKey } from "./evidence";
 import { HypotheticalStormParams, HubForecast, AtRiskRefinery, Storm, TrackLabel } from "./weather";
 import { MacroSnapshot } from "./macro";
 import { AnalogMatch, Forecast } from "./analog";
+import { EventProfile, EventType, HypotheticalEventParams } from "./event";
 import { RiskReport, HedgePlan } from "./portfolio";
 
 export const Intent = z.enum([
@@ -11,6 +12,7 @@ export const Intent = z.enum([
   "portfolio_risk",
   "hedge",
   "what_if",
+  "news_scan",
   "explain",
   "out_of_scope",
 ]);
@@ -24,9 +26,16 @@ export const Plan = z.object({
   intent: Intent,
   event: z.object({
     source: EventSource,
+    type: EventType.nullable(),
+    subtype: z.string().nullable(),
+    name: z.string().nullable().describe("the event as named in the question"),
+    entities: z.array(z.string()).describe("universe symbols named in the question"),
+    externalNames: z.array(z.string()).describe("non-universe companies named in the question"),
+    marketEventId: z.string().nullable(),
     stormId: z.string().nullable(),
     stormName: z.string().nullable(),
-    hypothetical: HypotheticalStormParams.nullable(),
+    hypothetical: HypotheticalEventParams.nullable(),
+    hypotheticalStorm: HypotheticalStormParams.nullable(),
     categoryOverride: z.number().int().min(1).max(5).nullable(),
   }),
   focusSymbols: z.array(z.string()),
@@ -60,6 +69,19 @@ export type Finding = z.infer<typeof Finding>;
 
 const Ok = z.literal("ok");
 
+/** For `news_scan`, `others` holds up to two more events, listed with their exposure only. */
+export const EventOutput = z.union([
+  z.object({
+    status: Ok,
+    profile: EventProfile,
+    others: z.array(EventProfile).max(2),
+    findings: z.array(Finding),
+  }),
+  Unavailable,
+  Skipped,
+]);
+export type EventOutput = z.infer<typeof EventOutput>;
+
 export const WeatherOutput = z.union([
   z.object({
     status: Ok,
@@ -84,9 +106,12 @@ export type WeatherOutput = z.infer<typeof WeatherOutput>;
 export const SentimentOutput = z.union([
   z.object({
     status: Ok,
-    sector: z.object({ score: z.number(), n: z.number().int() }),
+    sectors: z.array(z.object({ sector: Sector, score: z.number(), n: z.number().int() })),
+    peerGroups: z.array(z.object({ symbols: z.array(z.string()), score: z.number(), n: z.number().int() })),
     holdings: z.array(z.object({ symbol: z.string(), score: z.number(), n: z.number().int() })),
-    gdelt: z.object({ toneZ: z.number().nullable(), volZ: z.number().nullable() }),
+    gdelt: z
+      .object({ toneZ: z.number().nullable(), volZ: z.number().nullable() })
+      .describe("copied from the event profile; computed once by the event node (SPEC 5.9)"),
     newsIds: z.array(z.string()),
     findings: z.array(Finding),
   }),
@@ -106,7 +131,10 @@ export const AnalogsOutput = z.union([
   z.object({
     status: Ok,
     forecast: Forecast,
-    parallels: z.array(AnalogMatch),
+    parallels: z.object({
+      sameType: z.array(AnalogMatch).max(3),
+      otherType: z.array(AnalogMatch).max(3),
+    }),
     findings: z.array(Finding),
   }),
   Unavailable,

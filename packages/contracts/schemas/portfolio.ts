@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IsoDateTime, Sector, TemplateText } from "./common";
 import { EvidenceKey } from "./evidence";
+import { ExposureChannel, FactorName, HoldingExposure } from "./event";
 
 export const PositionView = z.object({
   symbol: z.string(),
@@ -29,7 +30,7 @@ export const PortfolioGetInput = z.object({ asOf: IsoDateTime.optional() });
 
 export const FactorExposure = z.object({
   holding: z.string(),
-  factor: z.string(),
+  factor: FactorName,
   beta: z.number(),
   r2: z.number(),
 });
@@ -40,7 +41,7 @@ export const VarCvar = z.object({ var95: z.number(), cvar95: z.number() });
 export const RiskSnapshot = z.object({
   var1d: VarCvar,
   var5d: VarCvar,
-  energyBeta: z.number().describe("sleeve beta to the mapped commodity factors"),
+  sleeveBeta: z.number().describe("exposed-sleeve beta to the factor with the largest exposure"),
   scenarioPnl: z.number(),
 });
 export type RiskSnapshot = z.infer<typeof RiskSnapshot>;
@@ -51,7 +52,9 @@ export const RiskReport = z.object({
   var1d: VarCvar,
   var5d: VarCvar,
   exposures: z.array(FactorExposure),
-  topFactorExposures: z.array(z.object({ factor: z.string(), beta: z.number() })),
+  topFactorExposures: z.array(z.object({ factor: FactorName, beta: z.number() })),
+  channels: z.array(HoldingExposure),
+  exposedValue: z.array(z.object({ channel: ExposureChannel, value: z.number() })),
   correlations: z.object({
     symbols: z.array(z.string()),
     matrix: z.array(z.array(z.number())),
@@ -60,17 +63,19 @@ export const RiskReport = z.object({
     pnl: z.number(),
     pctNav: z.number(),
     perHolding: z.array(z.object({ symbol: z.string(), pnl: z.number() })),
+    perSector: z.array(z.object({ sector: Sector, pnl: z.number() })),
+    perChannel: z.array(z.object({ channel: ExposureChannel, pnl: z.number() })),
   }),
   analogPnl: z
     .object({ weightedMean: z.number(), worst: z.number(), n: z.number().int() })
-    .nullable(),
-  gamma: z.object({ value: z.number(), se: z.number().nullable(), n: z.number().int() }),
+    .nullable()
+    .describe("USD"),
 });
 export type RiskReport = z.infer<typeof RiskReport>;
 
 export const HedgeActionType = z.enum(["hedge", "reallocation"]);
 export const Side = z.enum(["buy", "sell"]);
-export const Timing = z.enum(["now", "before_landfall", "staged"]);
+export const Timing = z.enum(["now", "before_event", "staged"]);
 export const OrderType = z.enum(["market", "limit"]);
 
 /** What the model submits through the `submit_plan` tool: templates only. */
