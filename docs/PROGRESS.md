@@ -85,6 +85,17 @@ Entries at H7, H12 and H18.
 
 
 
+
+### Takeover by Aman Singh (2026-10-03 night, Naman unavailable)
+
+**Done on a second machine (own keys)**
+- Seed steps 1 to 4 from the APIs: 41 instruments, 120,905 price bars (the same count as before), 14,682 macro observations (a few more days), 202 storms, 127 refineries.
+- Found why seed step 5 never produced news features: the circuit breaker opened after three dropped connections and the step then failed every remaining timeline in a minute. Fixed in the seed (see DECISIONS): a client without the breaker, retries on every transient failure, progress logged per timeline.
+
+**GDELT status**
+- From this network a timeline needs about one try in ten right now (one took 651 s). The step is resumable and caches every timeline in `data/cache/gdelt/timeline/`, but at that rate the roughly 134 timelines would take about a day.
+- **To finish:** run `pnpm seed --only=analogs` from a network GDELT accepts (a phone hotspot is the usual fix) and let it run, then `pnpm backtest --save --write-results` and `pnpm backtest --verify`. `--gdelt=cache-only` rebuilds the events from whatever is cached without any request, so a partial cache can be used now and extended later. Zip `data/cache/gdelt/` to share it.
+
 ## Track B: Agents and API
 
 Entries at H7, H12 and H18.
