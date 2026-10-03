@@ -16,6 +16,8 @@ export type DrilldownTarget =
 interface RunContextValue {
   view: RunView;
   openDrilldown: (target: DrilldownTarget) => void;
+  /** Shows the news the run read (the News tab), where the page has one. */
+  showNews?: () => void;
 }
 
 const RunContext = createContext<RunContextValue | null>(null);

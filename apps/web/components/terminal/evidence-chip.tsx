@@ -7,6 +7,9 @@ import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 import { formatDateTime, isHttpUrl } from "~/lib/display";
 import { BASIS_TONE } from "~/lib/tone";
+import { evidenceLinks } from "~/lib/evidence-links";
+import { trpc } from "~/trpc/client";
+import { EvidenceLinks } from "./drilldown-evidence";
 import { useRun } from "./run-context";
 
 /** Longer than the hover card's open delay, so every timer started before a click has fired by then. */
@@ -19,6 +22,8 @@ const AFTER_CLICK_QUIET_MS = 400;
 export function EvidenceChip({ evidenceKey }: { evidenceKey: string }) {
   const { view, openDrilldown } = useRun();
   const evidence = view.evidenceByKey[evidenceKey];
+  const analogs = trpc.analogs.list.useQuery({}, { staleTime: Infinity, enabled: evidence?.source === "analog_events" });
+  const links = evidence ? evidenceLinks(evidence, analogs.data) : [];
   const [cardOpen, setCardOpen] = useState(false);
   // A click opens the drilldown over the page. Radix keeps the open timers that pointer-enter and focus start
   // (closing clears only the latest), so one can fire after the click and put a hover card above the sheet,
@@ -92,7 +97,8 @@ export function EvidenceChip({ evidenceKey }: { evidenceKey: string }) {
           <dt>Produced by</dt>
           <dd className="text-foreground">{evidence.producedBy}</dd>
         </dl>
-        <p className="text-[11px] text-muted-foreground">Click to open this row in the drilldown.</p>
+        <EvidenceLinks links={links} />
+        <p className="text-[11px] text-muted-foreground">Click the number for the full evidence row.</p>
       </HoverCardContent>
     </HoverCard>
   );

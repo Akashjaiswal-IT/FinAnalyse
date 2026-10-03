@@ -37,7 +37,6 @@ export function Terminal() {
   const [drill, setDrill] = useState<{ target: DrilldownTarget | null; open: boolean }>({ target: null, open: false });
 
   const openDrilldown = useCallback((target: DrilldownTarget) => setDrill({ target, open: true }), []);
-  const runContext = useMemo(() => ({ view: stream.view, openDrilldown }), [stream.view, openDrilldown]);
 
   const preset = findPreset(url.presetId);
   const fixtureSnapshot = useMemo(() => fixturePortfolioAt(url.asOf), [url.asOf]);
@@ -79,6 +78,11 @@ export function Terminal() {
   const apiMode = DATA_SOURCE === "api";
   useLiveRefresh(apiMode && url.mode === "live");
   const [tab, setTab] = useState("steps");
+  const showNews = useCallback(() => {
+    setDrill((d) => ({ ...d, open: false }));
+    setTab("news");
+  }, []);
+  const runContext = useMemo(() => ({ view: stream.view, openDrilldown, showNews }), [stream.view, openDrilldown, showNews]);
   const analyse = (e: MarketEventView) => {
     setTab("steps");
     stream.start({

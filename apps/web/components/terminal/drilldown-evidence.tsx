@@ -1,10 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { ArrowUpRight, Newspaper } from "lucide-react";
 import { formatEvidence, type Evidence } from "@repo/contracts";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 import { formatDateTime, isHttpUrl } from "~/lib/display";
+import { evidenceLinks, type EvidenceLink } from "~/lib/evidence-links";
+import { trpc } from "~/trpc/client";
 import { BASIS_TONE } from "~/lib/tone";
 import { JsonBlock, PanelMessage } from "./bits";
 import { useRun } from "./run-context";
@@ -12,6 +16,7 @@ import { useRun } from "./run-context";
 /** The run's evidence ledger: every number an answer can cite, with its source, basis and as-of time. */
 export function EvidenceTab({ focusKey }: { focusKey: string | null }) {
   const { view } = useRun();
+  const analogs = trpc.analogs.list.useQuery({}, { staleTime: Infinity });
   if (view.evidence.length === 0) {
     return (
       <div className="p-4">
@@ -22,13 +27,51 @@ export function EvidenceTab({ focusKey }: { focusKey: string | null }) {
   return (
     <ul className="space-y-2 p-4">
       {view.evidence.map((e) => (
-        <EvidenceRow key={e.key} evidence={e} focused={e.key === focusKey} />
+        <EvidenceRow key={e.key} evidence={e} focused={e.key === focusKey} links={evidenceLinks(e, analogs.data)} />
       ))}
     </ul>
   );
 }
 
-function EvidenceRow({ evidence, focused }: { evidence: Evidence; focused: boolean }) {
+/** "Check it at the source": data series, storm archive, news query, the past event's references or the code. */
+export function EvidenceLinks({ links }: { links: EvidenceLink[] }) {
+  const { showNews } = useRun();
+  if (links.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {links.map((l) =>
+        "action" in l ? (
+          showNews && (
+            <button
+              key={l.label}
+              type="button"
+              onClick={showNews}
+              className="inline-flex cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-[11px] text-info transition-colors hover:bg-info/10"
+            >
+              <Newspaper className="size-3" aria-hidden /> {l.label}
+            </button>
+          )
+        ) : l.href.startsWith("/") ? (
+          <Link key={l.href} href={l.href} className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] text-info transition-colors hover:bg-info/10">
+            {l.label}
+          </Link>
+        ) : (
+          <a
+            key={l.href}
+            href={l.href}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] text-info transition-colors hover:bg-info/10"
+          >
+            {l.label} <ArrowUpRight className="size-3" aria-hidden />
+          </a>
+        ),
+      )}
+    </div>
+  );
+}
+
+function EvidenceRow({ evidence, focused, links }: { evidence: Evidence; focused: boolean; links: EvidenceLink[] }) {
   const ref = useRef<HTMLLIElement>(null);
   useEffect(() => {
     if (focused) ref.current?.scrollIntoView({ block: "center" });
@@ -88,6 +131,7 @@ function EvidenceRow({ evidence, focused }: { evidence: Evidence; focused: boole
         <dd className="font-mono">{evidence.producedBy}</dd>
       </dl>
 
+      <EvidenceLinks links={links} />
       {evidence.payload !== null && <JsonBlock value={evidence.payload} label="Inputs (payload)" />}
     </li>
   );
