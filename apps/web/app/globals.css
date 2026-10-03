@@ -42,6 +42,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-model: var(--model);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 :root {
@@ -77,40 +84,51 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --positive: oklch(0.55 0.15 155);
+  --negative: oklch(0.55 0.2 25);
+  --warning: oklch(0.65 0.15 78);
+  --info: oklch(0.55 0.13 240);
+  --model: oklch(0.52 0.17 300);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Terminal palette: blue-black surfaces, amber accent, tabular numerals. */
+  --background: oklch(0.145 0.012 255);
+  --foreground: oklch(0.93 0.01 255);
+  --card: oklch(0.185 0.014 255);
+  --card-foreground: oklch(0.93 0.01 255);
+  --popover: oklch(0.205 0.015 255);
+  --popover-foreground: oklch(0.93 0.01 255);
+  --primary: oklch(0.82 0.15 78);
+  --primary-foreground: oklch(0.2 0.03 78);
+  --secondary: oklch(0.25 0.015 255);
+  --secondary-foreground: oklch(0.93 0.01 255);
+  --muted: oklch(0.225 0.013 255);
+  --muted-foreground: oklch(0.7 0.02 255);
+  --accent: oklch(0.27 0.016 255);
+  --accent-foreground: oklch(0.96 0.01 255);
+  --destructive: oklch(0.68 0.2 25);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.82 0.15 78 / 55%);
+  --chart-1: oklch(0.82 0.15 78);
+  --chart-2: oklch(0.74 0.12 235);
+  --chart-3: oklch(0.76 0.17 155);
+  --chart-4: oklch(0.72 0.15 300);
+  --chart-5: oklch(0.7 0.19 25);
+  --sidebar: oklch(0.185 0.014 255);
+  --sidebar-foreground: oklch(0.93 0.01 255);
+  --sidebar-primary: oklch(0.82 0.15 78);
+  --sidebar-primary-foreground: oklch(0.2 0.03 78);
+  --sidebar-accent: oklch(0.27 0.016 255);
+  --sidebar-accent-foreground: oklch(0.96 0.01 255);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.82 0.15 78 / 55%);
+  --positive: oklch(0.76 0.17 155);
+  --negative: oklch(0.7 0.19 25);
+  --warning: oklch(0.82 0.15 78);
+  --info: oklch(0.74 0.12 235);
+  --model: oklch(0.74 0.14 300);
 }
 
 @layer base {
@@ -118,6 +136,19 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans text-[13px] antialiased;
+    font-variant-numeric: tabular-nums;
   }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(1 0 0 / 18%) transparent;
+  }
+}
+
+/* React Flow: let the card surface show through and match the terminal text. */
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-edge-stroke-default: oklch(1 0 0 / 25%);
+  --xy-attribution-background-color-default: transparent;
+  font-family: inherit;
 }
