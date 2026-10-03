@@ -174,7 +174,8 @@ Entries at H7, H12 and H18.
 ### Gate C3 check (2026-10-03)
 
 - `pnpm backtest --verify` re-runs the backtest on the events and fails (exit 1) unless the recorded numbers are reproduced exactly: the backtest section of `docs/RESULTS.md` (all but its "Run:" line) and the latest saved `backtests` row. `--skip-db` checks the results file alone. Tested on a copy of the results file and the dev Postgres with synthetic events: untouched passes; a changed number, a changed event set, a missing row, a missing file or section, and `--verify` with `--save` each fail with the reason.
-- **To close Gate C3:** on a machine that has the seeded data and the saved run (Akash's), run `pnpm backtest --verify` and record the result here. It cannot be closed from a database with no analog events.
+- **Gate C3 result (2026-10-03):** `pnpm backtest --verify` was run on Akash's machine, against his seeded database, his saved `backtests` row and the backtest section of `docs/RESULTS.md`. Both checks passed: the results file equals a fresh run apart from its "Run:" line, and the latest saved row equals a fresh run. Reported by Aman Singh; the output was relayed and not pasted, and the commit hash was not noted, so the Run line in `docs/RESULTS.md` is the only record of the commit that produced the numbers. Gate C3 is closed on that basis.
+- **Run it again** whenever the data or the recorded results change, for example after the GDELT news features are seeded and the backtest is re-recorded with `pnpm backtest --save --write-results`: a fresh `--verify` must pass before the new numbers are used.
 
 **Note for Track A**
 - The script (`pnpm backtest`) needs `AnalogsService.list()` to return every analog event as a contracts `AnalogEvent` (ISO strings for dates, `reactions` with `d5`). It is a stub on your branch: the script prints "AnalogsService.list() failed: not implemented" until it lands.
