@@ -18,7 +18,7 @@ import { GdeltClient } from "../../packages/services/clients/gdelt";
 import { HURDAT2_URL } from "../../packages/services/clients/hurdat2";
 import { RateLimitedError } from "../../packages/services/clients/http";
 import { getPinecone, type FlatMetadata, type TextRecord } from "../../packages/services/clients/pinecone";
-import { cachedJson, log, SEED, type SeedOptions } from "./lib";
+import { cachedJson, log, readCache, SEED, type SeedOptions } from "./lib";
 
 // Step 5 (SPEC 10.5): hurricanes 2017 to 2025 from HURDAT2 and the curated events, built by Track C's pure
 // builders (packages/quant/event-builder.ts), into `analog_events` and the Pinecone `events` namespace.
@@ -42,8 +42,10 @@ async function timeline(
 ): Promise<TimelinePoint[] | null> {
   gdelt ??= new GdeltClient(defaultHttp());
   const key = createHash("sha1").update(`${mode}|${query}|${start.toISOString()}|${end.toISOString()}`).digest("hex");
+  const path = `gdelt/timeline/${mode}-${key}.json`;
+  if (options.gdelt === "cache-only") return readCache<TimelinePoint[]>(path);
   try {
-    return await cachedJson(`gdelt/timeline/${mode}-${key}.json`, options, async () => {
+    return await cachedJson(path, options, async () => {
       for (let attempt = 1; ; attempt++) {
         try {
           return await gdelt!.timeline(query, mode, start, end);
