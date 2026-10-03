@@ -226,80 +226,80 @@ The reported result is h = 1. The other bandwidths are shown next to it, never i
 <!-- results:eval:start -->
 ## Orchestration eval (SPEC 9.2)
 
-- Run: 2026-10-03T12:54:03.149Z on Akashs-MacBook-Air.local, commit `d18e5c1 (uncommitted changes)`, 20 queries from data/eval/queries.json.
-- Runs: 0 succeeded, 20 partial, 0 failed.
-- Plans: 0 model, 20 rule-based. Answers: 0 model, 20 template.
+- Run: 2026-10-03T16:06:07.173Z on Akashs-MacBook-Air.local, commit `16059a0 (uncommitted changes)`, 20 queries from data/eval/queries.json.
+- Runs: 19 succeeded, 1 partial, 0 failed.
+- Plans: 20 model, 0 rule-based. Answers: 20 model, 0 template.
 
 | Metric | Value |
 |---|---|
-| Intent accuracy | 100.0% (20/20) |
-| Event-type accuracy | 100.0% (20/20) |
-| Event-source accuracy | 100.0% (20/20) |
-| Specialist recall | 100.0% (53/53) |
-| Specialist precision | 89.8% (53/59) |
-| Verifier pass, first try | 70.0% |
-| Verifier pass, after repair | 70.0% |
+| Intent accuracy | 95.0% (19/20) |
+| Event-type accuracy | 95.0% (19/20) |
+| Event-source accuracy | 95.0% (19/20) |
+| Specialist recall | 94.3% (50/53) |
+| Specialist precision | 94.3% (50/53) |
+| Verifier pass, first try | 95.0% |
+| Verifier pass, after repair | 100.0% |
 | Hedge-limit pass | 100.0% (15 plans) |
-| Run latency p50 / p95 | 8.0 s / 87.5 s |
-| First completed step p50 / p95 | 0.8 s / 19.0 s |
-| Cost per run (mean) | $0.0000 |
+| Run latency p50 / p95 | 44.9 s / 78.8 s |
+| First completed step p50 / p95 | 3.7 s / 5.2 s |
+| Cost per run (mean) | $0.0444 |
 
 | Query | Group | Status | Intent | Event type | Source | Specialists called | Answer |
 |---|---|---|---|---|---|---|---|
-| q01 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q02 | event_impact | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
-| q03 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q04 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q05 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q06 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q07 | what_if | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q08 | what_if | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q09 | what_if | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
-| q10 | follow_up | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
-| q11 | follow_up | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q12 | portfolio_risk | partial | ok | ok | ok | sentiment, macro | template |
-| q13 | portfolio_risk | partial | ok | ok | ok | sentiment, macro | template |
-| q14 | reallocation | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q15 | reallocation | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
-| q16 | news_scan | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q17 | news_scan | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q18 | competitor | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q19 | statement | partial | ok | ok | ok | sentiment, macro, analogs | template |
-| q20 | out_of_scope | partial | ok | ok | ok | none | template |
+| q01 | event_impact | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q02 | event_impact | succeeded | ok | ok | ok | weather, sentiment, macro, analogs | model |
+| q03 | event_impact | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q04 | event_impact | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q05 | event_impact | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q06 | event_impact | succeeded | wrong | ok | ok | sentiment, analogs | model |
+| q07 | what_if | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q08 | what_if | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q09 | what_if | succeeded | ok | ok | ok | weather, sentiment, macro, analogs | model |
+| q10 | follow_up | succeeded | ok | ok | ok | weather, sentiment, macro, analogs | model |
+| q11 | follow_up | succeeded | ok | wrong | ok | sentiment, macro, analogs | model |
+| q12 | portfolio_risk | succeeded | ok | ok | ok | macro | model |
+| q13 | portfolio_risk | succeeded | ok | ok | ok | macro | model |
+| q14 | reallocation | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q15 | reallocation | succeeded | ok | ok | ok | weather, sentiment, analogs | model |
+| q16 | news_scan | succeeded | ok | ok | wrong | sentiment, macro | model |
+| q17 | news_scan | partial | ok | ok | ok | sentiment, macro, analogs | model |
+| q18 | competitor | succeeded | ok | ok | ok | sentiment, analogs | model |
+| q19 | statement | succeeded | ok | ok | ok | sentiment, macro, analogs | model |
+| q20 | out_of_scope | succeeded | ok | ok | ok | none | model |
 <!-- results:eval:end -->
 
 <!-- results:drills:start -->
 ## Robustness drills (SPEC 9.4)
 
-- Run: 2026-10-03T13:04:34.525Z on Akashs-MacBook-Air.local, commit `e64a82e (uncommitted changes)`. 26/26 drill runs pass every check.
+- Run: 2026-10-03T16:48:29.082Z on Akashs-MacBook-Air.local, commit `ad9730f (uncommitted changes)`. 26/26 drill runs pass every check.
 - Checks: the run does not fail; a caveat or warning names the missing input (n/a where the input is read from Postgres at run time); confidence is not above the baseline; no unresolved placeholders; no digits outside placeholders.
 
 | Drill | Question | Status | Confidence | Not failed | Caveat | Confidence | Placeholders | Digits |
 |---|---|---|---|---|---|---|---|---|
-| baseline | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| baseline | ida | partial | high | pass | n/a | pass | pass | pass |
-| tiingo disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| tiingo disabled | ida | partial | high | pass | n/a | pass | pass | pass |
-| fred disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| fred disabled | ida | partial | high | pass | n/a | pass | pass | pass |
-| eia disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| eia disabled | ida | partial | high | pass | n/a | pass | pass | pass |
-| alphavantage disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| alphavantage disabled | ida | partial | high | pass | n/a | pass | pass | pass |
-| nhc disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| nhc disabled | ida | partial | high | pass | n/a | pass | pass | pass |
-| gdelt disabled | ukraine | partial | medium | pass | pass | pass | pass | pass |
-| gdelt disabled | ida | partial | high | pass | pass | pass | pass | pass |
-| openmeteo disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| openmeteo disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| baseline | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| baseline | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| tiingo disabled | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| tiingo disabled | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| fred disabled | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| fred disabled | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| eia disabled | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| eia disabled | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| alphavantage disabled | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| alphavantage disabled | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| nhc disabled | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| nhc disabled | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| gdelt disabled | ukraine | succeeded | medium | pass | pass | pass | pass | pass |
+| gdelt disabled | ida | succeeded | high | pass | pass | pass | pass | pass |
+| openmeteo disabled | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| openmeteo disabled | ida | succeeded | high | pass | n/a | pass | pass | pass |
 | pinecone unreachable | ukraine | partial | medium | pass | pass | pass | pass | pass |
 | pinecone unreachable | ida | partial | medium | pass | pass | pass | pass | pass |
 | all news sources disabled | ukraine | partial | medium | pass | pass | pass | pass | pass |
 | all news sources disabled | ida | partial | medium | pass | pass | pass | pass | pass |
-| alpha vantage quota at 24 | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| alpha vantage quota at 24 | ida | partial | high | pass | n/a | pass | pass | pass |
-| enrichment quota exhausted | ukraine | partial | medium | pass | n/a | pass | pass | pass |
-| enrichment quota exhausted | ida | partial | high | pass | n/a | pass | pass | pass |
+| alpha vantage quota at 24 | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| alpha vantage quota at 24 | ida | succeeded | high | pass | n/a | pass | pass | pass |
+| enrichment quota exhausted | ukraine | succeeded | medium | pass | n/a | pass | pass | pass |
+| enrichment quota exhausted | ida | succeeded | high | pass | n/a | pass | pass | pass |
 | invalid ANTHROPIC_API_KEY | ukraine | partial | medium | pass | pass | pass | pass | pass |
 | invalid ANTHROPIC_API_KEY | ida | partial | high | pass | pass | pass | pass | pass |
 <!-- results:drills:end -->
