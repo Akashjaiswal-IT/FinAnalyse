@@ -11,6 +11,14 @@ export const SEED = resolve(ROOT, "data/seed");
 export interface SeedOptions {
   /** Refetch upstream data even when a cached response exists. */
   refresh: boolean;
+  /** `cache-only` makes no GDELT requests: only timelines already in `data/cache/gdelt/` are used. */
+  gdelt: "fetch" | "cache-only";
+}
+
+/** A cached upstream response, or null when it was never fetched. */
+export function readCache<T>(path: string): T | null {
+  const file = resolve(CACHE, path);
+  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as T) : null;
 }
 
 /** Raw upstream responses live in `data/cache/` (gitignored) so a re-run costs no quota (SPEC 10). */
