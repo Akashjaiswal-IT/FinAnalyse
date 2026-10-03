@@ -118,6 +118,18 @@ describe("applyRunEvent", () => {
     expect(isRunActive(view)).toBe(false);
   });
 
+  it("fails a node that was still running when the run failed, and leaves finished nodes alone", () => {
+    let view = applyRunEvent(initialRunView(), started);
+    view = applyRunEvent(view, { type: "step.started", node: "planner", at: "2026-10-03T08:00:00.000Z" });
+    view = applyRunEvent(view, { type: "step.completed", node: "planner", status: "done", durationMs: 5, summary: "s", output: null });
+    view = applyRunEvent(view, { type: "step.started", node: "event", at: "2026-10-03T08:00:01.000Z" });
+    view = applyRunEvent(view, { type: "run.failed", error: "server restarted" });
+    expect(view.nodes.event.status).toBe("failed");
+    expect(view.nodes.event.error).toBe("server restarted");
+    expect(view.nodes.planner.status).toBe("done");
+    expect(view.nodes.weather.status).toBe("pending");
+  });
+
   it("drops an output that does not match its contract instead of crashing", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     let view = applyRunEvent(initialRunView(), started);

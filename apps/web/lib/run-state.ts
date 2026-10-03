@@ -225,8 +225,14 @@ export function applyRunEvent(view: RunView, event: RunEvent): RunView {
         totals: event.totals,
       };
 
-    case "run.failed":
-      return { ...view, phase: "failed", error: event.error };
+    case "run.failed": {
+      // A node still running when the run dies will never finish: show it as failed, not spinning.
+      const nodes = { ...view.nodes };
+      for (const node of NODE_ORDER) {
+        if (nodes[node].status === "running") nodes[node] = { ...nodes[node], status: "failed", error: event.error };
+      }
+      return { ...view, nodes, phase: "failed", error: event.error };
+    }
   }
 }
 
