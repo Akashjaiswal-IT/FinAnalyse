@@ -36,6 +36,8 @@ export function useTerminalUrl() {
   );
 
   return {
+    /** A question handed over in the URL; read once, when the query bar mounts. */
+    initialQuery: search.get("q"),
     /** The run on screen, so a reload can follow it again. */
     runId,
     setRunId,

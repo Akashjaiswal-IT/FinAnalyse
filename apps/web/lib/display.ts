@@ -50,3 +50,10 @@ export function signed(formatted: string, value: number): string {
 export function isHttpUrl(value: string): boolean {
   return /^https?:\/\//i.test(value);
 }
+
+const priceFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** A share price as the server sent it, with cents ("$56.50"); `formatValue("usd")` rounds to whole dollars. */
+export function formatPrice(price: number): string {
+  return priceFormat.format(price);
+}

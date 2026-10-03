@@ -25,10 +25,12 @@ interface QueryBarProps {
   notice: string | null;
   onSubmit: (query: string) => void;
   onPickExample: (presetId: string) => void;
+  /** A question passed in the URL (`?q=`), for example from the command menu. */
+  initialQuery?: string | null;
 }
 
-export function QueryBar({ disabled, notice, onSubmit, onPickExample }: QueryBarProps) {
-  const [query, setQuery] = useState<string>(EXAMPLE_QUERIES[0]);
+export function QueryBar({ disabled, notice, onSubmit, onPickExample, initialQuery }: QueryBarProps) {
+  const [query, setQuery] = useState<string>(initialQuery?.slice(0, MAX_QUERY_LENGTH) || EXAMPLE_QUERIES[0]);
   const trimmed = query.trim();
   const canSubmit = !disabled && trimmed.length > 0;
 

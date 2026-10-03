@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Zap } from "lucide-react";
+import { ScrollText } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MarketEventView, Mode } from "@repo/contracts";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "~/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -22,7 +20,7 @@ import { EventCard } from "./event-card";
 import { ForecastPanel } from "./forecast-panel";
 import { HedgeTable } from "./hedge-table";
 import { ImpactStrip } from "./impact-strip";
-import { EventFeed, NewsFeed, SourceDots, SourceHealth, useLiveRefresh } from "./live-panels";
+import { EventFeed, NewsFeed, SourceHealth, useLiveRefresh } from "./live-panels";
 import { ModeSwitch } from "./mode-switch";
 import { PortfolioPanel } from "./portfolio-panel";
 import { QueryBar } from "./query-bar";
@@ -83,47 +81,23 @@ export function Terminal() {
 
   return (
     <RunProvider value={runContext}>
-      <div className="flex h-dvh flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b bg-background/60 px-4 py-2 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-2.5">
-              <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-warning/70 shadow-[0_0_18px_-4px_var(--primary)]">
-                <Zap className="size-4 text-primary-foreground" aria-hidden />
-              </span>
-              <span className="leading-tight">
-                <span className="block font-mono text-sm font-bold tracking-[0.25em] text-primary">TEMPEST</span>
-                <span className="hidden text-[10px] text-muted-foreground xl:block">Event-driven portfolio intelligence</span>
-              </span>
-            </span>
-            {DATA_SOURCE === "fixture" && (
-              <Badge
-                variant="outline"
-                className="border-warning/50 bg-warning/10 text-warning"
-                title="Runs are recorded fixtures from @repo/contracts. Their numbers are hand-built, not market data."
-              >
-                fixture data
-              </Badge>
-            )}
+      <div className="flex h-full flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b px-4 py-2">
+          <div data-tour="mode">
+            <ModeSwitch
+              mode={url.mode}
+              presetId={url.presetId}
+              asOf={url.asOf}
+              disabled={stream.isActive}
+              onModeChange={changeMode}
+              onPresetChange={changePreset}
+              onAsOfChange={changeAsOf}
+            />
           </div>
-          <ModeSwitch
-            mode={url.mode}
-            presetId={url.presetId}
-            asOf={url.asOf}
-            disabled={stream.isActive}
-            onModeChange={changeMode}
-            onPresetChange={changePreset}
-            onAsOfChange={changeAsOf}
-          />
-          <div className="flex items-center gap-2">
-            {apiMode && <SourceDots onOpen={() => setTab("sources")} />}
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/reliability">Reliability</Link>
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => openDrilldown({ kind: "run" })}>
-              Audit
-            </Button>
-          </div>
-        </header>
+          <Button type="button" variant="outline" size="sm" onClick={() => openDrilldown({ kind: "run" })}>
+            <ScrollText className="size-3.5" /> Audit this run
+          </Button>
+        </div>
 
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
           <ResizablePanel defaultSize="22%" minSize="15%" maxSize="38%">
@@ -142,6 +116,7 @@ export function Terminal() {
           <ResizablePanel defaultSize="50%" minSize="30%">
             <main className="bg-grid h-full overflow-y-auto">
               <div className="mx-auto max-w-4xl space-y-3 p-3">
+                <div data-tour="ask">
                 <QueryBar
                   disabled={stream.isActive}
                   notice={notice}
@@ -149,11 +124,19 @@ export function Terminal() {
                     stream.start({ query, mode: url.mode, asOf: url.asOf, replayPresetId: url.presetId })
                   }
                   onPickExample={changePreset}
+                  initialQuery={url.initialQuery}
                 />
+                </div>
                 <EventCard preview={preset} />
-                <AgentGraph />
-                <ImpactStrip />
-                <AnswerCard />
+                <div data-tour="graph">
+                  <AgentGraph />
+                </div>
+                <div data-tour="impact">
+                  <ImpactStrip />
+                </div>
+                <div data-tour="answer">
+                  <AnswerCard />
+                </div>
                 <HedgeTable />
                 <RiskSummary />
                 <ForecastPanel />
@@ -165,7 +148,7 @@ export function Terminal() {
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="28%" minSize="18%" maxSize="42%">
             {apiMode ? (
-              <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0">
+              <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0" data-tour="side">
                 <TabsList className="m-2 mb-0 w-auto">
                   <TabsTrigger value="steps">Steps</TabsTrigger>
                   <TabsTrigger value="events">Events</TabsTrigger>

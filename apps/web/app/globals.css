@@ -190,3 +190,30 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-node-pulse, .animate-rise-in { animation: none; }
 }
+
+/* Tour popovers in the app's own surfaces. */
+.driver-popover {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px -20px oklch(0 0 0 / 55%);
+  max-width: 320px;
+}
+.driver-popover-title { font-size: 15px; font-weight: 600; }
+.driver-popover-description { color: var(--muted-foreground); font-size: 13px; line-height: 1.5; }
+.driver-popover-progress-text { color: var(--muted-foreground); }
+.driver-popover-arrow-side-left.driver-popover-arrow { border-left-color: var(--popover); }
+.driver-popover-arrow-side-right.driver-popover-arrow { border-right-color: var(--popover); }
+.driver-popover-arrow-side-top.driver-popover-arrow { border-top-color: var(--popover); }
+.driver-popover-arrow-side-bottom.driver-popover-arrow { border-bottom-color: var(--popover); }
+.driver-popover-footer button {
+  background: var(--secondary);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-shadow: none;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.driver-popover-footer button.driver-popover-next-btn { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }

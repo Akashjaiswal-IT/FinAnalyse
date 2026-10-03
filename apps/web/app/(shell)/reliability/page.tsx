@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatValue, ModelKey, type BacktestMetrics } from "@repo/contracts";
 import { Card, CardContent } from "~/components/ui/card";
@@ -8,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { PanelMessage, SectionLabel } from "~/components/terminal/bits";
 import { formatDateTime, humanize } from "~/lib/display";
 import { trpc } from "~/trpc/client";
+import { PageHeader } from "~/components/shell/page-header";
 
 const MODEL_LABEL: Record<ModelKey, string> = {
   N: "N · unconditional mean",
@@ -96,13 +96,13 @@ export default function ReliabilityPage() {
   const b = latest.data;
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4">
-      <header className="flex items-center justify-between">
-        <h1 className="font-mono text-sm font-bold tracking-[0.25em] text-primary">TEMPEST · RELIABILITY</h1>
-        <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
-          Back to the terminal
-        </Link>
-      </header>
+    <main className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-6xl space-y-5 px-6 py-8">
+      <PageHeader
+        eyebrow="Reliability"
+        title="How well does it work?"
+        description="Every number here comes from a script run, with its date and commit. Weak spots are shown, not hidden."
+      />
       {latest.error ? (
         <PanelMessage tone="negative">Backtest unavailable: {latest.error.message}</PanelMessage>
       ) : latest.isLoading ? (
@@ -140,6 +140,7 @@ export default function ReliabilityPage() {
           </Card>
         </>
       )}
+      </div>
     </main>
   );
 }
