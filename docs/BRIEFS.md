@@ -4,10 +4,10 @@ One detailed brief per track. Paste your track's brief at the start of every wor
 
 | Track | Who |
 |---|---|
-| A: Data | assign in the team chat |
-| B: Agents and API (integrator) | Akash |
-| C: Quant and proof | assign in the team chat |
-| D: Terminal | assign in the team chat |
+| A: Data | naman553 |
+| B: Agents and API (integrator) | Akash (Akashjaiswal-IT) |
+| C: Quant and proof | Aman Singh (conqueror1703) |
+| D: Terminal | Sarvesh (Sarvesh-NITrr) |
 
 **Clock.** The times assume the event started at 11:50 IST on 3 Oct, so the deadline is 11:50 IST on 4 Oct. If the real deadline differs, shift every time by the same amount.
 
