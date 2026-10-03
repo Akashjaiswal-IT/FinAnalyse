@@ -1,4 +1,5 @@
 import { inflateRawSync } from "node:zlib";
+import type { EventType } from "@repo/contracts";
 import { z } from "zod";
 import type { NewsItemInput } from "../news/model";
 import { prefilter } from "../news/prefilter";
@@ -31,6 +32,23 @@ export const MARKET_THEMES: ReadonlySet<string> = new Set([
   "ECON_TRADE_DISPUTE",
   "ECON_EARNINGSREPORT",
 ]);
+
+/**
+ * Event types whose keywords keep an article on their own (tariff, sanctions, rate cut, export ban, earthquake). The
+ * DOC API collection queries (`NEWS_QUERIES`) did the same: `statement` and `accident` needed a market term beside
+ * the keyword, and `corporate` words (lawsuit, earnings) came only through company names.
+ */
+const STANDALONE_TYPES: ReadonlySet<EventType> = new Set(["geopolitical", "policy", "macro", "supply_shock", "disaster"]);
+const STATEMENT_CONTEXT = /\b(markets?|oil|tariffs?|rates?)\b/i;
+const ACCIDENT_CONTEXT = /\b(refinery|pipeline|airline|plant|bank|chip)\b/i;
+
+function keywordKeeps(types: readonly EventType[], title: string): boolean {
+  return (
+    types.some((t) => STANDALONE_TYPES.has(t)) ||
+    (types.includes("statement") && STATEMENT_CONTEXT.test(title)) ||
+    (types.includes("accident") && ACCIDENT_CONTEXT.test(title))
+  );
+}
 
 /** `20261003163000` (UTC) to epoch milliseconds. */
 export function stampToMs(stamp: string): number {
@@ -139,8 +157,9 @@ export function parseGkg(tsv: string): GkgRow[] {
 
 /**
  * News items for the market-relevant articles of a file. An article is kept when it names a universe company or its
- * competitor (the project's prefilter), or carries a precise market theme. A bare event keyword is not enough here:
- * "crash" or "fire" alone tags road accidents in a feed of every article GDELT sees. A headline is kept once.
+ * competitor (the project's prefilter), carries a precise market theme, or has an event keyword that stands on its own
+ * (see `keywordKeeps`). "crash" or "fire" alone is not enough: it tags road accidents in a feed of every article GDELT
+ * sees. This is a wide net on purpose; the model's relevance score decides what counts. A headline is kept once.
  */
 export function toNewsItems(rows: readonly GkgRow[], fetchedAt: string): NewsItemInput[] {
   const items: NewsItemInput[] = [];
@@ -152,7 +171,8 @@ export function toNewsItems(rows: readonly GkgRow[], fetchedAt: string): NewsIte
     if (seen.has(headline)) continue;
     const marketThemes = [...row.themes].filter((t) => MARKET_THEMES.has(t));
     const hit = prefilter({ title: row.title, summary: null, tickerSentiment: null });
-    if (hit.tickers.length === 0 && hit.peerTickers.length === 0 && marketThemes.length === 0) continue;
+    const named = hit.tickers.length > 0 || hit.peerTickers.length > 0;
+    if (!named && marketThemes.length === 0 && !keywordKeeps(hit.eventTypes, row.title)) continue;
     seen.add(headline);
     items.push({
       source: "gdelt",
