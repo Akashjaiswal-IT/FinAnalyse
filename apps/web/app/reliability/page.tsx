@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatValue, ModelKey, type BacktestMetrics } from "@repo/contracts";
 import { Card, CardContent } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
@@ -52,6 +53,43 @@ function MetricsTable({ title, row }: { title: string; row: Partial<Record<Model
   );
 }
 
+const MODEL_SHORT: Record<ModelKey, string> = { N: "Unconditional", T: "Same type", S: "News", M: "Regime", W: "Weather", C: "Combined" };
+
+/** Pooled directional accuracy per model against the coin-flip line; models without predictions are left out. */
+function AccuracyChart({ row }: { row: Partial<Record<ModelKey, BacktestMetrics>> }) {
+  const data = ModelKey.options.flatMap((m) => {
+    const x = row[m];
+    return x && x.directionalAccuracy !== null ? [{ model: MODEL_SHORT[m], key: m, accuracy: x.directionalAccuracy, n: x.n }] : [];
+  });
+  return (
+    <Card className="gap-0 py-0">
+      <CardContent className="space-y-2 p-4">
+        <SectionLabel>Directional accuracy by model, pooled</SectionLabel>
+        <div className="h-56" role="img" aria-label="Directional accuracy by model against 50 percent">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ left: 0, right: 16, top: 8, bottom: 4 }}>
+              <CartesianGrid vertical={false} strokeOpacity={0.12} />
+              <XAxis dataKey="model" tick={{ fontSize: 11 }} />
+              <YAxis domain={[0.3, 0.7]} tickFormatter={(v: number) => formatValue("pct", v)} tick={{ fontSize: 10 }} width={48} />
+              <ReferenceLine y={0.5} stroke="var(--muted-foreground)" strokeDasharray="4 4" label={{ value: "coin flip", fontSize: 10, fill: "var(--muted-foreground)", position: "insideTopRight" }} />
+              <Tooltip
+                cursor={{ fillOpacity: 0.05 }}
+                contentStyle={{ fontSize: 11, background: "var(--popover)", border: "1px solid var(--border)" }}
+                formatter={(v: number, _n, item) => [`${formatValue("pct", v)} (n ${(item.payload as { n: number }).n})`, "Directional accuracy"]}
+              />
+              <Bar dataKey="accuracy" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                {data.map((d) => (
+                  <Cell key={d.key} fill={d.key === "C" ? "var(--primary)" : d.accuracy >= 0.5 ? "var(--positive)" : "var(--negative)"} fillOpacity={0.75} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /** The newest leave-one-out backtest, as `pnpm backtest --save` stored it. */
 export default function ReliabilityPage() {
   const latest = trpc.backtest.latest.useQuery();
@@ -77,6 +115,7 @@ export default function ReliabilityPage() {
             Leave-one-out over past events, run {formatDateTime(b.createdAt)}. Bandwidth {b.config.bandwidth}, type weight{" "}
             {b.config.typeWeight}. Directional accuracy ignores moves under 0.25%; MAE is in 5-day log-return points.
           </p>
+          {b.metrics.pooled && <AccuracyChart row={b.metrics.pooled} />}
           {b.metrics.pooled && <MetricsTable title="Pooled, all targets" row={b.metrics.pooled} />}
           <div className="grid gap-4 lg:grid-cols-2">
             {b.config.targets.flatMap((t) => (b.metrics[t] ? [<MetricsTable key={t} title={t} row={b.metrics[t]} />] : []))}
