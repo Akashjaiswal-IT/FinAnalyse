@@ -8,5 +8,6 @@ export * from "./forecast";
 export * from "./detect";
 export * from "./backtest";
 export * from "./backtest-report";
+export * from "./backtest-verify";
 export * from "./event-builder";
 export * from "./results-doc";
