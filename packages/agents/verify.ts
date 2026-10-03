@@ -12,8 +12,6 @@ import type { Ledger } from "./ledger";
 
 type Check = Verification["checks"][number];
 
-const DIGIT = /\p{Nd}/u;
-
 /** Finance acronyms that are not tradable symbols. A 2 to 5 letter capitalised word outside this list and
  * the universe is reported as an unknown symbol (SPEC 5.6, check 4). */
 const KNOWN_ACRONYMS = new Set([
