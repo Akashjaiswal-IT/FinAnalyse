@@ -3,7 +3,7 @@ import { createRedisConnection, closeRedis } from "@repo/services/clients/redis"
 import { EventsService } from "@repo/services/events";
 import { INGEST_SOURCES, IngestService, type IngestSource } from "@repo/services/ingest";
 import { NewsService } from "@repo/services/news";
-import { QUEUE_NAMES, closeQueues, getQueue, type QueueKey } from "@repo/services/queues";
+import { EnrichJob, QUEUE_NAMES, closeQueues, getQueue, type QueueKey } from "@repo/services/queues";
 import { publishLive } from "@repo/services/system";
 import { Worker, type Job } from "bullmq";
 import { env } from "./env";
@@ -32,8 +32,8 @@ async function runIngest(source: IngestSource): Promise<unknown> {
   return result;
 }
 
-async function runEnrich(): Promise<unknown> {
-  const scored = await news.scoreUnscored(20);
+async function runEnrich(job: Job): Promise<unknown> {
+  const scored = await news.scoreUnscored(20, EnrichJob.parse(job.data).newsIds);
   if (scored.length) {
     const rows = await news.list({ asOf: new Date(), limit: 200 });
     const items = rows
@@ -63,7 +63,7 @@ async function runDetect(): Promise<unknown> {
 
 function processor(key: QueueKey): (job: Job) => Promise<unknown> {
   if ((INGEST_SOURCES as readonly string[]).includes(key)) return () => runIngest(key as IngestSource);
-  if (key === "enrich") return () => runEnrich();
+  if (key === "enrich") return runEnrich;
   return () => runDetect();
 }
 

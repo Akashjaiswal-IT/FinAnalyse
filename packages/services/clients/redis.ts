@@ -62,3 +62,18 @@ export async function takeQuota(redis: Redis, name: string, max: number, now: Da
 export async function quotaUsed(redis: Redis, name: string, now: Date): Promise<number> {
   return Number((await redis.get(quotaKey(name, now))) ?? 0);
 }
+
+export type SourceRecorder = (error: unknown, latencyMs: number) => void;
+
+/** Health of a source called outside `HttpClient` (Pinecone, Anthropic), in the same `source:<name>` hash. */
+export function sourceRecorder(name: string): SourceRecorder {
+  return (error, latencyMs) => {
+    const now = new Date().toISOString();
+    const message = error instanceof Error ? error.message : String(error);
+    const fields =
+      error === null
+        ? { status: "ok", lastOkAt: now, lastLatencyMs: String(Math.round(latencyMs)) }
+        : { status: /\b429\b|rate.?limit/i.test(message) ? "rate_limited" : "degraded", lastErrorAt: now, lastError: message.slice(0, 300) };
+    getRedis().hset(`source:${name}`, fields).catch(() => undefined);
+  };
+}

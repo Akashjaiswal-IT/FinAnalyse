@@ -220,3 +220,21 @@ The fixtures never fail, so the failed, degraded and repaired nodes, the templat
 - In fixture mode the question text is ignored: the run played is the recorded one for the selected preset.
 
 
+
+## Completion (all tracks, 2026-10-03 evening)
+
+From H6 the remaining work of every track was finished on one machine, on branches `solo/finish` (PR #17) and `solo/p1`.
+
+**Works, on real data**
+- Data: news features (GDELT timelines, cached), Haiku news scoring with a daily quota, event detection (clustering, baseline z-score, match or insert, fade), system status (source health, ingest latency p50/p95, scoring quota), BullMQ queues and the worker with every schedule in SPEC 4, live relay over Redis to `live.feed`.
+- Replay news: each preset's window `[asOf - 72 h, asOf]` comes from the Alpha Vantage archive (`seed --only=news`), and GDELT when reachable. Alpha Vantage's own scores stand in when an item has no Haiku score.
+- Terminal: the real API driver (`runs.create` + `runs.stream`), live portfolio, Events / News / Sources tabs with live refresh and "Ingest now", risk summary with the before/after hedge chart, analog forecast chart with the closest past events, storm map (Leaflet, refineries at risk), `/reliability` from `backtest.latest`.
+- Proof: backtest saved and written to RESULTS.md; `pnpm eval`, `pnpm drills` and `pnpm bench:ingest` implemented and run.
+- Ukraine replay runs end to end in 7 s and Ida in 9 s when the model calls fail fast.
+
+**Blocked outside the code**
+- The Anthropic key in `.env` has no credit (`Your credit balance is too low`). Every model step uses its fallback: rule-based plan, fallback hedge, template answer. The eval and drills in RESULTS.md measure that path; re-run them once the key works.
+- GDELT answers this network with HTTP 429, so analog events and replay windows have no news features and model S has no predictions. Re-run `pnpm seed --only=analogs` and `--only=news`, then `pnpm backtest --save --write-results`, from a network GDELT accepts.
+
+**Gotcha found**
+- A shell that exports `ANTHROPIC_API_KEY` or `ANTHROPIC_BASE_URL` wins over `.env` (dotenv does not override). Start the api and worker with those unset.

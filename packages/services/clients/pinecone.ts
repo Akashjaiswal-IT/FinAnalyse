@@ -1,6 +1,7 @@
 import { PINECONE_UPSERT_BATCH } from "@repo/contracts";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { z } from "zod";
+import { sourceRecorder, type SourceRecorder } from "./redis";
 
 // One integrated-embedding index, `llama-text-embed-v2`, field map { text: "text" } (SPEC 5.4).
 
@@ -81,28 +82,38 @@ export class PineconeClient {
   constructor(
     private readonly index: PineconeIndexLike,
     private readonly sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+    private readonly record: SourceRecorder = () => undefined,
   ) {}
+
+  private async recorded<T>(fn: () => Promise<T>): Promise<T> {
+    const started = Date.now();
+    try {
+      const result = await withRetry(fn, this.sleep);
+      this.record(null, Date.now() - started);
+      return result;
+    } catch (error) {
+      this.record(error, Date.now() - started);
+      throw error;
+    }
+  }
 
   /** Upserts in batches of at most 96 records (ROADMAP gotcha 7). */
   async upsert(namespace: Namespace, records: readonly TextRecord[]): Promise<number> {
     for (const batch of chunk(records, PINECONE_UPSERT_BATCH)) {
-      await withRetry(
-        () => this.index.upsertRecords({ namespace, records: batch.map((r) => ({ _id: r.id, text: r.text, ...r.metadata })) }),
-        this.sleep,
+      await this.recorded(() =>
+        this.index.upsertRecords({ namespace, records: batch.map((r) => ({ _id: r.id, text: r.text, ...r.metadata })) }),
       );
     }
     return records.length;
   }
 
   async search(namespace: Namespace, text: string, topK: number, filter?: object, fields?: string[]): Promise<SearchHit[]> {
-    const body = await withRetry(
-      () =>
-        this.index.searchRecords({
-          namespace,
-          query: { topK, inputs: { text }, ...(filter ? { filter } : {}) },
-          ...(fields ? { fields } : {}),
-        }),
-      this.sleep,
+    const body = await this.recorded(() =>
+      this.index.searchRecords({
+        namespace,
+        query: { topK, inputs: { text }, ...(filter ? { filter } : {}) },
+        ...(fields ? { fields } : {}),
+      }),
     );
     return parseSearch(body);
   }
@@ -120,7 +131,7 @@ function connect() {
     const env = PineconeEnv.parse(process.env);
     const sdk = new Pinecone({ apiKey: env.PINECONE_API_KEY });
     const target = indexTarget(env.PINECONE_INDEX);
-    shared = { sdk, target, client: new PineconeClient(sdk.index(target) as unknown as PineconeIndexLike) };
+    shared = { sdk, target, client: new PineconeClient(sdk.index(target) as unknown as PineconeIndexLike, undefined, sourceRecorder("pinecone")) };
   }
   return shared;
 }

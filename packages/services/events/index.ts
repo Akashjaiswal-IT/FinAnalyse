@@ -7,7 +7,7 @@ import {
   TYPE_BASELINE_DAYS,
   type EventProfile,
   type EventsListInput,
-  type EventType,
+  EventType,
   type ExposureChannel,
   type FactorDirectionEntry,
   type FactorName,
@@ -17,7 +17,7 @@ import {
   type NewsItem,
   type Unavailable,
 } from "@repo/contracts";
-import defaultDb, { and, desc, eq, gte, inArray, isNotNull, lte, ne, type SQL } from "@repo/database";
+import defaultDb, { and, desc, eq, gte, inArray, isNotNull, isNull, lte, ne, or, type SQL } from "@repo/database";
 import { marketEvents, newsItems, type MarketEventRow } from "@repo/database/schema";
 import { clusterNews, clusterZ, eventStatus, isEvent, matchActiveEvent, type DetectItem } from "@repo/quant";
 import { NewsService, toNewsItem } from "../news";
@@ -83,6 +83,24 @@ function touchedHoldings(entities: readonly string[]): MarketEventView["touchedH
 
 const toView = (r: MarketEventRow): MarketEventView => ({ ...toMarketEvent(r), touchedHoldings: touchedHoldings(r.entities) });
 
+/** Relevance given to an unscored item typed by keyword: the middle of the scale, as for source scores. */
+const KEYWORD_RELEVANCE = 0.5;
+
+/** The event type whose `EVENT_KEYWORDS` the text names most often (whole words), or null when it names none. */
+export function keywordEventType(text: string): EventType | null {
+  const lower = text.toLowerCase();
+  let best: EventType | null = null;
+  let bestHits = 0;
+  for (const type of EventType.options) {
+    const hits = EVENT_KEYWORDS[type].filter((k) => new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(lower)).length;
+    if (hits > bestHits) {
+      best = type;
+      bestHits = hits;
+    }
+  }
+  return best;
+}
+
 /** Live market events (SPEC 5.14). */
 export class EventsService {
   constructor(
@@ -126,18 +144,25 @@ export class EventsService {
         and(
           gte(newsItems.publishedAt, new Date(asOf.getTime() - 24 * HOUR)),
           lte(newsItems.publishedAt, asOf),
-          isNotNull(newsItems.eventType),
-          ne(newsItems.eventType, "none"),
+          or(
+            and(isNotNull(newsItems.eventType), ne(newsItems.eventType, "none")),
+            and(isNull(newsItems.scoredAt), eq(newsItems.prefilterMatch, true)),
+          ),
         ),
       );
-    const items: DetectItem[] = rows.map((r) => ({
+    // Items the model has not scored yet are typed by keyword, so detection keeps working without the model.
+    const typed = rows.flatMap((r) => {
+      const type = r.scoredAt ? (r.eventType as EventType) : keywordEventType(`${r.title} ${r.summary ?? ""}`);
+      return type ? [{ r, type }] : [];
+    });
+    const items: DetectItem[] = typed.map(({ r, type }) => ({
       id: r.id,
       title: r.title,
       domain: r.domain,
-      eventType: r.eventType as EventType,
+      eventType: type,
       tickers: r.tickers,
       peerTickers: r.peerTickers,
-      relevance: r.relevance ?? 0,
+      relevance: r.relevance ?? KEYWORD_RELEVANCE,
       publishedAt: r.publishedAt.toISOString(),
       factorDirections: Object.entries(r.factorDirections ?? {}).map(([factor, direction]) => ({
         factor: factor as FactorName,
