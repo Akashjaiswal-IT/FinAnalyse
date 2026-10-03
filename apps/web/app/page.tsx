@@ -1,26 +1,17 @@
-import { api } from "~/trpc/server";
-import { LiveHeartbeat } from "~/components/terminal/live-heartbeat";
+import { Suspense } from "react";
+import { Terminal } from "~/components/terminal/terminal";
 
-export const dynamic = "force-dynamic";
-
-async function apiStatus(): Promise<string> {
-  try {
-    const { status } = await api.health.getHealth.query();
-    return status;
-  } catch {
-    return "unreachable";
-  }
-}
-
-export default async function Home() {
-  const status = await apiStatus();
+// The terminal reads mode, preset and as-of from the URL query, which needs a Suspense boundary.
+export default function Home() {
   return (
-    <main className="min-h-screen min-w-screen flex justify-center items-center">
-      <div className="space-y-2">
-        <h1 className="text-3xl">Tempest</h1>
-        <h2>Server Status: {status}</h2>
-        <LiveHeartbeat />
-      </div>
-    </main>
+    <Suspense
+      fallback={
+        <div className="flex h-dvh items-center justify-center font-mono text-sm tracking-[0.25em] text-muted-foreground">
+          TEMPEST
+        </div>
+      }
+    >
+      <Terminal />
+    </Suspense>
   );
 }
