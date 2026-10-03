@@ -143,6 +143,16 @@ describe("HttpClient.request", () => {
     expect((await h.store.hgetall("source:fred")).status).toBe("ok");
   });
 
+  it("with the breaker switched off, failures never open the circuit (the seed retries on its own schedule)", async () => {
+    const bad = { status: 400, body: "bad" };
+    const h = harness([bad, bad, bad, bad, ok(7)], { breaker: false });
+    for (let i = 0; i < 4; i++) await expect(h.http.request(req)).rejects.toBeInstanceOf(HttpStatusError);
+    expect((await h.store.hgetall("source:fred")).status).toBe("degraded");
+    await expect(h.http.request(req)).resolves.toEqual({ value: 7 });
+    expect(h.calls).toHaveLength(5); // every call reached the network; none failed fast
+    expect((await h.store.hgetall("source:fred")).status).toBe("ok");
+  });
+
   it("does not count rate limits as breaker failures", async () => {
     const limited = { status: 429, body: "" };
     const h = harness([limited, limited, limited, ok(5)]);

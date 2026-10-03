@@ -78,6 +78,11 @@ export interface HttpDeps {
   random: () => number;
   disabledSources: readonly string[];
   log: LogFn;
+  /**
+   * Circuit breaker (SPEC 5.3): default is `BREAKER_THRESHOLD` failures open it for `BREAKER_OPEN_MS`. `false` keeps
+   * it closed, for a one-off job such as the seed that retries a flaky source on its own schedule.
+   */
+  breaker?: false;
 }
 
 export interface RequestOptions<T> {
@@ -148,6 +153,10 @@ export class HttpClient {
     } catch (error) {
       if (error instanceof RateLimitedError) {
         await this.writeStatus(source, "rate_limited", { lastError: error.message });
+        throw error;
+      }
+      if (this.deps.breaker === false) {
+        await this.writeStatus(source, "degraded", { lastError: error instanceof Error ? error.message : String(error) });
         throw error;
       }
       const failures = (this.breakers.get(source)?.failures ?? 0) + 1;

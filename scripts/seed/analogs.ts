@@ -13,10 +13,10 @@ import {
   type EventBuildBase,
   type TimelinePoint,
 } from "../../packages/quant/index";
-import { defaultHttp } from "../../packages/services/clients/default-http";
+import { patientHttp } from "../../packages/services/clients/default-http";
 import { GdeltClient } from "../../packages/services/clients/gdelt";
 import { HURDAT2_URL } from "../../packages/services/clients/hurdat2";
-import { RateLimitedError } from "../../packages/services/clients/http";
+import { BadPayloadError, HttpStatusError, RateLimitedError, UpstreamError } from "../../packages/services/clients/http";
 import { getPinecone, type FlatMetadata, type TextRecord } from "../../packages/services/clients/pinecone";
 import { cachedJson, log, readCache, SEED, type SeedOptions } from "./lib";
 
@@ -28,9 +28,20 @@ const HURRICANE_FROM = 2017;
 const HURRICANE_NEWS_HOURS = 48;
 /** Sectors a Gulf hurricane reaches through refining and fuel prices (not curated per storm). */
 const HURRICANE_SECTORS = ["energy", "refiner", "commodity_proxy"];
-const RATE_LIMIT_ATTEMPTS = 5;
+/** GDELT throttles with 429 and drops connections; the seed keeps trying each timeline this many times. */
+const GDELT_ATTEMPTS = 10;
+const GDELT_RETRY_BASE_MS = 15_000;
+const GDELT_RETRY_MAX_MS = 60_000;
+
+/** A failure that another try may fix: throttling, a dropped connection, a 5xx, or a throttle sent as plain text. */
+function isTransient(error: unknown): boolean {
+  if (error instanceof RateLimitedError || error instanceof UpstreamError) return true;
+  if (error instanceof HttpStatusError) return error.status >= 500;
+  return error instanceof BadPayloadError && /limit requests|try again/i.test(error.sample);
+}
 
 let gdelt: GdeltClient | null = null;
+let fetched = 0;
 
 /** One GDELT timeline, cached per query and window. Null (logged) when GDELT keeps refusing. */
 async function timeline(
@@ -40,18 +51,23 @@ async function timeline(
   end: Date,
   options: SeedOptions,
 ): Promise<TimelinePoint[] | null> {
-  gdelt ??= new GdeltClient(defaultHttp());
+  // `patientHttp`: no circuit breaker, so a few dropped connections do not fail every remaining timeline for 5 minutes.
+  gdelt ??= new GdeltClient(patientHttp());
   const key = createHash("sha1").update(`${mode}|${query}|${start.toISOString()}|${end.toISOString()}`).digest("hex");
   const path = `gdelt/timeline/${mode}-${key}.json`;
   if (options.gdelt === "cache-only") return readCache<TimelinePoint[]>(path);
   try {
     return await cachedJson(path, options, async () => {
+      const began = Date.now();
       for (let attempt = 1; ; attempt++) {
         try {
-          return await gdelt!.timeline(query, mode, start, end);
+          const points = await gdelt!.timeline(query, mode, start, end);
+          fetched++;
+          log("analogs", `GDELT ${mode} #${fetched} fetched in ${Math.round((Date.now() - began) / 1000)} s (${attempt} ${attempt === 1 ? "try" : "tries"}): ${query.slice(0, 60)}`);
+          return points;
         } catch (error) {
-          if (!(error instanceof RateLimitedError) || attempt >= RATE_LIMIT_ATTEMPTS) throw error;
-          await new Promise((r) => setTimeout(r, 20_000 * attempt));
+          if (!isTransient(error) || attempt >= GDELT_ATTEMPTS) throw error;
+          await new Promise((r) => setTimeout(r, Math.min(GDELT_RETRY_BASE_MS * attempt, GDELT_RETRY_MAX_MS)));
         }
       }
     });
