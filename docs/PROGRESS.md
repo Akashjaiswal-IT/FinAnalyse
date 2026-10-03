@@ -37,8 +37,25 @@ Entries at H7, H12 and H18.
 1. `.env.example`: add `EIA_API_KEY=` (FRED has no weekly inventory series; `WGTSTUS1` and `WCESTUS1` come from the EIA API, see DECISIONS).
 2. `packages/services/package.json`: add `"@repo/quant": "workspace:*"` (news features and detection call `quant/stats.ts` and `quant/detect.ts`, SPEC 5.9, 5.14).
 3. `contracts` `SourceName`: add `"eia"` (additive), so the inventory source gets a health pill.
+4. `REPLAY_PRESETS` (check 15, sources in DECISIONS and `data/seed/analog-events.json`), each `asOf` = `firstReportAt` + 24 h, `confirmed: true`:
+   - `geopolitical-russia-ukraine-2022`: `2022-02-24T02:40:00.000Z`, asOf `2022-02-25T02:40:00.000Z`
+   - `supply-opec-cut-2023`: `2023-04-02T13:57:00.000Z`, asOf `2023-04-03T13:57:00.000Z`
+   - `policy-us-tariffs-2025`: `2025-04-02T20:06:00.000Z`, asOf `2025-04-03T20:06:00.000Z`
+   - `corporate-svb-2023`: `2023-03-08T21:06:00.000Z`, asOf `2023-03-09T21:06:00.000Z`
+   - `accident-boeing-door-2024`: `2024-01-06T01:12:33.000Z`, asOf `2024-01-07T01:12:33.000Z`
+   - `disaster-hurricane-ida-2021`: unchanged.
 
-**Blockers:** none.
+### Phase 1 progress (2026-10-03, 16:15 IST)
+
+**Works**
+- `clients/http.ts` (SPEC 5.3) with 16 fake-fetch tests; clients `tiingo`, `fred`, `eia`, `gdelt`, `alphavantage`, `nhc` (CurrentStorms and MapServer forecast points), `openmeteo`, `hurdat2`, `pinecone`, `redis`, each with a recorded fixture in `data/fixtures/` and a parse test.
+- Seed steps 1 to 4 and the Pinecone index check (`pnpm seed`, `--only=`, `--refresh`): 41 instruments, 23 positions (weights 0.95), 120,905 price bars (37 Tiingo symbols to 2026-10-02 plus 4 FRED factors), 14,370 macro observations, 202 storms and 6,223 points (2015 to 2025), 127 refineries (PADD 3 10.32 M bpd). Seeding twice leaves every table hash unchanged.
+- `data/seed/analog-events.json`: 36 sourced events, validated by `packages/services/analogs/curated-events.test.ts`.
+
+**Next:** market and macro services with the as-of test, the news prefilter, zip of `data/cache/` for the team.
+
+**Blockers**
+- GDELT answers this IP with HTTP 429 or drops the connection on nearly every request since mid-morning. GDELT checks 13 (4 queries) and 15 (3 timelines) are pending. If it does not recover, seed steps 5 and 6 (timeline features and replay news) are blocked; the worker would run on Alpha Vantage only.
 
 
 
