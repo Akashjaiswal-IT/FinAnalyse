@@ -100,13 +100,18 @@ export interface RequestOptions<T> {
   url: string;
   schema: z.ZodType<T>;
   /** `text` validates the raw body as a string (GDELT errors arrive as text with status 200). */
-  body?: "json" | "text";
+  body?: "json" | "text" | "bytes";
   headers?: Record<string, string>;
   timeoutMs?: number;
   /** Delays before each retry of a network error or 5xx; default 0.5 s then 1.5 s, jittered. */
   retryDelaysMs?: readonly number[];
   /** Provider throttle bodies with status 200 (Alpha Vantage `Information`/`Note`): return a message or null. */
   throttled?: (body: unknown) => string | null;
+  /**
+   * Statuses that are an expected answer, not a failure: they are thrown as `HttpStatusError` but do not count
+   * toward the circuit breaker or change the source's health (a 15-minute file that is not published yet is a 404).
+   */
+  neutralStatuses?: readonly number[];
 }
 
 export interface Cached<T> {
@@ -161,6 +166,7 @@ export class HttpClient {
       });
       return data;
     } catch (error) {
+      if (error instanceof HttpStatusError && options.neutralStatuses?.includes(error.status)) throw error;
       if (error instanceof RateLimitedError) {
         await this.writeStatus(source, "rate_limited", { lastError: error.message });
         throw error;
@@ -221,14 +227,16 @@ export class HttpClient {
   private async once<T>(options: RequestOptions<T>): Promise<T> {
     const { source, url, schema } = options;
     let response: Response;
-    let text: string;
+    let text = "";
+    let bytes: Uint8Array | null = null;
     try {
       response = await this.deps.fetch(url, {
         headers: options.headers,
         signal: AbortSignal.timeout(options.timeoutMs ?? TIMEOUT_MS),
       });
       // The body counts toward the timeout; `fetched_at` is when it is fully received (SPEC 5.2).
-      text = await response.text();
+      if (options.body === "bytes") bytes = new Uint8Array(await response.arrayBuffer());
+      else text = await response.text();
     } catch (error) {
       throw new UpstreamError(source, `network: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -239,8 +247,8 @@ export class HttpClient {
     if (response.status >= 500) throw new UpstreamError(source, `HTTP ${response.status}`);
     if (!response.ok) throw new HttpStatusError(source, response.status, sample(text));
 
-    let body: unknown = text;
-    if ((options.body ?? "json") === "json") {
+    let body: unknown = bytes ?? text;
+    if (bytes === null && (options.body ?? "json") === "json") {
       try {
         body = JSON.parse(text);
       } catch {

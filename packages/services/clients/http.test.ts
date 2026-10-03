@@ -154,6 +154,27 @@ describe("HttpClient.request", () => {
     expect((await h.store.hgetall("source:fred")).status).toBe("ok");
   });
 
+  it("body: bytes returns the raw bytes, not parsed JSON or text", async () => {
+    const h = harness([{ status: 200, body: "{\"value\": 1} é" }]);
+    const bytes = await h.http.request({ source: "fred", url: "https://example.test/x", schema: z.instanceof(Uint8Array), body: "bytes" });
+    expect(Buffer.from(bytes).toString("utf8")).toBe("{\"value\": 1} é");
+    expect(bytes.byteLength).toBe(Buffer.byteLength("{\"value\": 1} é")); // é is two bytes
+  });
+
+  it("a neutral status is thrown but is not a health event: no status change, no breaker failures", async () => {
+    const missing = { status: 404, body: "" };
+    const h = harness([missing, missing, missing, missing, ok(5)]);
+    const probe = { ...req, neutralStatuses: [404] };
+    for (let i = 0; i < 4; i++) await expect(h.http.request(probe)).rejects.toMatchObject({ status: 404 });
+    expect((await h.store.hgetall("source:fred")).status).toBeUndefined();
+    await expect(h.http.request(probe)).resolves.toEqual({ value: 5 }); // the breaker never opened
+    expect(h.calls).toHaveLength(5);
+    // without the option the same 404 counts as a failure
+    const g = harness([missing]);
+    await expect(g.http.request(req)).rejects.toBeInstanceOf(HttpStatusError);
+    expect((await g.store.hgetall("source:fred")).status).toBe("degraded");
+  });
+
   it("never lets an API key echoed by a provider into the error, the status hash or the log", async () => {
     const key = "ABCD1234EFGH5678";
     const body = `We have detected your API key as ${key} and our standard API rate limit is 25 requests per day.`;

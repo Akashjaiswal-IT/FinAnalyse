@@ -96,6 +96,12 @@ Entries at H7, H12 and H18.
 - From this network a timeline needs about one try in ten right now (one took 651 s). The step is resumable and caches every timeline in `data/cache/gdelt/timeline/`, but at that rate the roughly 134 timelines would take about a day.
 - **To finish:** run `pnpm seed --only=analogs` from a network GDELT accepts (a phone hotspot is the usual fix) and let it run, then `pnpm backtest --save --write-results` and `pnpm backtest --verify`. `--gdelt=cache-only` rebuilds the events from whatever is cached without any request, so a partial cache can be used now and extended later. Zip `data/cache/gdelt/` to share it.
 
+**Live news without the DOC API (2026-10-03 night)**
+- The worker's `gdelt` job now reads GDELT's 15-minute article files (see DECISIONS), which the throttling that blocks the DOC API does not touch. First run on the throttled network: 12 files in 19.8 s, 361 market stories after filtering (3 hours, 15:00 to 17:00 UTC), no throttling. The Live tab shows them with GDELT's tone; the Sources row for `gdelt` is `ok`. A source-health 404 on a not-yet-published file is not counted as a failure (`neutralStatuses` in `clients/http.ts`).
+- Not changed: the seed's history for the backtest still needs the DOC API (GDELT status above), so the news-feature models (S) stay empty until it is run from another network.
+- Event detection found no event in those 3 hours: it needs several relevant articles from several domains in one cluster, and the window held scattered single stories. A longer first pass (more than 12 files) would give it more to cluster; not done.
+- 24 new tests (the zip reader against a hand-built archive, the GKG parser, the filter, file stamps, the 404 and breaker behaviour, `body: "bytes"`); 767 pass.
+
 ## Track B: Agents and API
 
 Entries at H7, H12 and H18.
