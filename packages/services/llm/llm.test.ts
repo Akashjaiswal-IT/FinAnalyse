@@ -95,6 +95,25 @@ describe("LlmService.parseStructured", () => {
     expect(failed).toMatchObject({ ok: false, reason: "max_tokens" });
   });
 
+  it("moves a rate-limited reasoning call to the fast model once, with Haiku parameters", async () => {
+    const limited = Object.assign(new Error("429 rate_limit_error"), { status: 429 });
+    const parse = vi.fn().mockRejectedValueOnce(limited).mockResolvedValueOnce(message({ model: "claude-haiku-4-5" }));
+    const service = serviceWith(parse);
+    const result = await service.parseStructured(call());
+    expect(result.ok).toBe(true);
+    expect(parse).toHaveBeenCalledTimes(2);
+    const second = parse.mock.calls[1]![0] as Record<string, unknown>;
+    expect(second.model).toBe("claude-haiku-4-5");
+    expect(second).toMatchObject({ temperature: 0 });
+    expect(second).not.toHaveProperty("thinking");
+
+    // Within the cooldown the next reasoning call skips the reasoning model.
+    parse.mockResolvedValueOnce(message({ model: "claude-haiku-4-5" }));
+    await service.parseStructured(call());
+    expect(parse).toHaveBeenCalledTimes(3);
+    expect((parse.mock.calls[2]![0] as Record<string, unknown>).model).toBe("claude-haiku-4-5");
+  });
+
   it("returns a failure instead of throwing when the API call throws", async () => {
     const parse = vi.fn().mockRejectedValue(new Error("529 overloaded"));
     const result = await serviceWith(parse).parseStructured(call());
