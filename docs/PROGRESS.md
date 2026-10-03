@@ -124,15 +124,12 @@ Entries at H7, H12 and H18.
 
 **Works**
 - `pnpm backtest` loads the events from `AnalogsService.list()` (Track A's interface), runs the leave-one-out backtest at h = 1 (reported) and 0.75 and 1.5 (shown next to it), and prints the pooled, per-target, per-type and bandwidth tables with the caveats. `--from-file` / `--export` use and write an events JSON, so a run can be repeated exactly; `--write-results` updates the backtest section of `docs/RESULTS.md`; `--save` stores the reported run in `backtests`.
-- `services/backtest`: `BacktestService.save` / `latest` behind a store interface, with an in-memory store (8 tests).
+- `services/backtest`: `BacktestService.save` / `latest` behind a store interface, with an in-memory store and a Postgres store (`createPostgresBacktests()`); the same suite runs against both (16 tests).
+- `backtest.latest` route (`GET /api/backtest/latest`, also tRPC `backtest.latest`): the newest backtest or `null`. Tested through a tRPC caller, and the OpenAPI document of the whole server router is generated in a test, since the api does that at boot. Checked over real HTTP against the built api and the dev Postgres: `null` when empty, then the saved row, with the path in `/openapi.json`.
 - Checked against Track A's branch merged into a scratch worktree, with a real Postgres and a scratch database (migration `0000_init`): the script type-checks against their `AnalogsService`, `db` and `backtests`; a saved row read back through the service equals a fresh run of the same events (metrics, predictions, caveats, config); two runs from the same events give identical tables; `RESULTS.md` is stable when re-written. The events were synthetic and are not recorded as a result.
 
-**Requests for Track B**
-1. Root `package.json`: add `"@repo/quant": "workspace:*"` and `"@repo/database": "workspace:*"` to `dependencies` (the scripts import them; `@repo/contracts` and `@repo/services` are already there on your branch).
-2. `packages/services/package.json`: Track A already asked for `@repo/quant` there; I do not need it for the backtest service.
-
 **Note for Track A**
-- The script needs `AnalogsService.list()` to return every analog event as a contracts `AnalogEvent` (ISO strings for dates, `reactions` with `d5`). It is a stub on your branch: the script prints "AnalogsService.list() failed: not implemented" until it lands.
+- The script (`pnpm backtest`) needs `AnalogsService.list()` to return every analog event as a contracts `AnalogEvent` (ISO strings for dates, `reactions` with `d5`). It is a stub on your branch: the script prints "AnalogsService.list() failed: not implemented" until it lands.
 
 
 
