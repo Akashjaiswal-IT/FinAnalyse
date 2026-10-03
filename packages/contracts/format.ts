@@ -110,3 +110,14 @@ export function weeklyAvailableAt(date: string): Date {
   d.setUTCDate(d.getUTCDate() + WEEKLY_SERIES_LAG_DAYS);
   return d;
 }
+
+/** Simple return from a log return, `e^r - 1`. The UI shows simple returns; quant works in log returns (ROADMAP
+ * gotcha 15). */
+export function simpleFromLog(logReturn: number): number {
+  return Math.expm1(logReturn);
+}
+
+/** A log return as a signed percent of the simple return: `0.0488` becomes "+5%". */
+export function formatLogReturn(logReturn: number | null): string {
+  return logReturn === null || !Number.isFinite(logReturn) ? NOT_AVAILABLE : signedPct(simpleFromLog(logReturn));
+}

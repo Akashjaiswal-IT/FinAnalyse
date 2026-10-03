@@ -9,6 +9,7 @@ export default defineConfig({
       "packages/services",
       "packages/trpc",
       "apps/api",
+      "apps/web",
       "apps/worker",
     ],
   },

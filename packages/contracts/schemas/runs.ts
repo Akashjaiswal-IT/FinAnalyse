@@ -41,6 +41,8 @@ export const RunEvent = z.discriminatedUnion("type", [
     status: NodeStatus,
     durationMs: z.number().int(),
     summary: z.string(),
+    /** What the node read: a compact description for the drilldown, not the full upstream outputs. */
+    input: z.unknown().optional(),
     output: z.unknown(),
     usage: Usage.optional(),
     thinkingSummary: z.string().optional(),
@@ -88,6 +90,7 @@ export const Step = z.object({
   startedAt: IsoDateTime.nullable(),
   durationMs: z.number().int().nullable(),
   summary: z.string().nullable(),
+  input: z.unknown().nullable().optional(),
   output: z.unknown().nullable(),
   usage: Usage.nullable(),
   thinkingSummary: z.string().nullable(),
