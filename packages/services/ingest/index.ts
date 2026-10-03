@@ -14,7 +14,8 @@ import { AlphaVantageClient, normaliseAvFeed, rotationQueryKey } from "../client
 import { defaultHttp } from "../clients/default-http";
 import { EiaClient } from "../clients/eia";
 import { FredClient } from "../clients/fred";
-import { GdeltFilesClient, stampsToFetch, toNewsItems, type GkgRow } from "../clients/gdelt-files";
+import { GoogleNewsClient, windowHours } from "../clients/googlenews";
+import { GdeltFilesClient, MAX_FILES_PER_PASS, stampsToFetch, toNewsItems, type GkgRow } from "../clients/gdelt-files";
 import { NhcClient, currentPoint, isAtlantic, stormFromNhc } from "../clients/nhc";
 import { getRedis, takeQuota } from "../clients/redis";
 import { TiingoClient } from "../clients/tiingo";
@@ -23,7 +24,7 @@ import { enqueue } from "../queues";
 import { SystemService, publishLive } from "../system";
 import { WeatherService } from "../weather";
 
-export const INGEST_SOURCES = ["gdelt", "alphavantage", "nhc", "openmeteo", "fred", "tiingo"] as const;
+export const INGEST_SOURCES = ["gdelt", "googlenews", "alphavantage", "nhc", "openmeteo", "fred", "tiingo"] as const;
 export type IngestSource = (typeof INGEST_SOURCES)[number];
 
 export interface IngestResult {
@@ -39,6 +40,8 @@ type Db = typeof defaultDb;
 const DAY = 86_400_000;
 /** Redis key holding the stamp of the last GDELT article file stored. */
 const GKG_LAST_KEY = "gdelt:gkg:last";
+/** Redis key holding the time of the last Google News pass in which every query succeeded. */
+const GNEWS_LAST_KEY = "googlenews:last";
 /** Daily refreshes re-read the last 10 days, which also picks up late corrections. */
 const REFRESH_DAYS = 10;
 const EIA_SERIES = new Set(["WGTSTUS1", "WCESTUS1"]);
@@ -46,6 +49,7 @@ const EIA_SERIES = new Set(["WGTSTUS1", "WCESTUS1"]);
 const isoDate = (d: Date) => d.toISOString().slice(0, 10);
 
 let gdeltFiles: GdeltFilesClient | null = null;
+let googleNews: GoogleNewsClient | null = null;
 
 /** One pass of a source: fetch, validate, normalise, de-duplicate, prefilter, persist and index, publish (SPEC 5.2). */
 export class IngestService {
@@ -59,6 +63,8 @@ export class IngestService {
     switch (name) {
       case "gdelt":
         return this.gdelt();
+      case "googlenews":
+        return this.googlenews();
       case "alphavantage":
         return this.alphavantage();
       case "nhc":
@@ -91,8 +97,9 @@ export class IngestService {
    * GDELT's 15-minute article files (static host, not the throttled DOC API search): every file published since the
    * last pass, filtered to market news, with GDELT's own tone as the source sentiment. The newest file listed is
    * often not published yet; the pass stops at the first one that is missing and resumes there next time.
+   * `maxFiles` caps one pass: 12 files (3 hours) normally, more for a one-off catch-up on an empty database.
    */
-  private async gdelt(): Promise<IngestResult> {
+  async gdelt(maxFiles = MAX_FILES_PER_PASS): Promise<IngestResult> {
     gdeltFiles ??= new GdeltFilesClient(defaultHttp());
     const redis = getRedis();
     const newest = await gdeltFiles.newestStamp();
@@ -101,7 +108,7 @@ export class IngestService {
     const last = await redis.get(GKG_LAST_KEY);
     const rows: GkgRow[] = [];
     let reached = last;
-    for (const stamp of stampsToFetch(last, newest)) {
+    for (const stamp of stampsToFetch(last, newest, maxFiles)) {
       const file = await gdeltFiles.file(stamp);
       if (file === null) break; // not published yet, and neither is anything after it
       rows.push(...file);
@@ -111,6 +118,28 @@ export class IngestService {
     const result = await this.storeNews("gdelt", items);
     if (reached && reached !== last) await redis.set(GKG_LAST_KEY, reached);
     return reached === last && items.length === 0 ? { ...result, skipped: "no new article file yet" } : result;
+  }
+
+  /**
+   * Google News search (RSS): the event-type and company queries and one for India, looking back to the last pass in
+   * which every query worked. Fresh within minutes, unlike GDELT's files; there is no tone, the model scores it.
+   * A pass where some queries fail keeps what the others found and looks back further next time.
+   */
+  private async googlenews(): Promise<IngestResult> {
+    googleNews ??= new GoogleNewsClient(defaultHttp());
+    const redis = getRedis();
+    const now = this.now();
+    const last = await redis.get(GNEWS_LAST_KEY);
+    const { items, queried, failed } = await googleNews.collect(
+      windowHours(last ? Date.parse(last) : null, now.getTime()),
+      now.toISOString(),
+    );
+    if (failed.length === queried) throw new Error(`google news: every query failed (${failed[0]?.message ?? "no queries"})`);
+    const result = await this.storeNews("googlenews", items);
+    if (failed.length === 0) await redis.set(GNEWS_LAST_KEY, now.toISOString());
+    if (failed.length === 0) return result;
+    const note = `${failed.length} of ${queried} queries failed: ${failed.map((f) => f.key).join(", ")}`;
+    return { ...result, skipped: [result.skipped, note].filter(Boolean).join("; ") };
   }
 
   private async alphavantage(): Promise<IngestResult> {

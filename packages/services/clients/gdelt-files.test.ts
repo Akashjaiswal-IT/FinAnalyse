@@ -170,6 +170,29 @@ describe("toNewsItems", () => {
     const [item] = toNewsItems(rows({ title: "Wall Street ends lower as yields climb", themes: ["ECON_STOCKMARKET", "EPU_ECONOMY"] }), at);
     expect(item?.topics).toEqual(["ECON_STOCKMARKET"]);
   });
+  it("keeps a policy, geopolitical, macro, supply or disaster keyword on its own, with no company or theme", () => {
+    const out = toNewsItems(
+      rows(
+        { title: "India-US trade deal not imminent as tariffs remain unresolved", url: "https://t.example/p" },
+        { title: "North Korea says it test-fired an intermediate-range missile", url: "https://t.example/g" },
+        { title: "Jobs report misses expectations as the Federal Reserve watches", url: "https://t.example/m" },
+        { title: "Trump shoots down diesel export ban after European talks", url: "https://t.example/s" },
+        { title: "Magnitude 6.1 earthquake rattles the coast overnight", url: "https://t.example/d" },
+      ),
+      at,
+    );
+    expect(out.map((i) => i.url)).toEqual(["https://t.example/p", "https://t.example/g", "https://t.example/m", "https://t.example/s", "https://t.example/d"]);
+    expect(out.every((i) => i.topics.length === 0)).toBe(true); // kept on the keyword: no GDELT theme
+  });
+  it("a statement or accident keyword needs a market term beside it; corporate words never keep an article alone", () => {
+    const kept = (title: string) => toNewsItems(rows({ title, url: `https://t.example/${title.length}` }), at).length;
+    expect(kept("White House press conference on oil supply tonight")).toBe(1);
+    expect(kept("White House press conference about the school year")).toBe(0);
+    expect(kept("Explosion halts output at the Gulf refinery")).toBe(1);
+    expect(kept("Explosion rocks the neighbourhood overnight")).toBe(0);
+    expect(kept("Securities class action lawsuit filed against Taboola")).toBe(0);
+    expect(kept("Quarterly earnings guidance for the retail sector")).toBe(0);
+  });
   it("drops what is not market news: a bare event keyword, no theme, translated, or too short", () => {
     const out = toNewsItems(
       rows(

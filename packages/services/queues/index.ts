@@ -6,6 +6,7 @@ import { createRedisConnection } from "../clients/redis";
 export const QUEUE_NAMES = {
   gdelt: "ingest-gdelt",
   alphavantage: "ingest-alphavantage",
+  googlenews: "ingest-googlenews",
   nhc: "ingest-nhc",
   openmeteo: "ingest-openmeteo",
   fred: "ingest-fred",
@@ -29,6 +30,7 @@ export type DetectJob = z.infer<typeof DetectJob>;
 export interface JobPayloads {
   gdelt: IngestJob;
   alphavantage: IngestJob;
+  googlenews: IngestJob;
   nhc: IngestJob;
   openmeteo: IngestJob;
   fred: IngestJob;
@@ -40,6 +42,7 @@ export interface JobPayloads {
 export const JOB_SCHEMAS: { [K in QueueKey]: z.ZodType<JobPayloads[K]> } = {
   gdelt: IngestJob,
   alphavantage: IngestJob,
+  googlenews: IngestJob,
   nhc: IngestJob,
   openmeteo: IngestJob,
   fred: IngestJob,

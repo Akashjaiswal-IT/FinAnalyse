@@ -1,0 +1,2 @@
+ALTER TABLE "news_items" DROP CONSTRAINT "news_items_source_check";--> statement-breakpoint
+ALTER TABLE "news_items" ADD CONSTRAINT "news_items_source_check" CHECK ("news_items"."source" in ('gdelt', 'alphavantage', 'googlenews'));

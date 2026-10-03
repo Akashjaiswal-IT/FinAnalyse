@@ -99,8 +99,15 @@ Entries at H7, H12 and H18.
 **Live news without the DOC API (2026-10-03 night)**
 - The worker's `gdelt` job now reads GDELT's 15-minute article files (see DECISIONS), which the throttling that blocks the DOC API does not touch. First run on the throttled network: 12 files in 19.8 s, 361 market stories after filtering (3 hours, 15:00 to 17:00 UTC), no throttling. The Live tab shows them with GDELT's tone; the Sources row for `gdelt` is `ok`. A source-health 404 on a not-yet-published file is not counted as a failure (`neutralStatuses` in `clients/http.ts`).
 - Not changed: the seed's history for the backtest still needs the DOC API (GDELT status above), so the news-feature models (S) stay empty until it is run from another network.
-- Event detection found no event in those 3 hours: it needs several relevant articles from several domains in one cluster, and the window held scattered single stories. A longer first pass (more than 12 files) would give it more to cluster; not done.
-- 24 new tests (the zip reader against a hand-built archive, the GKG parser, the filter, file stamps, the 404 and breaker behaviour, `body: "bytes"`); 767 pass.
+- Event detection found no event in the first 3 hours: it needs several relevant articles from several domains in one cluster. A one-off 24-hour catch-up (`IngestService.gdelt(96)`, 96 files in 134 s) loaded 4,019 more stories (1,092 matched the prefilter and went to scoring and to Pinecone, within the 2,000-a-day scoring cap) and detection then found 7 events (September jobs report miss, EU warning on a US diesel export ban, Iranian oil to Tajikistan, and a few keyword-typed ones, such as a retail discount typed `accident`, that scoring should drop). Normal passes stay at 12 files.
+- The filter first dropped bare policy keywords: 27 of 41 tariff headlines in 24 hours were lost. It now keeps the keyword types the DOC API queries kept (see DECISIONS), 685 more articles in 24 hours, and the catch-up was repeated. GDELT lags real time by 45 to 60 minutes, so a statement from the last hour is not in the files yet.
+- Still on the DOC API: `NewsService.newsFeatures` (volume and tone z-scores of a live event) calls the timelines. On a throttled network it returns "unavailable", the step shows degraded and the Sources row for `gdelt` flips to `rate_limited` while the file job stays ok. Computing those z-scores from the article files is the way to remove it; not done.
+- 26 new tests (the zip reader against a hand-built archive, the GKG parser, the filter, file stamps, the 404 and breaker behaviour, `body: "bytes"`); 769 pass.
+
+**Fresh news from Google News (2026-10-04)**
+- Why: GDELT's files are about an hour late and a sample; no stored headline mentioned both India and Trump while Google News had dozens. New source `googlenews` (RSS search, every 10 minutes, no key): 1,068 articles in the first 23 s pass, newest 4 minutes old; the Trump and India tariff stories are in. See DECISIONS for the queries, the look-back rule and the contract and migration changes.
+- **For Akash:** this adds `googlenews` to `NewsSource` and `SourceName` (contracts) and a database migration (`0001_news_source_googlenews`: drops and re-adds `news_items_source_check`). Run `pnpm db:migrate`. Nothing else in the contracts changes.
+- Open: scoring is capped at 2,000 a day and both sources together want about 2,700. Fresh Google News items were queued first today. Raising `ENRICH_DAILY_MAX` is a decision for the team (model cost).
 
 ## Track B: Agents and API
 
