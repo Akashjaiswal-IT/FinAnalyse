@@ -6,6 +6,7 @@ import {
   REPLAY_PRESETS,
   type Mode,
   type RunEvent,
+  type RunsGetOutput,
 } from "@repo/contracts";
 import { activeRunCount, registerRun, unregisterRun, type RunContext } from "./context";
 import type { AgentDeps } from "./deps";
@@ -112,6 +113,15 @@ export class AgentRuntime {
     });
     this.finishedRuns.set(runId, done);
     return { runId, threadId };
+  }
+
+  /** Starts a run and waits for it: the run, its evidence and its steps. For scripts (eval, drills) and tests. */
+  async runToCompletion(input: StartRunInput): Promise<RunsGetOutput> {
+    const { runId } = await this.start(input);
+    await this.finished(runId);
+    const got = await this.deps.runs.get(runId);
+    if (!got) throw new Error(`run ${runId} vanished after it finished`);
+    return got;
   }
 
   /** Resolves when the run has stored its last event. For scripts and tests. */
