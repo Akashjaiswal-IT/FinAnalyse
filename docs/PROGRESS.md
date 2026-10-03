@@ -37,8 +37,37 @@ Entries at H7, H12 and H18.
 1. `.env.example`: add `EIA_API_KEY=` (FRED has no weekly inventory series; `WGTSTUS1` and `WCESTUS1` come from the EIA API, see DECISIONS).
 2. `packages/services/package.json`: add `"@repo/quant": "workspace:*"` (news features and detection call `quant/stats.ts` and `quant/detect.ts`, SPEC 5.9, 5.14).
 3. `contracts` `SourceName`: add `"eia"` (additive), so the inventory source gets a health pill.
+4. `REPLAY_PRESETS` (check 15, sources in DECISIONS and `data/seed/analog-events.json`), each `asOf` = `firstReportAt` + 24 h, `confirmed: true`:
+   - `geopolitical-russia-ukraine-2022`: `2022-02-24T02:40:00.000Z`, asOf `2022-02-25T02:40:00.000Z`
+   - `supply-opec-cut-2023`: `2023-04-02T13:57:00.000Z`, asOf `2023-04-03T13:57:00.000Z`
+   - `policy-us-tariffs-2025`: `2025-04-02T20:06:00.000Z`, asOf `2025-04-03T20:06:00.000Z`
+   - `corporate-svb-2023`: `2023-03-08T21:06:00.000Z`, asOf `2023-03-09T21:06:00.000Z`
+   - `accident-boeing-door-2024`: `2024-01-06T01:12:33.000Z`, asOf `2024-01-07T01:12:33.000Z`
+   - `disaster-hurricane-ida-2021`: unchanged.
 
-**Blockers:** none.
+### Phase 1 progress (2026-10-03, 16:15 IST)
+
+**Works**
+- `clients/http.ts` (SPEC 5.3) with 16 fake-fetch tests; clients `tiingo`, `fred`, `eia`, `gdelt`, `alphavantage`, `nhc` (CurrentStorms and MapServer forecast points), `openmeteo`, `hurdat2`, `pinecone`, `redis`, each with a recorded fixture in `data/fixtures/` and a parse test.
+- Seed steps 1 to 4 and the Pinecone index check (`pnpm seed`, `--only=`, `--refresh`): 41 instruments, 23 positions (weights 0.95), 120,905 price bars (37 Tiingo symbols to 2026-10-02 plus 4 FRED factors), 14,370 macro observations, 202 storms and 6,223 points (2015 to 2025), 127 refineries (PADD 3 10.32 M bpd). Seeding twice leaves every table hash unchanged.
+- `data/seed/analog-events.json`: 36 sourced events, validated by `packages/services/analogs/curated-events.test.ts`.
+
+### GATE A (2026-10-03)
+
+**Passes.** `pnpm exec dotenv -- tsx scripts/seed/gate-a.ts` prints PASS for every check:
+- Seeding twice changes nothing (identical content hashes of `price_bars`, `macro_observations`, `storm_points`, `refineries`, instruments and positions); counts printed by `pnpm seed`.
+- Every Tiingo symbol has bars from 2015-01-02 (CRAK 2015-08-19, JETS 2015-04-30, their launches) to the last close, 2026-10-02.
+- The SPEC 5.1 as-of test (`packages/services/as-of.test.ts`) passes at the Ida and Ukraine as-ofs for `market.bars`, `closesAt`, `returns`, `adv`, `macro.series` and `macro.latest`.
+- `market.returns` for all 41 universe symbols returns 504 aligned rows at both as-ofs (Ida: 2019-08-16 to 2021-08-27; Ukraine: 2020-02-11 to 2022-02-24).
+- `data/seed/analog-events.json` validates against `CuratedEventSeed`; all 36 events have a source URL.
+- Also done: news prefilter (`services/news/prefilter.ts`, 9 tests); `macro.snapshot` works at both as-ofs (Ukraine: VIX 30.32, stressed, z 2.79; crude stocks 9.6% below the 5-year average).
+
+**Team data cache:** `data/cache/tempest-data-cache-2026-10-03.zip` (6.3 MB: Tiingo, FRED, EIA, HURDAT2, EIA refineries). Unzip into `data/cache/`, then `pnpm seed` uses no API quota. Shared inside the team only (Tiingo licence).
+
+**Next (Phase 2):** seed step 5 with Track C's builders, seed step 6, `news.search`, `newsFeatures`, `events.profileFromNews` and `buildEventQuery`, weather, analogs, portfolio, read routes.
+
+**Blockers**
+- GDELT answers this IP with HTTP 429 or drops the connection on nearly every request since mid-morning. GDELT checks 13 (4 queries) and 15 (3 timelines) are pending. If it does not recover, seed steps 5 and 6 (timeline features and replay news) are blocked; the worker would run on Alpha Vantage only.
 
 
 
@@ -81,10 +110,73 @@ Entries at H7, H12 and H18.
 
 Entries at H7, H12 and H18.
 
+### Phase 1: quant library (2026-10-03)
+
+**Works** (`packages/quant`, 328 tests; every exported function is referenced by a test)
+- `series`, `stats`: aligned log returns (a day with a non-positive price is dropped for all symbols), rolling sums, forward returns on each series' own calendar, OLS beta and R², Spearman, weighted mean and spread, effective n, `trailingZ`, `windowZ`.
+- `risk`: historical-simulation P&L (1 and 5 days), discrete VaR/CVaR, scenario and analog-replay P&L, P&L by sector and by channel, factor betas, top exposures, `riskSnapshot`.
+- `exposure`: direct, peer and factor channels, exposed sleeve, exposed value by channel.
+- `hedge`: limit checks (SPEC 5.11), largest allowed quantity, minimum-variance ratios and suggestions, fallback, `simulateHedges`.
+- `geo`: haversine, hourly track interpolation, capacity at risk, Saffir-Simpson category, HURDAT2 landfall rule, Gulf hurricane test.
+- `forecast`: feature scaler, grouped kernel weights, per-target and per-holding forecasts with the SPY-beta fallback, variants N, T, S, M, W, C, analog eligibility.
+- `detect`: title tokens, `sameStory`, connected-component clustering, `isEvent`, severity, `clusterZ`, matching to active events, fade status.
+- `backtest`: metrics, leave-one-out predictions, pooled / per-target / per-type summary, caveats.
+- `event-builder`: curated and hurricane event builders (t0, features, reactions, `realizedUntil`) and the description template.
+- Known-answer values come from independent Python calculations (`statistics`, `math`), not from this code. The kernel kNN and the leave-one-out backtest were re-implemented in Python and compared on a six-event pool, all six models, pooled, per target and per type.
+
+**Gate C:** `pnpm check-types`, `pnpm lint`, `pnpm test` (390 tests across the repo) and `pnpm build` are green.
+
+**For the other tracks**
+- Track A: `buildCuratedEvent` and `buildHurricaneEvent` are what seed step 5 calls. They return `realizedUntil: null` when the price data does not yet reach 20 trading days after t0; skip such an event. `describeEvent` builds the Pinecone text. `windowZ` and `trailingZ` are the z-score maths for `newsFeatures` and the VIX z-score.
+- Track B: `buildForecast` (then `withSimilarity`), `exposureChannels`, `factorExposures`, `riskSnapshot`, `suggestHedges` / `checkHedgeLimits` / `simulateHedges` are the calls for the analogs, risk and hedging nodes. See my decisions for the shapes that differ from the first signatures.
+
+**Open**
+- Backtest, eval, bench and drill scripts, `services/backtest` and the `backtest` route wait for Track A's tables and Track B's graph (Phase 2 and 3).
+- The hand-check of one VaR and one scenario P&L at the Ukraine as-of needs the seeded prices.
+
 
 
 ## Track D: Terminal
 
 Entries at H7, H12 and H18.
+
+### H7: Phase 1 on fixtures (2026-10-03)
+
+**Works** (all in `apps/web`, built on `@repo/contracts` fixtures; no API or keys needed)
+- Dark terminal theme on the template tokens (blue-black surfaces, amber accent, green/red for direction, blue/violet for factor/model), tabular numerals, three resizable columns. Resizing checked with mouse and keyboard, which closes the Phase 0 open item on `components/ui/resizable.tsx`.
+- `mode-switch`: Live or Replay, `REPLAY_PRESETS` grouped by event type, as-of field (UTC, 2017-01-01 to now). Mode, preset and as-of live in the URL and survive a reload.
+- `query-bar` with `EXAMPLE_QUERIES` (500 characters, Enter sends, disabled while a run is active). Two chips also select the matching preset.
+- `agent-graph` (React Flow, `NODE_ORDER`, `GRAPH_EDGES`): pending, running, done, skipped, degraded and failed, with durations; a node click opens the drilldown.
+- `step-log`, `event-card`, `answer-card`, `evidence-chip` (hover: label, source, as-of, basis; click: the row), `hedge-table`, `drilldown-sheet` (steps with model, tokens, cost and thinking summary; evidence ledger with links; verifier report; detail views for a hedge action and for an exposure badge), `portfolio-panel` (sector groups, a badge per exposure channel from the risk report, a sentiment chip per holding).
+- `hooks/use-run-stream.ts`: one hook over a `RunDriver`. The fixture player replays `idaRunEvents` and `ukraineRunEvents` in about ten seconds each. Evidence and run state come from one pure reducer (`lib/run-state.ts`).
+- Every number on screen is a chip or text from the server, formatted with `formatValue` / `formatEvidence` / the template split. An unknown evidence key renders as a red `E99?` chip, never a guessed value. A run that fails (or whose stream breaks) marks the nodes still running as failed.
+
+**Gate D**
+- `pnpm --filter web check-types`, `pnpm --filter web lint`, `pnpm --filter web build` green. `pnpm --filter web test`: 41 tests green.
+- Both fixture runs play end to end in a real browser (Edge, production build): all ten nodes finish, Ukraine shows `weather` skipped, Ida shows it done with the "perfect-forecast replay" badge, the verifier reports 0 ungrounded numbers. A scripted browser pass of 24 checks (graph states, chip, node, badge, hedge row and verification drilldowns, preset switch, URL persistence on reload, live and unrecorded-preset messages, as-of validation, Enter to submit, hover card, panel resize) passes with no console errors or warnings.
+- Not checked: Safari and Firefox, narrow (mobile) widths (cut list), screen readers. 1280x720, 1600x1000 and 1920x1080 checked with Edge.
+
+Screenshots (Ukraine replay, Ida replay, drilldown):
+
+![Ukraine, before the run](../apps/web/screenshots/phase1-ukraine-idle.png)
+![Ukraine, mid-run: weather skipped, specialists done, factor badges on the portfolio](../apps/web/screenshots/phase1-ukraine-midrun.png)
+![Ukraine, complete](../apps/web/screenshots/phase1-ukraine-complete.png)
+![Ida, complete: weather ran, perfect-forecast replay](../apps/web/screenshots/phase1-ida-complete.png)
+![Drilldown on an evidence row](../apps/web/screenshots/phase1-drilldown-evidence.png)
+![Drilldown on a step](../apps/web/screenshots/phase1-drilldown-step.png)
+![Drilldown on an exposure badge](../apps/web/screenshots/phase1-drilldown-exposure.png)
+
+The fixtures never fail, so the failed, degraded and repaired nodes, the template-answer and partial badges, an unresolved placeholder, a stale chip, a fallback hedge plan with a violation and a failed run were rendered from synthetic events by a throwaway page (not committed):
+
+![Non-happy states](../apps/web/screenshots/phase1-nonhappy-states.png)
+
+**Next (Phase 2)**
+- A `RunDriver` over `runs.create` and `runs.stream` (resume with `lastEventId`), plus `portfolio.get`, `runs.get` for the drilldown, `analogs.list`, `news.list`, `weather.track`. Needs Track B's routes: `runsRouter` is still empty on `main`.
+- Loading, empty and error states per panel, and a toast on failure.
+
+**Open**
+- Replay preset times other than Ida are provisional (`confirmed: false`); the UI says so in the preset list and the event card until Track A confirms them.
+- Requests to Track B are in DECISIONS (Track D): register `apps/web` in `vitest.config.mts`, an optional `input` on `step.completed`, a log-return formatter.
+- In fixture mode the question text is ignored: the run played is the recorded one for the selected preset.
 
 

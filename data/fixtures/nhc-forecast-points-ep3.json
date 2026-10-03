@@ -1,0 +1,522 @@
+{
+ "displayFieldName": "stormname",
+ "fieldAliases": {
+  "objectid": "FID",
+  "stormname": "Storm Name",
+  "stormtype": "Storm Type",
+  "dvlbl": "Forecast Storm Type",
+  "basin": "Basin",
+  "advdate": "Advisory Date",
+  "advisnum": "Advisory Number",
+  "fcstprd": "Forecast Tropical Cyclone Time",
+  "gust": "Wind Gust",
+  "maxwind": "Maximum Wind",
+  "mslp": "Mean Sea Level Pressure",
+  "ssnum": "Hurricane Category",
+  "datelbl": "Date Label",
+  "tcdvlp": "Tropical Cyclone Category",
+  "tcdir": "Storm Direction",
+  "tcspd": "Storm Speed",
+  "fldatelbl": "Full Date Label",
+  "lat": "Lat",
+  "lon": "Lon",
+  "stormnum": "Storm Basin Number",
+  "stormsrc": "Tropical Cyclone Type",
+  "tau": "Time Beyond Valid Time",
+  "timezone": "Time Zone",
+  "validtime": "Valid Time",
+  "idp_source": "GIS Source",
+  "idp_filedate": "GIS File Date",
+  "idp_ingestdate": "GIS Ingest Date",
+  "binnumber": "Bin Number"
+ },
+ "geometryType": "esriGeometryPoint",
+ "spatialReference": {
+  "wkt2": "GEOGCRS[\"GCS_Sphere\",DATUM[\"D_Sphere\",ELLIPSOID[\"Sphere\",6371200.0,0.0,LENGTHUNIT[\"Meter\",1.0]]],PRIMEM[\"Greenwich\",0.0,ANGLEUNIT[\"Degree\",0.0174532925199433]],CS[ellipsoidal,2],AXIS[\"Longitude (lon)\",east,ORDER[1]],AXIS[\"Latitude (lat)\",north,ORDER[2]],ANGLEUNIT[\"Degree\",0.0174532925199433]]",
+  "wkt": "GEOGCS[\"GCS_Sphere\",DATUM[\"D_Sphere\",SPHEROID[\"Sphere\",6371200.0,0.0]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]"
+ },
+ "fields": [
+  {
+   "name": "objectid",
+   "type": "esriFieldTypeOID",
+   "alias": "FID"
+  },
+  {
+   "name": "stormname",
+   "type": "esriFieldTypeString",
+   "alias": "Storm Name",
+   "length": 50
+  },
+  {
+   "name": "stormtype",
+   "type": "esriFieldTypeString",
+   "alias": "Storm Type",
+   "length": 50
+  },
+  {
+   "name": "dvlbl",
+   "type": "esriFieldTypeString",
+   "alias": "Forecast Storm Type",
+   "length": 50
+  },
+  {
+   "name": "basin",
+   "type": "esriFieldTypeString",
+   "alias": "Basin",
+   "length": 50
+  },
+  {
+   "name": "advdate",
+   "type": "esriFieldTypeString",
+   "alias": "Advisory Date",
+   "length": 50
+  },
+  {
+   "name": "advisnum",
+   "type": "esriFieldTypeString",
+   "alias": "Advisory Number",
+   "length": 50
+  },
+  {
+   "name": "fcstprd",
+   "type": "esriFieldTypeDouble",
+   "alias": "Forecast Tropical Cyclone Time"
+  },
+  {
+   "name": "gust",
+   "type": "esriFieldTypeDouble",
+   "alias": "Wind Gust"
+  },
+  {
+   "name": "maxwind",
+   "type": "esriFieldTypeDouble",
+   "alias": "Maximum Wind"
+  },
+  {
+   "name": "mslp",
+   "type": "esriFieldTypeDouble",
+   "alias": "Mean Sea Level Pressure"
+  },
+  {
+   "name": "ssnum",
+   "type": "esriFieldTypeDouble",
+   "alias": "Hurricane Category"
+  },
+  {
+   "name": "datelbl",
+   "type": "esriFieldTypeString",
+   "alias": "Date Label",
+   "length": 50
+  },
+  {
+   "name": "tcdvlp",
+   "type": "esriFieldTypeString",
+   "alias": "Tropical Cyclone Category",
+   "length": 50
+  },
+  {
+   "name": "tcdir",
+   "type": "esriFieldTypeDouble",
+   "alias": "Storm Direction"
+  },
+  {
+   "name": "tcspd",
+   "type": "esriFieldTypeDouble",
+   "alias": "Storm Speed"
+  },
+  {
+   "name": "fldatelbl",
+   "type": "esriFieldTypeString",
+   "alias": "Full Date Label",
+   "length": 50
+  },
+  {
+   "name": "lat",
+   "type": "esriFieldTypeDouble",
+   "alias": "Lat"
+  },
+  {
+   "name": "lon",
+   "type": "esriFieldTypeDouble",
+   "alias": "Lon"
+  },
+  {
+   "name": "stormnum",
+   "type": "esriFieldTypeDouble",
+   "alias": "Storm Basin Number"
+  },
+  {
+   "name": "stormsrc",
+   "type": "esriFieldTypeString",
+   "alias": "Tropical Cyclone Type",
+   "length": 50
+  },
+  {
+   "name": "tau",
+   "type": "esriFieldTypeDouble",
+   "alias": "Time Beyond Valid Time"
+  },
+  {
+   "name": "timezone",
+   "type": "esriFieldTypeString",
+   "alias": "Time Zone",
+   "length": 50
+  },
+  {
+   "name": "validtime",
+   "type": "esriFieldTypeString",
+   "alias": "Valid Time",
+   "length": 50
+  },
+  {
+   "name": "idp_source",
+   "type": "esriFieldTypeString",
+   "alias": "GIS Source",
+   "length": 50
+  },
+  {
+   "name": "idp_filedate",
+   "type": "esriFieldTypeDate",
+   "alias": "GIS File Date",
+   "length": 8
+  },
+  {
+   "name": "idp_ingestdate",
+   "type": "esriFieldTypeDate",
+   "alias": "GIS Ingest Date",
+   "length": 8
+  },
+  {
+   "name": "binnumber",
+   "type": "esriFieldTypeString",
+   "alias": "Bin Number",
+   "length": 5
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "objectid": 3825,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 100,
+    "maxwind": 80,
+    "mslp": 969,
+    "ssnum": 1,
+    "datelbl": "2:00 AM Sat",
+    "tcdvlp": "Hurricane",
+    "tcdir": 275,
+    "tcspd": 4,
+    "fldatelbl": "2026-10-02 11:00 PM Fri MST",
+    "lat": 19,
+    "lon": -112,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 0,
+    "timezone": "MST",
+    "validtime": "03/0600",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -111.80000000039962,
+    "y": 19.400000000000148
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3826,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 100,
+    "maxwind": 80,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 AM Sat",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-03 11:00 AM Sat MST",
+    "lat": 20,
+    "lon": -112,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 12,
+    "timezone": "MST",
+    "validtime": "03/1800",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -112.40000000009985,
+    "y": 19.599999999600414
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3827,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 90,
+    "maxwind": 75,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 PM Sat",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-03 11:00 PM Sat MST",
+    "lat": 20,
+    "lon": -113,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 24,
+    "timezone": "MST",
+    "validtime": "04/0600",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -113.20000000029967,
+    "y": 19.899999999900217
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3828,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 85,
+    "maxwind": 70,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 AM Sun",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-04 11:00 AM Sun MST",
+    "lat": 20,
+    "lon": -114,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 36,
+    "timezone": "MST",
+    "validtime": "04/1800",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -114.1000000002997,
+    "y": 20.10000000039986
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3829,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 85,
+    "maxwind": 70,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 PM Sun",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-04 11:00 PM Sun MST",
+    "lat": 20,
+    "lon": -115,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 48,
+    "timezone": "MST",
+    "validtime": "05/0600",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -115.1999999999,
+    "y": 20.200000000199964
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3830,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 85,
+    "maxwind": 70,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 AM Mon",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-05 11:00 AM Mon MST",
+    "lat": 20,
+    "lon": -117,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 60,
+    "timezone": "MST",
+    "validtime": "05/1800",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -116.69999999960021,
+    "y": 20.399999999800286
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3831,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 85,
+    "maxwind": 70,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 PM Mon",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-05 11:00 PM Mon MST",
+    "lat": 21,
+    "lon": -118,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 72,
+    "timezone": "MST",
+    "validtime": "06/0600",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -118.39999999980006,
+    "y": 20.60000000029993
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3832,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "HU",
+    "dvlbl": "H",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 80,
+    "maxwind": 65,
+    "mslp": 9999,
+    "ssnum": 1,
+    "datelbl": "11:00 PM Tue",
+    "tcdvlp": "Hurricane",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-06 11:00 PM Tue MST",
+    "lat": 21,
+    "lon": -122,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 96,
+    "timezone": "MST",
+    "validtime": "07/0600",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -121.7000000003996,
+    "y": 21.20000000000016
+   }
+  },
+  {
+   "attributes": {
+    "objectid": 3833,
+    "stormname": "Hurricane Rachel",
+    "stormtype": "TS",
+    "dvlbl": "S",
+    "basin": "EP",
+    "advdate": "200 AM MST Sat Oct 03 2026",
+    "advisnum": "25",
+    "fcstprd": 120,
+    "gust": 65,
+    "maxwind": 55,
+    "mslp": 9999,
+    "ssnum": 0,
+    "datelbl": "11:00 PM Wed",
+    "tcdvlp": "Tropical Storm",
+    "tcdir": 9999,
+    "tcspd": 9999,
+    "fldatelbl": "2026-10-07 11:00 PM Wed MST",
+    "lat": 22,
+    "lon": -125,
+    "stormnum": 18,
+    "stormsrc": "Tropical Cyclone",
+    "tau": 120,
+    "timezone": "MST",
+    "validtime": "08/0600",
+    "idp_source": "ep182026-025_5day_pts",
+    "idp_filedate": 1791018161000,
+    "idp_ingestdate": 1791018202000,
+    "binnumber": "EP3"
+   },
+   "geometry": {
+    "x": -125.00000000009982,
+    "y": 22.199999999800298
+   }
+  }
+ ]
+}
