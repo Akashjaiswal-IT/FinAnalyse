@@ -5,13 +5,23 @@ import type { KvStore } from "./kv";
 
 // Every external call goes through this wrapper (SPEC 5.3).
 
+/**
+ * Provider messages sometimes echo the caller's API key (Alpha Vantage's daily-limit answer does) and request URLs
+ * carry it as a query parameter. Errors, logs, the Redis status hash and the Sources tab must never hold it.
+ */
+export function redactSecrets(text: string): string {
+  return text
+    .replace(/(API key as\s+)[A-Za-z0-9_-]{6,}/gi, "$1[redacted]")
+    .replace(/((?:api[_-]?key|apikey|token|access[_-]?token|auth)=)[^&\s"']+/gi, "$1[redacted]");
+}
+
 export class RateLimitedError extends Error {
   constructor(
     readonly source: string,
     readonly retryAfterMs: number,
     detail: string,
   ) {
-    super(`${source} rate limited: ${detail}`);
+    super(`${source} rate limited: ${redactSecrets(detail)}`);
     this.name = "RateLimitedError";
   }
 }
@@ -22,7 +32,7 @@ export class BadPayloadError extends Error {
     readonly sample: string,
     detail: string,
   ) {
-    super(`${source} bad payload: ${detail}`);
+    super(`${source} bad payload: ${redactSecrets(detail)}`);
     this.name = "BadPayloadError";
   }
 }
@@ -43,7 +53,7 @@ export class UpstreamError extends Error {
     readonly source: string,
     detail: string,
   ) {
-    super(`${source} upstream error: ${detail}`);
+    super(`${source} upstream error: ${redactSecrets(detail)}`);
     this.name = "UpstreamError";
   }
 }
@@ -110,7 +120,7 @@ interface Breaker {
 }
 
 function sample(text: string): string {
-  return text.slice(0, SAMPLE_CHARS);
+  return redactSecrets(text.slice(0, SAMPLE_CHARS));
 }
 
 function retryAfterMs(header: string | null, now: number): number {
@@ -264,7 +274,8 @@ export class HttpClient {
     const now = new Date(this.deps.now()).toISOString();
     const extra: Record<string, string> = status === "ok" ? {} : { lastErrorAt: now };
     try {
-      await store.hset(`source:${source}`, { status, ...extra, ...fields });
+      const safe = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, redactSecrets(v)]));
+      await store.hset(`source:${source}`, { status, ...extra, ...safe });
     } catch (error) {
       this.deps.log("warn", "status write failed", { source, error: String(error) });
     }

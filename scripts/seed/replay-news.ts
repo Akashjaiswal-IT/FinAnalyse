@@ -5,12 +5,13 @@ import { AlphaVantageClient, normaliseAvFeed, rotationQueryKey } from "../../pac
 import { defaultHttp } from "../../packages/services/clients/default-http";
 import { GdeltClient, normaliseArticles } from "../../packages/services/clients/gdelt";
 import { NewsService, type NewsItemInput } from "../../packages/services/news/index";
-import { cachedJson, log, type SeedOptions } from "./lib";
+import { cachedJson, log, readCache, type SeedOptions } from "./lib";
 
 // Step 6 (SPEC 10): news for each replay preset's window `[asOf - 72 h, asOf]`. Alpha Vantage's archive covers
 // 2022 onward; GDELT adds coverage when this network is allowed to reach it.
 
 const HOUR = 3_600_000;
+const AV_SPACING_MS = 1_500;
 
 /** Alpha Vantage topics per event type: the broad market topic plus the closest specific one. */
 const AV_TOPICS: Record<EventType, readonly string[]> = {
@@ -38,7 +39,11 @@ export async function seedReplayNews(options: SeedOptions): Promise<void> {
     for (const topic of AV_TOPICS[preset.type]) {
       const entry = { kind: "topics" as const, value: topic };
       try {
-        const feed = await cachedJson(`alphavantage/replay/${preset.id}-${topic}.json`, options, () => av.news(entry, 1000, { from, to }));
+        const feed = await cachedJson(`alphavantage/replay/${preset.id}-${topic}.json`, options, async () => {
+          // The free key allows 1 request per second; calls made back to back are refused.
+          await new Promise((resolve) => setTimeout(resolve, AV_SPACING_MS));
+          return av.news(entry, 1000, { from, to });
+        });
         items.push(...normaliseAvFeed(feed, rotationQueryKey(entry), to));
       } catch (error) {
         log("news", `${preset.id}: Alpha Vantage ${topic} unavailable: ${error instanceof Error ? error.message : String(error)}`);
@@ -49,10 +54,13 @@ export async function seedReplayNews(options: SeedOptions): Promise<void> {
     const queries = [row?.gdeltQuery, NEWS_QUERIES[preset.type]].filter((q): q is string => Boolean(q));
     for (const query of queries) {
       try {
-        const articles = await cachedJson(`gdelt/replay/${preset.id}-${queries.indexOf(query)}.json`, options, () =>
-          gdelt.artlist(query, { start: from, end: to }),
-        );
-        items.push(...normaliseArticles(articles, preset.type, to));
+        const path = `gdelt/replay/${preset.id}-${queries.indexOf(query)}.json`;
+        // `--gdelt=cache-only` makes no GDELT request: only articles already cached are used.
+        const articles =
+          options.gdelt === "cache-only"
+            ? readCache<Awaited<ReturnType<typeof gdelt.artlist>>>(path)
+            : await cachedJson(path, options, () => gdelt.artlist(query, { start: from, end: to }));
+        if (articles) items.push(...normaliseArticles(articles, preset.type, to));
       } catch (error) {
         log("news", `${preset.id}: GDELT unavailable: ${error instanceof Error ? error.message : String(error)}`);
       }

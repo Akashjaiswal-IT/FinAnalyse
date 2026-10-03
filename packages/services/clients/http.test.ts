@@ -7,6 +7,7 @@ import {
   HttpStatusError,
   RateLimitedError,
   SourceDownError,
+  redactSecrets,
   UpstreamError,
   type HttpDeps,
 } from "./http";
@@ -151,6 +152,33 @@ describe("HttpClient.request", () => {
     await expect(h.http.request(req)).resolves.toEqual({ value: 7 });
     expect(h.calls).toHaveLength(5); // every call reached the network; none failed fast
     expect((await h.store.hgetall("source:fred")).status).toBe("ok");
+  });
+
+  it("never lets an API key echoed by a provider into the error, the status hash or the log", async () => {
+    const key = "ABCD1234EFGH5678";
+    const body = `We have detected your API key as ${key} and our standard API rate limit is 25 requests per day.`;
+    const h = harness([{ status: 429, body }]);
+    const error = await h.http.request(req).catch((e: unknown) => e as Error);
+    expect(error).toBeInstanceOf(RateLimitedError);
+    expect((error as Error).message).not.toContain(key);
+    expect((error as Error).message).toContain("API key as [redacted]");
+    const status = await h.store.hgetall("source:fred");
+    expect(status.lastError).not.toContain(key);
+    expect(JSON.stringify(h.logs)).not.toContain(key);
+  });
+
+  it("redacts a plain-text body with status 200 and a key in a query string", async () => {
+    const key = "SECRETKEY99";
+    const h = harness([{ status: 200, body: `see https://x.test/q?api_key=${key}&a=1` }]);
+    const error = await h.http.request({ ...req, source: "gdelt" }).catch((e: unknown) => e as Error);
+    expect(error).toBeInstanceOf(BadPayloadError);
+    expect(`${(error as Error).message} ${(error as BadPayloadError).sample}`).not.toContain(key);
+  });
+
+  it("redactSecrets keeps ordinary text and only hides keys and tokens", () => {
+    expect(redactSecrets("HTTP 500 from fred, retry in 5 s")).toBe("HTTP 500 from fred, retry in 5 s");
+    expect(redactSecrets("?apikey=abc123&x=1&token=zzz9")).toBe("?apikey=[redacted]&x=1&token=[redacted]");
+    expect(redactSecrets("your API key as K3Y12345 and")).toBe("your API key as [redacted] and");
   });
 
   it("does not count rate limits as breaker failures", async () => {
