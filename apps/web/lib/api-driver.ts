@@ -1,5 +1,5 @@
 import { RunEvent } from "@repo/contracts";
-import type { RunDriver } from "./run-driver";
+import type { RunDriver, RunDriverHandlers } from "./run-driver";
 
 // Phase 2 driver: `runs.create`, then the `runs.stream` subscription. tRPC's SSE link resumes a dropped stream
 // from the last tracked id on its own, so a reconnect never replays or skips an event.
@@ -33,6 +33,27 @@ export interface RunsClient {
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 export function createApiDriver(client: RunsClient): RunDriver {
+  // Subscribes from the first event and stops after the terminal one; `isStopped` covers a stop before it starts.
+  const follow = (runId: string, handlers: RunDriverHandlers, isStopped: () => boolean, stop: () => void) =>
+    client.runs.stream.subscribe(
+      { runId },
+      {
+        onData(value) {
+          if (isStopped()) return;
+          const parsed = RunEvent.safeParse(value.data);
+          if (!parsed.success) return;
+          handlers.onEvent(Number(value.id), parsed.data);
+          if (parsed.data.type === "run.completed" || parsed.data.type === "run.failed") {
+            stop();
+            handlers.onDone();
+          }
+        },
+        onError(err) {
+          if (!isStopped()) handlers.onError(message(err));
+        },
+      },
+    );
+
   return {
     start(request, handlers) {
       let stopped = false;
@@ -53,28 +74,22 @@ export function createApiDriver(client: RunsClient): RunDriver {
           });
           if (stopped) return;
           handlers.onRunId(runId);
-          sub = client.runs.stream.subscribe(
-            { runId },
-            {
-              onData(value) {
-                if (stopped) return;
-                const parsed = RunEvent.safeParse(value.data);
-                if (!parsed.success) return;
-                handlers.onEvent(Number(value.id), parsed.data);
-                if (parsed.data.type === "run.completed" || parsed.data.type === "run.failed") {
-                  stop();
-                  handlers.onDone();
-                }
-              },
-              onError(err) {
-                if (!stopped) handlers.onError(message(err));
-              },
-            },
-          );
+          sub = follow(runId, handlers, () => stopped, stop);
         } catch (err) {
           if (!stopped) handlers.onError(message(err));
         }
       })();
+      return stop;
+    },
+    attach(runId, handlers) {
+      let stopped = false;
+      let sub: { unsubscribe(): void } | null = null;
+      const stop = () => {
+        stopped = true;
+        sub?.unsubscribe();
+      };
+      handlers.onRunId(runId);
+      sub = follow(runId, handlers, () => stopped, stop);
       return stop;
     },
   };

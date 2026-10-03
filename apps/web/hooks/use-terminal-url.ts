@@ -13,7 +13,7 @@ import {
 } from "~/lib/url-state";
 import type { Mode } from "@repo/contracts";
 
-/** Mode, preset and as-of, read from and written to the URL query so a reload restores them. */
+/** Mode, preset, as-of and the run on screen, read from and written to the URL query so a reload restores them. */
 export function useTerminalUrl() {
   const search = useSearchParams();
   const router = useRouter();
@@ -26,7 +26,19 @@ export function useTerminalUrl() {
     [router, pathname],
   );
 
+  const runId = search.get("run");
+  const setRunId = useCallback(
+    (id: string | null) => {
+      const base = serializeTerminalParams(params);
+      router.replace(`${pathname}?${base}${id ? `${base ? "&" : ""}run=${encodeURIComponent(id)}` : ""}`, { scroll: false });
+    },
+    [router, pathname, params],
+  );
+
   return {
+    /** The run on screen, so a reload can follow it again. */
+    runId,
+    setRunId,
     mode: params.mode,
     presetId: params.presetId,
     /** The as-of that runs and panels use: the preset's, a custom one, or null in live mode. */

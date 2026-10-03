@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tempest: financial intelligence terminal</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root { --bg: #0b0d12; --panel: #12151c; --line: #262b36; --text: #e6e8ee; --muted: #8b93a4; --amber: #f5a524; --green: #34c77b; --red: #ef5b5b; --blue: #4b9ce2; --violet: #a77bf3; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #000; color: var(--text); font: 22px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .slide { width: 1280px; height: 720px; margin: 0 auto 24px; padding: 56px 72px; background: var(--bg); position: relative; overflow: hidden; page-break-after: always; break-after: page; }
+  @media print { .slide { margin: 0; } }
+  .brand { position: absolute; top: 24px; right: 40px; font: 700 14px ui-monospace, monospace; letter-spacing: .3em; color: var(--amber); }
+  .num { position: absolute; bottom: 20px; right: 40px; font: 13px ui-monospace, monospace; color: var(--muted); }
+  h1 { font-size: 46px; line-height: 1.15; margin: 0 0 18px; }
+  h2 { font-size: 34px; margin: 0 0 22px; }
+  .kicker { font: 600 14px ui-monospace, monospace; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); margin-bottom: 14px; }
+  p, li { color: var(--text); }
+  .muted { color: var(--muted); }
+  ul { margin: 0; padding-left: 1.1em; }
+  li { margin: 6px 0; }
+  .grid { display: grid; gap: 18px; }
+  .two { grid-template-columns: 1fr 1fr; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 8px; font: 600 13px ui-monospace, monospace; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+  .big { font: 700 40px ui-monospace, monospace; }
+  .chip { display: inline-block; border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; margin: 2px 4px 2px 0; font: 16px ui-monospace, monospace; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 15px ui-monospace, monospace; }
+  .node { border: 1px solid var(--green); color: var(--green); border-radius: 6px; padding: 6px 10px; background: rgba(52,199,123,.07); }
+  .node.par { border-color: var(--blue); color: var(--blue); background: rgba(75,156,226,.07); }
+  .arrow { color: var(--muted); }
+  img.shot { width: 100%; border: 1px solid var(--line); border-radius: 8px; display: block; }
+  table { border-collapse: collapse; width: 100%; font-size: 17px; }
+  td, th { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+  th { color: var(--muted); font-weight: 500; }
+  td.n, th.n { text-align: right; } td.n { font-family: ui-monospace, monospace; }
+  .green { color: var(--green); } .red { color: var(--red); } .amber { color: var(--amber); } .blue { color: var(--blue); } .violet { color: var(--violet); }
+</style>
+</head>
+<body>
+
+<section class="slide">
+  <div class="brand">TEMPEST</div>
+  <div class="kicker">Codeutsav · problem statement 5</div>
+  <h1>Something just happened.<br>What does it do to our portfolio?</h1>
+  <p class="muted" style="font-size:24px;max-width:1000px">A war, a tariff package, a surprise rate decision, a competitor's refinery explosion, a Category 4 hurricane in the Gulf. A portfolio manager needs three answers in minutes, and needs to trust every number in them.</p>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:34px">
+    <div class="card"><h3>Who is exposed</h3>Which holdings the event reaches: directly, through a competitor, or through a market factor such as oil or rates.</div>
+    <div class="card"><h3>How far could it go</h3>What markets did in the five trading days after similar past events, weighted by how similar they were.</div>
+    <div class="card"><h3>What to do</h3>Value at risk, the scenario result, and a hedge plan inside position limits, with the risk before and after.</div>
+  </div>
+  <div class="num">1 / 5</div>
+</section>
+
+<section class="slide">
+  <div class="brand">TEMPEST</div>
+  <div class="kicker">The demo in one screen</div>
+  <div class="grid" style="grid-template-columns:1.55fr 1fr;align-items:start">
+    <img class="shot" src="terminal-ida-top.png" alt="The terminal after a Hurricane Ida replay run">
+    <ul style="font-size:19px">
+      <li><b>Ask in plain English.</b> Replay mode fixes the clock at an as-of time; nothing later can be read.</li>
+      <li><b>The graph runs live:</b> planner, event, then weather, sentiment and macro in parallel, analogs, risk, hedging, answer, verifier.</li>
+      <li><b>Exposure badges</b> on every holding: <span class="amber">direct</span>, <span class="violet">peer</span>, <span class="blue">factor</span>.</li>
+      <li><b>Every number is a chip</b> linked to its source and as-of time. The verifier counts ungrounded numbers: zero.</li>
+      <li><b>Hurricane runs</b> add the storm track and the refineries inside the impact radius.</li>
+    </ul>
+  </div>
+  <div class="num">2 / 5</div>
+</section>
+
+<section class="slide">
+  <div class="brand">TEMPEST</div>
+  <div class="kicker">Architecture</div>
+  <h2>Real data in, an audited answer out</h2>
+  <div class="card" style="margin-bottom:16px">
+    <h3>Agent graph (LangGraph, same shape on every run)</h3>
+    <div class="flow">
+      <span class="node">planner</span><span class="arrow">→</span><span class="node">event</span><span class="arrow">→</span>
+      <span class="node par">weather · sentiment · macro</span><span class="arrow">→</span>
+      <span class="node">analogs</span><span class="arrow">→</span><span class="node">risk</span><span class="arrow">→</span><span class="node">hedging</span><span class="arrow">→</span>
+      <span class="node">synthesizer</span><span class="arrow">→</span><span class="node">verifier</span>
+    </div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h3>Data</h3>
+      <span class="chip">GDELT</span><span class="chip">Alpha Vantage news</span><span class="chip">Tiingo prices</span><span class="chip">FRED</span><span class="chip">EIA</span><span class="chip">NHC</span><span class="chip">HURDAT2</span><span class="chip">Open-Meteo</span><br>
+      <span class="muted" style="font-size:18px">A BullMQ worker ingests on schedules into Postgres; past events and news live in a Pinecone index for similarity search.</span>
+    </div>
+    <div class="card"><h3>Trust</h3>
+      <ul style="font-size:18px">
+        <li>Nodes write <b>evidence rows</b>; the model writes <span class="chip">{{E12}}</span> placeholders, never digits.</li>
+        <li>The verifier rejects stray digits, unknown symbols, hedges outside limits, missing caveats.</li>
+        <li>A failing source degrades one node; the run continues and says what is missing.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Data flow</h3>
+    <div class="flow">
+      <span class="node par">sources</span><span class="arrow">→</span><span class="node par">worker (BullMQ, Redis)</span><span class="arrow">→</span>
+      <span class="node par">Postgres + Pinecone</span><span class="arrow">→</span><span class="node par">api (tRPC, SSE stream)</span><span class="arrow">→</span><span class="node par">terminal (Next.js)</span>
+    </div>
+  </div>
+  <p class="muted" style="font-size:16px;margin-top:14px">TypeScript monorepo: Next.js terminal, Express + tRPC with SSE streaming, Drizzle + Postgres, Redis, Pinecone, Claude.</p>
+  <div class="num">3 / 5</div>
+</section>
+
+<section class="slide" id="proof">
+  <div class="brand">TEMPEST</div>
+  <div class="kicker">Proof, measured by scripts (docs/RESULTS.md)</div>
+  <h2>We measured it, including where it is weak</h2>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><h3>Eval, 20 questions</h3><div class="big" id="p-eval">95%</div><span class="muted" id="p-eval-sub">intent and event type right; 19 of 20 runs succeeded, verifier 100% after repair</span></div>
+    <div class="card"><h3>Robustness drills</h3><div class="big" id="p-drills">26/26</div><span class="muted" id="p-drills-sub">runs pass with a source, the index, a quota or the model key taken away</span></div>
+    <div class="card"><h3>Run time</h3><div class="big" id="p-latency">45 s</div><span class="muted" id="p-latency-sub">median run, p95 79 s; first step done in 4 s</span></div>
+    <div class="card"><h3>Cost per run</h3><div class="big" id="p-cost">$0.04</div><span class="muted">Claude tokens, mean of the eval runs</span></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <h3>Forecast backtest: leave-one-out over 64 past events, 6 targets</h3>
+    <table>
+      <tr><th>Model</th><th class="n">Directional accuracy</th><th class="n">MAE (5-day)</th></tr>
+      <tr><td>Same event type</td><td class="n">61.4%</td><td class="n">5.78%</td></tr>
+      <tr><td>Market regime (VIX)</td><td class="n">56.6%</td><td class="n">5.22%</td></tr>
+      <tr><td>Combined</td><td class="n">52.4%</td><td class="n">5.23%</td></tr>
+      <tr><td>Unconditional mean</td><td class="n">49.3%</td><td class="n">5.49%</td></tr>
+    </table>
+    <p class="muted" style="font-size:16px;margin:10px 0 0">Small samples (3 to 31 events per type) and hand-picked events; news features were unavailable on our network, so the news model has no predictions. The reliability page shows every table.</p>
+  </div>
+  <div class="num">4 / 5</div>
+</section>
+
+<section class="slide">
+  <div class="brand">TEMPEST</div>
+  <div class="kicker">What is real, what is simulated</div>
+  <div class="grid two" style="margin-top:10px">
+    <div class="card"><h3 class="green">Real</h3>
+      <ul style="font-size:19px">
+        <li>News from GDELT and Alpha Vantage; daily prices; FRED and EIA series; NHC and HURDAT2 storm tracks; EIA refinery locations.</li>
+        <li>A Pinecone index of 64 past events and their market reactions.</li>
+        <li>Claude models for planning, scoring news, hedging and writing; every number from computed evidence.</li>
+        <li>Replay mode cannot read anything dated after its as-of time.</li>
+      </ul>
+    </div>
+    <div class="card"><h3 class="amber">Simulated</h3>
+      <ul style="font-size:19px">
+        <li>A fixed paper portfolio: 23 positions, $10M.</li>
+        <li>Hedges use ETFs in place of futures; nothing goes to a broker.</li>
+        <li>Hurricane replays use the best track as a perfect forecast, and say so.</li>
+        <li>Prices are end of day.</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:26px;margin-top:34px">From an event to exposure, analogs, risk and a hedge, in under a minute, with every claim traceable.</p>
+  <div class="num">5 / 5</div>
+</section>
+
+</body>
+</html>

@@ -135,6 +135,15 @@ Entries at H7, H12 and H18.
 - With the model off and fixture data, `run-query --fake` ends `partial` for both presets through the fallbacks (rule-based plan, fallback hedge, template answer) and the verifier passes.
 
 
+### Gates B2 and B3, integration items (2026-10-03, 22:05 IST)
+
+- GATE B2 with real models: the Ukraine and Ida preset questions end `succeeded`, the verifier passes, the answers cite 29 to 49 evidence rows and name the direct and factor channels, Ukraine shows `weather` skipped, the hedge plans are inside the limits.
+- Run time: about 55 s for Ida and Ukraine once `pnpm score:replay` has scored the preset windows (105 s before). Model calls stop at 90 s and the hedging loop at 150 s, then fall back.
+- Reloading the terminal mid-run follows the same run again (run id in the URL); a finished run opens instantly from its URL.
+- GATE B3: `pnpm eval` with real models: 19 of 20 runs succeeded, intent and event type 95%, verifier 100% after repair, hedge limits 100%, run p50 44.9 s, p95 78.8 s, $0.044 per run. Drills re-run with real models (RESULTS.md).
+- The reasoning model answers 429 through the shared gateway key, so planner, hedging and synthesizer run on the fast model after one 429 (five-minute cooldown).
+- Phase 4: fresh clone with the README steps (setup, install, migrate, check-types, lint, build, api boot) works; five slides in `docs/slides/index.html`; a 4-minute backup recording exists outside the repository.
+
 ## Track C: Quant and proof
 
 Entries at H7, H12 and H18.

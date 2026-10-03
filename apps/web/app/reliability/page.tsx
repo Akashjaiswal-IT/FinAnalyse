@@ -27,7 +27,7 @@ function MetricsTable({ title, row }: { title: string; row: Partial<Record<Model
             <TableRow>
               <TableHead>Model</TableHead>
               <TableHead className="text-right">n</TableHead>
-              <TableHead className="text-right">Directional accuracy</TableHead>
+              <TableHead className="text-right" title="Directional accuracy, moves under 0.25% excluded">Direction</TableHead>
               <TableHead className="text-right">MAE</TableHead>
               <TableHead className="text-right">Spearman</TableHead>
             </TableRow>

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { RunEvent } from "@repo/contracts";
 import { applyRunEvent, initialRunView, type RunView } from "~/lib/run-state";
-import type { RunDriver, RunStartRequest } from "~/lib/run-driver";
+import type { RunDriver, RunDriverHandlers, RunStartRequest } from "~/lib/run-driver";
 
 export type RunStreamStatus = "idle" | "starting" | "streaming" | "completed" | "failed";
 
@@ -83,6 +83,8 @@ export interface RunStream {
   /** True from submit until the run completes or fails. */
   isActive: boolean;
   start: (request: RunStartRequest) => void;
+  /** Follows a run that already exists (after a reload); a no-op for drivers without stored runs. */
+  attach: (runId: string) => void;
   reset: () => void;
 }
 
@@ -103,13 +105,13 @@ export function useRunStream(driver: RunDriver): RunStream {
     cancelRef.current = null;
   }, []);
 
-  const start = useCallback(
-    (request: RunStartRequest) => {
+  const run = useCallback(
+    (begin: (handlers: RunDriverHandlers) => () => void) => {
       stop();
       const generation = generationRef.current;
       const current = () => generation === generationRef.current;
       dispatch({ type: "start" });
-      cancelRef.current = driver.start(request, {
+      cancelRef.current = begin({
         onRunId: (runId) => current() && dispatch({ type: "run-id", runId }),
         onEvent: (seq, event) =>
           current() && dispatch({ type: "event", stamped: { seq, event, receivedAt: Date.now() } }),
@@ -117,7 +119,16 @@ export function useRunStream(driver: RunDriver): RunStream {
         onDone: () => current() && dispatch({ type: "done" }),
       });
     },
-    [driver, stop],
+    [stop],
+  );
+
+  const start = useCallback((request: RunStartRequest) => run((h) => driver.start(request, h)), [driver, run]);
+  const attach = useCallback(
+    (runId: string) => {
+      const follow = driver.attach?.bind(driver);
+      if (follow) run((h) => follow(runId, h));
+    },
+    [driver, run],
   );
 
   const reset = useCallback(() => {
@@ -135,6 +146,7 @@ export function useRunStream(driver: RunDriver): RunStream {
     error: state.error ?? state.view.error,
     isActive: state.status === "starting" || state.status === "streaming",
     start,
+    attach,
     reset,
   };
 }

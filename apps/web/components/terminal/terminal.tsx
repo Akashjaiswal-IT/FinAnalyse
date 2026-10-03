@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MarketEventView, Mode } from "@repo/contracts";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -43,6 +43,17 @@ export function Terminal() {
   const fixtureSnapshot = useMemo(() => fixturePortfolioAt(url.asOf), [url.asOf]);
   const portfolio = trpc.portfolio.get.useQuery(url.asOf ? { asOf: url.asOf } : {}, { enabled: DATA_SOURCE === "api" });
   const snapshot = DATA_SOURCE === "api" ? (portfolio.data ?? null) : fixtureSnapshot;
+
+  // A reload mid-run follows the run named in the URL again, from its first event.
+  const { attach } = stream;
+  const initialRun = useRef(url.runId);
+  useEffect(() => {
+    if (initialRun.current) attach(initialRun.current);
+  }, [attach]);
+  const { runId: urlRunId, setRunId } = url;
+  useEffect(() => {
+    if (stream.runId && stream.runId !== urlRunId) setRunId(stream.runId);
+  }, [stream.runId, urlRunId, setRunId]);
 
   // A new mode, preset or as-of makes the previous answer describe a different question, so it is cleared.
   const { reset } = stream;

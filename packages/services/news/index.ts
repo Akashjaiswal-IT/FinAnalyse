@@ -22,7 +22,7 @@ import { defaultHttp } from "../clients/default-http";
 import { GdeltClient } from "../clients/gdelt";
 import type { HttpClient } from "../clients/http";
 import { getPinecone, type FlatMetadata, type PineconeClient, type TextRecord } from "../clients/pinecone";
-import { getRedis, takeQuota } from "../clients/redis";
+import { getRedis, returnQuota, takeQuota } from "../clients/redis";
 import { llm, type Llm } from "../llm";
 import { SCORING_SYSTEM, scoreUpdate, scoringUser } from "./score";
 import type {
@@ -262,7 +262,10 @@ export class NewsService {
       schema: Scores,
       maxTokens: MAX_TOKENS.scoring,
     });
-    if (!result.ok) throw new Error(`news scoring failed: ${result.reason} ${result.detail}`);
+    if (!result.ok) {
+      await returnQuota(this.deps.redis(), "enrich", allowed.length, now);
+      throw new Error(`news scoring failed: ${result.reason} ${result.detail}`);
+    }
     const byId = new Map(allowed.map((r) => [r.id, r]));
     const scored: string[] = [];
     for (const score of result.data.scores) {
