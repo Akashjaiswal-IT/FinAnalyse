@@ -24,6 +24,7 @@ export { FakeLlm, fakeFailure } from "./fake";
 
 /** Opt-in server-side retry on a substitute model when the requested one declines (docs/DECISIONS.md). */
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
+const MAX_NON_STREAMING_TOKENS = 21_000;
 
 type Message = Anthropic.Beta.Messages.BetaMessage;
 
@@ -88,6 +89,9 @@ export class LlmService implements Llm {
 
   async parseStructured<T>(call: StructuredCall<T>, retried = false): Promise<StructuredResult<T>> {
     const { params, effort } = tierParams(call.tier, call.effort);
+    // The wire format has no `parse`, so the SDK does not touch the reply: a truncated JSON text would make it
+    // throw before we could look at `stop_reason`. We parse after the stop-reason checks.
+    const { parse, ...wire } = llmFormat(call.schema);
     try {
       const message = await this.getClient().beta.messages.parse(
         {
@@ -95,7 +99,7 @@ export class LlmService implements Llm {
           max_tokens: call.maxTokens,
           system: systemBlock(call.system),
           messages: [{ role: "user", content: call.user }],
-          output_config: { ...(effort ? { effort } : {}), format: llmFormat(call.schema) },
+          output_config: { ...(effort ? { effort } : {}), format: wire },
           ...params,
         },
         requestOptions(call.tier, call.signal),
@@ -107,13 +111,17 @@ export class LlmService implements Llm {
       }
       if (message.stop_reason === "max_tokens") {
         if (retried) return failure("max_tokens", `${call.label}: output hit ${call.maxTokens} tokens twice`, usage);
-        const again = await this.parseStructured({ ...call, maxTokens: call.maxTokens * 2 }, true);
+        // Capped so the SDK still accepts a non-streaming request (it refuses above about 21,000 output tokens).
+        const again = await this.parseStructured({ ...call, maxTokens: Math.min(call.maxTokens * 2, MAX_NON_STREAMING_TOKENS) }, true);
         return again.ok
           ? { ...again, usage: addUsage(usage, again.usage) }
           : { ...again, usage: again.usage ? addUsage(usage, again.usage) : usage };
       }
-      if (message.parsed_output === null) return failure("parse", `${call.label}: no parsed output`, usage);
-      return { ok: true, data: message.parsed_output as T, usage, thinkingSummary: thinkingOf(message) };
+      try {
+        return { ok: true, data: parse(textOf(message)), usage, thinkingSummary: thinkingOf(message) };
+      } catch (err) {
+        return failure("parse", `${call.label}: ${err instanceof Error ? err.message : String(err)}`, usage);
+      }
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
       logger.warn("llm call failed", { label: call.label, detail });

@@ -14,9 +14,8 @@ function message(over: Record<string, unknown> = {}) {
     model: "claude-sonnet-5-5",
     stop_reason: "end_turn",
     stop_details: null,
-    content: [{ type: "thinking", thinking: "weighed the options" }, { type: "text", text: "{}" }],
+    content: [{ type: "thinking", thinking: "weighed the options" }, { type: "text", text: '{"answer":"ok"}' }],
     usage: { input_tokens: 1_000, output_tokens: 500, cache_creation_input_tokens: null, cache_read_input_tokens: null },
-    parsed_output: { answer: "ok" },
     ...over,
   };
 }
@@ -53,7 +52,7 @@ describe("LlmService.parseStructured", () => {
   });
 
   it("sends temperature 0 and no effort, thinking or fallbacks on Haiku", async () => {
-    const parse = vi.fn().mockResolvedValue(message({ model: "claude-haiku-4-5", content: [{ type: "text", text: "{}" }] }));
+    const parse = vi.fn().mockResolvedValue(message({ model: "claude-haiku-4-5", content: [{ type: "text", text: '{"answer":"ok"}' }] }));
     const result = await serviceWith(parse).parseStructured(call({ tier: "fast", effort: undefined }));
     const body = parse.mock.calls[0]?.[0];
     expect(body.temperature).toBe(0);
@@ -74,7 +73,7 @@ describe("LlmService.parseStructured", () => {
 
   it("degrades on a refusal without reading content", async () => {
     const parse = vi.fn().mockResolvedValue(
-      message({ stop_reason: "refusal", stop_details: { type: "refusal", category: "general_harms" }, parsed_output: null }),
+      message({ stop_reason: "refusal", stop_details: { type: "refusal", category: "general_harms" }, content: [] }),
     );
     const result = await serviceWith(parse).parseStructured(call());
     expect(result).toMatchObject({ ok: false, reason: "refusal" });
@@ -83,7 +82,7 @@ describe("LlmService.parseStructured", () => {
   });
 
   it("retries once at double max_tokens, then degrades", async () => {
-    const truncated = message({ stop_reason: "max_tokens", parsed_output: null });
+    const truncated = message({ stop_reason: "max_tokens", content: [{ type: "text", text: '{"answer":"cut o' }] });
     const parse = vi.fn().mockResolvedValueOnce(truncated).mockResolvedValueOnce(message());
     const recovered = await serviceWith(parse).parseStructured(call());
     expect(parse.mock.calls.map((c) => c[0].max_tokens)).toEqual([4_000, 8_000]);
@@ -93,6 +92,14 @@ describe("LlmService.parseStructured", () => {
     const failed = await serviceWith(stuck).parseStructured(call());
     expect(stuck).toHaveBeenCalledTimes(2);
     expect(failed).toMatchObject({ ok: false, reason: "max_tokens" });
+  });
+
+  it("sends a format without a parse function and reports a reply that fails validation", async () => {
+    const parse = vi.fn().mockResolvedValue(message({ content: [{ type: "text", text: '{"answer":5}' }] }));
+    const result = await serviceWith(parse).parseStructured(call());
+    expect(parse.mock.calls[0]?.[0].output_config.format).not.toHaveProperty("parse");
+    expect(result).toMatchObject({ ok: false, reason: "parse" });
+    expect(result.ok === false && result.usage?.tokensIn).toBe(1_000);
   });
 
   it("returns a failure instead of throwing when the API call throws", async () => {
