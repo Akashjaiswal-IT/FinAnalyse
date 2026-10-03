@@ -4,6 +4,7 @@ import { IsoDateTime, Unit } from "./common";
 export const EvidenceKind = z.enum([
   "price",
   "news",
+  "event",
   "weather",
   "macro",
   "analog",

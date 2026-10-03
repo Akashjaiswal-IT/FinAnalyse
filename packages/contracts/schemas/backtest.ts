@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { IsoDateTime } from "./common";
+import { EventType } from "./event";
 
-export const ModelKey = z.enum(["N", "S", "W", "C"]);
+/** N unconditional, T type-only, S news-only, M regime-only, W weather-only, C combined (SPEC 5.9). */
+export const ModelKey = z.enum(["N", "T", "S", "M", "W", "C"]);
 export type ModelKey = z.infer<typeof ModelKey>;
 
 export const BacktestMetrics = z.object({
@@ -15,6 +17,7 @@ export type BacktestMetrics = z.infer<typeof BacktestMetrics>;
 
 export const BacktestPrediction = z.object({
   eventId: z.string(),
+  eventType: EventType,
   target: z.string(),
   model: ModelKey,
   predicted: z.number().nullable(),
@@ -24,8 +27,8 @@ export const BacktestPrediction = z.object({
 export const Backtest = z.object({
   id: z.uuid(),
   createdAt: IsoDateTime,
-  config: z.object({ bandwidth: z.number(), targets: z.array(z.string()) }),
-  metrics: z.record(z.string(), z.record(ModelKey, BacktestMetrics)).describe("target (or pooled) -> model -> metrics"),
+  config: z.object({ bandwidth: z.number(), typeWeight: z.number(), targets: z.array(z.string()) }),
+  metrics: z.record(z.string(), z.partialRecord(ModelKey, BacktestMetrics)).describe("target, `pooled` or `type:<eventType>` -> model -> metrics"),
   predictions: z.array(BacktestPrediction),
   caveats: z.array(z.string()),
 });

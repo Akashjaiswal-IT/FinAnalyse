@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IsoDate, IsoDateTime } from "./common";
+import { EventType, NewsEventType } from "./event";
 
 export const SourceName = z.enum([
   "tiingo",
@@ -34,6 +35,7 @@ export const SystemStatus = z.object({
     count: z.number().int(),
     windowHours: z.number(),
   }),
+  enrichQuota: z.object({ used: z.number().int(), max: z.number().int() }),
 });
 export type SystemStatus = z.infer<typeof SystemStatus>;
 
@@ -50,8 +52,29 @@ export const LiveEvent = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("news.scored"),
     items: z.array(
-      z.object({ id: z.string(), sentiment: z.number(), relevance: z.number() }),
+      z.object({
+        id: z.string(),
+        sentiment: z.number(),
+        relevance: z.number(),
+        eventType: NewsEventType.nullable(),
+      }),
     ),
+  }),
+  z.object({
+    type: z.literal("event.detected"),
+    eventId: z.string(),
+    eventType: EventType,
+    title: z.string(),
+    articleCount: z.number().int(),
+    entities: z.array(z.string()),
+  }),
+  z.object({
+    type: z.literal("event.updated"),
+    eventId: z.string(),
+    eventType: EventType,
+    title: z.string(),
+    articleCount: z.number().int(),
+    entities: z.array(z.string()),
   }),
   z.object({ type: z.literal("weather.updated"), stormIds: z.array(z.string()) }),
   z.object({

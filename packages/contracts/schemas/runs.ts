@@ -3,6 +3,7 @@ import { Confidence, IsoDateTime, Mode, NodeName, NodeStatus } from "./common";
 import { Evidence } from "./evidence";
 import { Answer, Plan, Verification } from "./agents";
 import { Forecast } from "./analog";
+import { EventProfile } from "./event";
 import { HedgePlan, RiskReport } from "./portfolio";
 
 export const RunStatus = z.enum(["running", "succeeded", "partial", "failed"]);
@@ -55,6 +56,7 @@ export const RunEvent = z.discriminatedUnion("type", [
     type: z.literal("run.completed"),
     status: RunStatus,
     answer: Answer.nullable(),
+    eventProfile: EventProfile.nullable(),
     hedgePlan: HedgePlan.nullable(),
     risk: RiskReport.nullable(),
     forecast: Forecast.nullable(),
@@ -73,6 +75,7 @@ export const RunsCreateInput = z.object({
   mode: Mode,
   asOf: IsoDateTime.optional(),
   replayPresetId: z.string().optional(),
+  marketEventId: z.uuid().optional(),
 });
 export type RunsCreateInput = z.infer<typeof RunsCreateInput>;
 
@@ -99,8 +102,10 @@ export const Run = z.object({
   mode: Mode,
   asOf: IsoDateTime,
   replayEventId: z.string().nullable(),
+  marketEventId: z.string().nullable(),
   status: RunStatus,
   plan: Plan.nullable(),
+  eventProfile: EventProfile.nullable(),
   answer: Answer.nullable(),
   hedgePlan: HedgePlan.nullable(),
   risk: RiskReport.nullable(),

@@ -1,8 +1,8 @@
-import { FIXTURE_SOURCE } from "../constants";
-import { renderTemplate } from "../format";
 import type {
   Answer,
   AnalogsOutput,
+  EventOutput,
+  EventProfile,
   Evidence,
   HedgePlan,
   HedgingOutput,
@@ -13,15 +13,15 @@ import type {
   RiskSnapshot,
   RunEvent,
   SentimentOutput,
-  TemplateText,
   Verification,
   WeatherOutput,
 } from "../schemas";
+import { evidenceFactory, templater, usage } from "./build";
 import { FIXTURE_AS_OF, FIXTURE_PRICES } from "./portfolio";
 import { fixtureAtRiskRefineries, fixtureStorm } from "./storm";
 
-// A complete, hand-built run for the Ida replay. Every value is fixture data, not a market or model result:
-// evidence rows carry source "fixture". Track D builds the terminal against this sequence.
+// A complete, hand-built run for the Ida replay (a disaster event). Every value is fixture data, not a
+// market or model result: evidence rows carry source "fixture". Track D builds the terminal against it.
 
 export const FIXTURE_RUN_ID = "00000000-0000-4000-8000-0000000000a1";
 export const FIXTURE_THREAD_ID = "00000000-0000-4000-8000-0000000000b1";
@@ -30,34 +30,8 @@ export const FIXTURE_QUERY =
 
 const T0 = Date.parse("2026-10-03T08:00:00.000Z");
 const at = (offsetMs: number) => new Date(T0 + offsetMs).toISOString();
-const ref = "fixtures/ida-run";
-
-function ev(
-  key: string,
-  kind: Evidence["kind"],
-  label: string,
-  value: number | null,
-  unit: Evidence["unit"],
-  producedBy: string,
-  extra: Partial<Evidence> = {},
-): Evidence {
-  return {
-    key,
-    kind,
-    label,
-    value,
-    textValue: null,
-    unit,
-    basis: "computed",
-    source: FIXTURE_SOURCE,
-    sourceRef: ref,
-    asOf: FIXTURE_AS_OF,
-    stale: false,
-    producedBy,
-    payload: null,
-    ...extra,
-  };
-}
+const ev = evidenceFactory("fixtures/ida-run", FIXTURE_AS_OF);
+const GDELT_QUERY = '("Hurricane Ida" OR "Tropical Storm Ida") sourcelang:english';
 
 const E = {
   planner: [
@@ -67,68 +41,102 @@ const E = {
       sourceRef: "query",
     }),
   ],
+  event: [
+    ev("E2", "event", "Event", null, "text", "event", { textValue: "Hurricane Ida", basis: "observed" }),
+    ev("E3", "event", "News volume z-score", 2.1, "z", "event", { sourceRef: GDELT_QUERY }),
+    ev("E4", "event", "News tone z-score", -1.4, "z", "event", { sourceRef: GDELT_QUERY }),
+  ],
   weather: [
-    ev("E2", "weather", "Storm name", null, "text", "weather", { textValue: "Ida", basis: "observed" }),
-    ev("E3", "weather", "Peak forecast category", 4, "category", "weather"),
-    ev("E4", "weather", "Forecast landfall", Date.parse("2021-08-29T17:00:00.000Z"), "date", "weather"),
-    ev("E5", "computation", "Refineries within the impact radius", 4, "count", "weather", {
+    ev("E5", "weather", "Peak forecast category", 4, "category", "weather"),
+    ev("E6", "weather", "Forecast landfall", Date.parse("2021-08-29T17:00:00.000Z"), "date", "weather"),
+    ev("E7", "computation", "Refineries within the impact radius", 4, "count", "weather", {
       payload: { refineries: fixtureAtRiskRefineries.map((r) => r.id) },
     }),
-    ev("E6", "computation", "Gulf Coast refining capacity at risk", 0.4, "pct", "weather"),
-    ev("E7", "computation", "Valero capacity at risk", 0.31, "pct", "weather"),
+    ev("E8", "computation", "Gulf Coast refining capacity at risk", 0.4, "pct", "weather"),
+    ev("E9", "computation", "Valero capacity at risk", 0.31, "pct", "weather"),
   ],
-  sentiment: [
-    ev("E8", "model", "Energy-sector news sentiment", -0.31, "score", "sentiment", { basis: "model", sourceRef: "fixture" }),
-    ev("E9", "news", "GDELT tone z-score", -1.4, "z", "sentiment"),
-  ],
+  sentiment: [ev("E10", "model", "Energy-sector news sentiment", -0.31, "score", "sentiment", { basis: "model" })],
   macro: [
-    ev("E10", "macro", "Gasoline stocks vs the 5-year same-week average", -0.04, "pct_signed", "macro", { basis: "observed" }),
-    ev("E11", "macro", "VIX level", 17.9, "ratio", "macro", { basis: "observed" }),
+    ev("E11", "macro", "Gasoline stocks vs the 5-year same-week average", -0.04, "pct_signed", "macro", { basis: "observed" }),
+    ev("E12", "macro", "VIX level", 17.9, "ratio", "macro", { basis: "observed" }),
   ],
   analogs: [
-    ev("E12", "model", "Forecast 5-day move, Gulf Coast gasoline", 0.081, "pct_signed", "analogs", { basis: "model" }),
-    ev("E13", "model", "Forecast 5-day move, WTI crude", 0.032, "pct_signed", "analogs", { basis: "model" }),
-    ev("E14", "model", "Forecast 5-day move, Henry Hub natural gas", 0.021, "pct_signed", "analogs", { basis: "model" }),
-    ev("E15", "model", "Effective number of analog events", 4.3, "ratio", "analogs", { basis: "model" }),
+    ev("E13", "model", "Forecast 5-day move, Gulf Coast gasoline", 0.081, "pct_signed", "analogs", { basis: "model" }),
+    ev("E14", "model", "Forecast 5-day move, WTI crude", 0.032, "pct_signed", "analogs", { basis: "model" }),
+    ev("E15", "model", "Forecast 5-day move, Henry Hub natural gas", 0.021, "pct_signed", "analogs", { basis: "model" }),
+    ev("E16", "model", "Effective number of analog events", 4.3, "ratio", "analogs", { basis: "model" }),
   ],
   risk: [
-    ev("E16", "portfolio", "Portfolio NAV", 10_000_000, "usd", "risk", { basis: "observed" }),
-    ev("E17", "computation", "1-day 95% VaR", 182_000, "usd", "risk"),
-    ev("E18", "computation", "Scenario P&L before hedges", -412_000, "usd", "risk"),
+    ev("E17", "portfolio", "Portfolio NAV", 10_000_000, "usd", "risk", { basis: "observed" }),
+    ev("E18", "computation", "1-day 95% VaR", 168_000, "usd", "risk"),
+    ev("E19", "computation", "Scenario P&L before hedges", -58_000, "usd", "risk"),
+    ev("E20", "computation", "Holdings with direct exposure", 1_300_000, "usd", "risk"),
+    ev("E21", "computation", "Delta Air Lines beta to WTI", -0.6, "ratio", "risk"),
   ],
   hedging: [
-    ev("E19", "computation", "Scenario P&L after hedges", -171_000, "usd", "hedging"),
-    ev("E20", "computation", "Gross hedge notional", 1_910_000, "usd", "hedging"),
+    ev("E22", "computation", "Scenario P&L after hedges", -21_000, "usd", "hedging"),
+    ev("E23", "computation", "Gross hedge notional", 501_900, "usd", "hedging"),
   ],
 } as const;
 
 export const idaEvidence: Evidence[] = Object.values(E).flat();
-
-const lookup = (key: string) => idaEvidence.find((e) => e.key === key);
-
-function tt(template: string): TemplateText {
-  const { text, missing } = renderTemplate(template, lookup);
-  if (missing.length > 0) throw new Error(`fixture template has unresolved keys: ${missing.join(", ")}`);
-  return { template, rendered: text };
-}
-
-const finding = (template: string, keys: string[]) => ({ text: tt(template), evidenceKeys: keys });
+const { tt, finding } = templater(idaEvidence);
 
 const plan: Plan = {
   intent: "event_impact",
   event: {
     source: "replay",
+    type: "disaster",
+    subtype: "hurricane",
+    name: "Hurricane Ida",
+    entities: [],
+    externalNames: [],
+    marketEventId: null,
     stormId: fixtureStorm.id,
     stormName: fixtureStorm.name,
     hypothetical: null,
+    hypotheticalStorm: null,
     categoryOverride: null,
   },
   focusSymbols: [],
-  focusSectors: ["integrated", "refiner", "energy_etf"],
+  focusSectors: ["energy", "refiner"],
   horizonDays: 5,
   specialists: { weather: true, sentiment: true, macro: true, analogs: true },
   reallocation: false,
   source: "model",
+};
+
+export const idaEventProfile: EventProfile = {
+  id: "disaster-hurricane-ida-2021",
+  source: "replay",
+  type: "disaster",
+  subtype: "hurricane",
+  title: "Hurricane Ida",
+  firstReportAt: "2021-08-26T18:00:00.000Z",
+  entities: ["VLO", "MPC", "XOM"],
+  externalNames: [],
+  peerSymbols: ["CVX", "OXY", "PSX"],
+  affectedSectors: ["energy", "refiner", "commodity_proxy"],
+  factorDirections: [
+    { factor: "GULF_GASOLINE", direction: "up" },
+    { factor: "WTI", direction: "up" },
+    { factor: "HH_NATGAS", direction: "up" },
+  ],
+  articleCount: 118,
+  domainCount: 64,
+  gdeltQuery: GDELT_QUERY,
+  volZ: 2.1,
+  toneZ: -1.4,
+  newsBasis: "observed",
+  severity: "medium",
+  topNewsIds: ["00000000-0000-4000-8000-000000000101", "00000000-0000-4000-8000-000000000102"],
+};
+
+const event: EventOutput = {
+  status: "ok",
+  profile: idaEventProfile,
+  others: [],
+  findings: [finding("{{E2}} draws heavy coverage: news volume z-score {{E3}}, tone z-score {{E4}}.", ["E2", "E3", "E4"])],
 };
 
 const weather: WeatherOutput = {
@@ -144,19 +152,23 @@ const weather: WeatherOutput = {
   companyCapAtRisk: { VLO: 0.31, MPC: 0.22, PSX: 0.12, XOM: 0.05 },
   atRisk: fixtureAtRiskRefineries,
   hubs: null,
-  findings: [finding("{{E2}} is forecast to reach Category {{E3}}; {{E5}} refineries sit inside the impact radius.", ["E2", "E3", "E5"])],
+  findings: [finding("{{E2}} is forecast to reach Category {{E5}}; {{E7}} refineries sit inside the impact radius.", ["E2", "E5", "E7"])],
 };
 
 const sentiment: SentimentOutput = {
   status: "ok",
-  sector: { score: -0.31, n: 5 },
+  sectors: [
+    { sector: "refiner", score: -0.45, n: 3 },
+    { sector: "energy", score: -0.2, n: 4 },
+  ],
+  peerGroups: [{ symbols: ["VLO", "MPC", "PSX"], score: -0.45, n: 3 }],
   holdings: [
     { symbol: "VLO", score: -0.5, n: 1 },
     { symbol: "XOM", score: -0.4, n: 1 },
   ],
   gdelt: { toneZ: -1.4, volZ: 2.1 },
   newsIds: ["00000000-0000-4000-8000-000000000101", "00000000-0000-4000-8000-000000000102"],
-  findings: [finding("Energy news sentiment is {{E8}} and GDELT tone z-score is {{E9}}.", ["E8", "E9"])],
+  findings: [finding("Energy news sentiment is {{E10}} while coverage surges (volume z-score {{E3}}).", ["E10", "E3"])],
 };
 
 const macro: MacroOutput = {
@@ -165,65 +177,84 @@ const macro: MacroOutput = {
     asOf: FIXTURE_AS_OF,
     gasolineStocks: { value: 226_000, fiveYearAvg: 235_400, deviation: -0.04, flag: "tight" },
     crudeStocks: { value: 431_000, fiveYearAvg: 440_000, deviation: -0.02, flag: "normal" },
-    vix: { value: 17.9, flag: "calm" },
+    vix: { value: 17.9, z: -0.4, flag: "calm" },
     yield10y: { value: 1.31, change20d: -0.05 },
     dollarIndex: { value: 114.2, change20d: 0.4 },
     fedFunds: 0.09,
   },
-  findings: [finding("Gasoline stocks are {{E10}} versus the five-year average and the VIX is {{E11}}.", ["E10", "E11"])],
+  findings: [finding("Gasoline stocks are {{E11}} versus the five-year average and the VIX is {{E12}}.", ["E11", "E12"])],
 };
 
 const reaction = (d1: number, d5: number, d20: number) => ({ d1, d5, d20 });
+const fc = (mean: number, spread: number, n: number) => ({ mean, spread, n });
+const hfc = (mean: number, spread: number, n: number) => ({ mean, spread, n, fallback: false });
+
+const laura = {
+  eventId: "disaster-hurricane-laura-2020",
+  name: "Hurricane Laura",
+  type: "disaster" as const,
+  similarity: 0.82,
+  weight: 0.9,
+  realized: { GULF_GASOLINE: reaction(0.02, 0.07, 0.03), WTI: reaction(0.0, 0.02, 0.01), HH_NATGAS: reaction(-0.01, 0.0, 0.03) },
+};
+const harvey = {
+  eventId: "disaster-hurricane-harvey-2017",
+  name: "Hurricane Harvey",
+  type: "disaster" as const,
+  similarity: 0.77,
+  weight: 0.7,
+  realized: { GULF_GASOLINE: reaction(0.04, 0.12, 0.09), WTI: reaction(0.01, 0.04, 0.02), HH_NATGAS: reaction(0.0, 0.03, 0.02) },
+};
+const colonial = {
+  eventId: "accident-colonial-pipeline-2021",
+  name: "Colonial Pipeline cyberattack",
+  type: "accident" as const,
+  similarity: 0.61,
+  weight: 0.3,
+  realized: { GULF_GASOLINE: reaction(0.03, 0.05, -0.01) },
+};
 
 const analogs: AnalogsOutput = {
   status: "ok",
   forecast: {
-    featureSet: "combined",
+    variant: "combined",
+    groupsUsed: ["type", "news", "regime", "weather"],
+    newsBasis: "observed",
     bandwidth: 1,
+    typeWeight: 1.5,
     effectiveN: 4.3,
     targets: {
-      GULF_GASOLINE: { mean: 0.081, spread: 0.03 },
-      WTI: { mean: 0.032, spread: 0.02 },
-      HH_NATGAS: { mean: 0.021, spread: 0.04 },
+      GULF_GASOLINE: fc(0.081, 0.03, 6),
+      WTI: fc(0.032, 0.02, 6),
+      HH_NATGAS: fc(0.021, 0.04, 6),
+      SPY: fc(0.002, 0.01, 6),
+      GLD: fc(0.001, 0.008, 6),
+      TLT: fc(-0.002, 0.009, 6),
     },
-    analogs: [
-      {
-        eventId: "hurricane-laura-2020",
-        name: "Hurricane Laura",
-        similarity: 0.82,
-        weight: 0.9,
-        realized: { GULF_GASOLINE: reaction(0.02, 0.07, 0.03), WTI: reaction(0.0, 0.02, 0.01), HH_NATGAS: reaction(-0.01, 0.0, 0.03) },
-      },
-      {
-        eventId: "hurricane-harvey-2017",
-        name: "Hurricane Harvey",
-        similarity: 0.77,
-        weight: 0.7,
-        realized: { GULF_GASOLINE: reaction(0.04, 0.12, 0.09), WTI: reaction(0.01, 0.04, 0.02), HH_NATGAS: reaction(0.0, 0.03, 0.02) },
-      },
-    ],
+    holdings: {
+      VLO: hfc(-0.075, 0.04, 5),
+      MPC: hfc(-0.065, 0.04, 5),
+      XOM: hfc(-0.015, 0.02, 6),
+      CVX: hfc(0.003, 0.02, 6),
+      XLE: hfc(0.005, 0.02, 6),
+      USO: hfc(0.015, 0.02, 6),
+      DAL: hfc(-0.03, 0.03, 6),
+    },
+    analogs: [laura, harvey, colonial],
   },
-  parallels: [
-    {
-      eventId: "colonial-pipeline-2021",
-      name: "Colonial Pipeline shutdown",
-      similarity: 0.61,
-      weight: 0,
-      realized: { GULF_GASOLINE: reaction(0.03, 0.05, -0.01) },
-    },
-  ],
-  findings: [finding("Historical analogs (effective sample {{E15}}) point to Gulf Coast gasoline {{E12}}.", ["E12", "E15"])],
+  parallels: { sameType: [laura, harvey], otherType: [colonial] },
+  findings: [finding("Historical analogs (effective sample {{E16}}) point to Gulf Coast gasoline {{E13}}.", ["E16", "E13"])],
 };
 
 const snapshot = (var1: number, cvar1: number, var5: number, cvar5: number, beta: number, pnl: number): RiskSnapshot => ({
   var1d: { var95: var1, cvar95: cvar1 },
   var5d: { var95: var5, cvar95: cvar5 },
-  energyBeta: beta,
+  sleeveBeta: beta,
   scenarioPnl: pnl,
 });
 
-const before = snapshot(182_000, 261_000, 392_000, 560_000, 1.05, -412_000);
-const after = snapshot(151_000, 214_000, 330_000, 470_000, 0.78, -171_000);
+const before = snapshot(168_000, 236_000, 371_000, 520_000, 1.02, -58_000);
+const after = snapshot(161_000, 226_000, 356_000, 499_000, 0.81, -21_000);
 
 const riskReport: RiskReport = {
   asOf: FIXTURE_AS_OF,
@@ -234,11 +265,27 @@ const riskReport: RiskReport = {
     { holding: "VLO", factor: "GULF_GASOLINE", beta: 0.62, r2: 0.34 },
     { holding: "XOM", factor: "WTI", beta: 0.48, r2: 0.41 },
     { holding: "XLE", factor: "WTI", beta: 0.55, r2: 0.52 },
+    { holding: "USO", factor: "WTI", beta: 0.95, r2: 0.88 },
+    { holding: "DAL", factor: "WTI", beta: -0.6, r2: 0.18 },
   ],
   topFactorExposures: [
-    { factor: "WTI", beta: 0.52 },
-    { factor: "GULF_GASOLINE", beta: 0.31 },
-    { factor: "HH_NATGAS", beta: 0.04 },
+    { factor: "MARKET", beta: 0.98 },
+    { factor: "WTI", beta: 0.21 },
+    { factor: "RATES", beta: -0.12 },
+  ],
+  channels: [
+    { symbol: "VLO", channels: [{ channel: "direct", reason: "capacity_at_risk", detail: "Valero refineries in the impact radius", evidenceKeys: ["E9"] }], expectedSign: "down" },
+    { symbol: "MPC", channels: [{ channel: "direct", reason: "capacity_at_risk", detail: "Marathon refineries in the impact radius", evidenceKeys: ["E8"] }], expectedSign: "down" },
+    { symbol: "XOM", channels: [{ channel: "direct", reason: "capacity_at_risk", detail: "Exxon refinery in the impact radius", evidenceKeys: ["E8"] }], expectedSign: "unclear" },
+    { symbol: "CVX", channels: [{ channel: "peer", reason: "peer_group", detail: "XOM", evidenceKeys: [] }], expectedSign: "unclear" },
+    { symbol: "USO", channels: [{ channel: "factor", reason: "factor_beta", detail: "WTI", evidenceKeys: ["E14"] }], expectedSign: "up" },
+    { symbol: "XLE", channels: [{ channel: "factor", reason: "factor_beta", detail: "WTI", evidenceKeys: ["E14"] }], expectedSign: "up" },
+    { symbol: "DAL", channels: [{ channel: "factor", reason: "factor_beta", detail: "WTI", evidenceKeys: ["E21", "E14"] }], expectedSign: "down" },
+  ],
+  exposedValue: [
+    { channel: "direct", value: 1_300_000 },
+    { channel: "peer", value: 400_000 },
+    { channel: "factor", value: 800_000 },
   ],
   correlations: {
     symbols: ["VLO", "XOM", "XLE"],
@@ -249,16 +296,30 @@ const riskReport: RiskReport = {
     ],
   },
   scenario: {
-    pnl: -412_000,
-    pctNav: -0.0412,
+    pnl: -58_000,
+    pctNav: -0.0058,
     perHolding: [
-      { symbol: "VLO", pnl: -148_000 },
-      { symbol: "MPC", pnl: -96_000 },
-      { symbol: "XOM", pnl: -61_000 },
+      { symbol: "VLO", pnl: -30_000 },
+      { symbol: "MPC", pnl: -19_000 },
+      { symbol: "XOM", pnl: -9_000 },
+      { symbol: "DAL", pnl: -6_000 },
+      { symbol: "USO", pnl: 3_000 },
+      { symbol: "XLE", pnl: 2_000 },
+      { symbol: "CVX", pnl: 1_000 },
+    ],
+    perSector: [
+      { sector: "refiner", pnl: -49_000 },
+      { sector: "energy", pnl: -6_000 },
+      { sector: "airlines", pnl: -6_000 },
+      { sector: "commodity_proxy", pnl: 3_000 },
+    ],
+    perChannel: [
+      { channel: "direct", pnl: -58_000 },
+      { channel: "peer", pnl: 1_000 },
+      { channel: "factor", pnl: -1_000 },
     ],
   },
-  analogPnl: { weightedMean: -0.031, worst: -0.054, n: 2 },
-  gamma: { value: -0.18, se: 0.07, n: 12 },
+  analogPnl: { weightedMean: -47_000, worst: -96_000, n: 2 },
 };
 const risk: RiskOutput = { status: "ok", report: riskReport };
 
@@ -266,61 +327,64 @@ const price = (s: string) => FIXTURE_PRICES[s] ?? 0;
 
 const hedgePlan: HedgePlan = {
   source: "model",
-  summary: tt("Gross hedge notional of {{E20}} lowers the scenario loss to {{E19}}."),
-  grossNotional: 1_910_000,
+  summary: tt("Gross hedge notional of {{E23}} lowers the scenario loss to {{E22}}."),
+  grossNotional: 501_900,
   before,
   after,
   violations: [],
   actions: [
     {
-      type: "hedge",
-      symbol: "XLE",
+      type: "reallocation",
+      symbol: "VLO",
       side: "sell",
-      quantity: 20_000,
-      notional: 20_000 * price("XLE"),
-      timing: "before_landfall",
+      quantity: 1_350,
+      notional: 1_350 * price("VLO"),
+      timing: "before_event",
       orderType: "limit",
-      exitTrigger: tt("Cover when the storm weakens below hurricane strength."),
-      rationale: tt("Cuts broad energy beta while refiners carry the {{E6}} capacity risk."),
-      evidenceKeys: ["E6", "E18"],
+      exitTrigger: tt("Rebuild the position after refinery restarts are announced."),
+      rationale: tt("Valero has {{E9}} of its capacity inside the impact radius."),
+      evidenceKeys: ["E9"],
     },
     {
       type: "hedge",
       symbol: "CRAK",
       side: "sell",
-      quantity: 15_000,
-      notional: 450_000,
+      quantity: 10_000,
+      notional: 10_000 * price("CRAK"),
       timing: "now",
       orderType: "market",
-      exitTrigger: tt("Cover after refinery restarts are announced."),
-      rationale: tt("Refiners are most exposed to the capacity at risk of {{E6}}."),
-      evidenceKeys: ["E6", "E7"],
+      exitTrigger: tt("Cover when the storm weakens below hurricane strength."),
+      rationale: tt("Refiners carry the {{E8}} Gulf Coast capacity at risk."),
+      evidenceKeys: ["E8", "E19"],
     },
     {
       type: "hedge",
       symbol: "UNG",
       side: "buy",
-      quantity: 30_000,
-      notional: 510_000,
+      quantity: 6_000,
+      notional: 6_000 * price("UNG"),
       timing: "staged",
       orderType: "limit",
-      exitTrigger: tt("Sell once the forecast move of {{E14}} is realised."),
-      rationale: tt("Analogs forecast natural gas {{E14}} over five trading days."),
-      evidenceKeys: ["E14"],
+      exitTrigger: tt("Sell once the forecast move of {{E15}} is realised."),
+      rationale: tt("Analogs forecast natural gas {{E15}} over five trading days."),
+      evidenceKeys: ["E15"],
     },
   ],
 };
 const hedging: HedgingOutput = { status: "ok", plan: hedgePlan };
 
 const answer: Answer = {
-  headline: tt("{{E2}} is forecast to reach Category {{E3}} and make landfall on {{E4}}, putting {{E6}} of Gulf Coast refining capacity at risk."),
-  summary: tt("The model forecasts Gulf Coast gasoline {{E12}}, WTI {{E13}} and Henry Hub natural gas {{E14}} over five trading days. The scenario loss is {{E18}} on a {{E16}} portfolio; the proposed hedges cut it to {{E19}}."),
+  headline: tt("{{E2}} is forecast to reach Category {{E5}} and make landfall on {{E6}}, putting {{E8}} of Gulf Coast refining capacity at risk."),
+  summary: tt(
+    "The model forecasts Gulf Coast gasoline {{E13}}, WTI {{E14}} and Henry Hub natural gas {{E15}} over five trading days. Holdings worth {{E20}} are directly exposed; the scenario loss is {{E19}} on a {{E17}} portfolio and the proposed hedges cut it to {{E22}}.",
+  ),
   bullets: [
-    { text: tt("{{E5}} refineries lie within the impact radius, including Valero exposure of {{E7}} of its capacity."), evidenceKeys: ["E5", "E7"] },
-    { text: tt("Energy news sentiment is {{E8}} and the GDELT tone z-score is {{E9}}."), evidenceKeys: ["E8", "E9"] },
-    { text: tt("Gasoline stocks are {{E10}} versus the five-year average, so supply has less buffer."), evidenceKeys: ["E10"] },
-    { text: tt("Historical analogs (effective sample {{E15}}) point to gasoline {{E12}}."), evidenceKeys: ["E12", "E15"] },
-    { text: tt("Sell XLE and CRAK, buy UNG: gross hedge notional {{E20}} cuts the scenario loss to {{E19}}."), evidenceKeys: ["E19", "E20"] },
+    { text: tt("{{E7}} refineries lie within the impact radius, including Valero exposure of {{E9}} of its capacity."), evidenceKeys: ["E7", "E9"] },
+    { text: tt("Coverage is surging (news volume z-score {{E3}}) and energy news sentiment is {{E10}}."), evidenceKeys: ["E3", "E10"] },
+    { text: tt("Gasoline stocks are {{E11}} versus the five-year average, so supply has less buffer."), evidenceKeys: ["E11"] },
+    { text: tt("Historical analogs (effective sample {{E16}}) point to gasoline {{E13}}."), evidenceKeys: ["E13", "E16"] },
+    { text: tt("Delta Air Lines moves against oil (beta {{E21}}), so higher fuel prices weigh on it."), evidenceKeys: ["E21"] },
+    { text: tt("Trim Valero, sell CRAK and buy UNG: gross hedge notional {{E23}} cuts the scenario loss to {{E22}}."), evidenceKeys: ["E22", "E23"] },
   ],
   caveats: [
     tt("Replay uses the best track as the forecast (perfect-forecast replay), which is more accurate than the forecast available at the time."),
@@ -345,92 +409,110 @@ const verification: Verification = {
 };
 
 /** Node output per node, as carried by `step.completed`. */
-export const idaNodeOutputs = { planner: plan, weather, sentiment, macro, analogs, risk, hedging, synthesizer: answer, verifier: verification };
-
-const usd = (model: string, tokensIn: number, tokensOut: number, costUsd: number) => ({ model, tokensIn, tokensOut, costUsd });
+export const idaNodeOutputs = {
+  planner: plan,
+  event,
+  weather,
+  sentiment,
+  macro,
+  analogs,
+  risk,
+  hedging,
+  synthesizer: answer,
+  verifier: verification,
+};
 
 export const idaRunEvents: RunEvent[] = [
   { type: "run.started", runId: FIXTURE_RUN_ID, mode: "replay", asOf: FIXTURE_AS_OF, query: FIXTURE_QUERY },
 
   { type: "step.started", node: "planner", at: at(100) },
   {
-    type: "step.completed", node: "planner", status: "done", durationMs: 1800,
+    type: "step.completed", node: "planner", status: "done", durationMs: 1_800,
     summary: "Event impact on a replayed storm; all four specialists needed.",
     output: plan,
-    usage: usd("claude-sonnet-5-5", 2400, 310, 0.0079),
+    usage: usage("claude-sonnet-5-5", 2_400, 310, 0.0079),
     thinkingSummary: "The question names a Category 4 Gulf hurricane and asks about current holdings; replay mode supplies Ida.",
   },
   { type: "evidence.added", evidence: [...E.planner] },
 
-  { type: "step.started", node: "weather", at: at(1_950) },
-  { type: "step.started", node: "sentiment", at: at(1_960) },
-  { type: "step.started", node: "macro", at: at(1_970) },
+  { type: "step.started", node: "event", at: at(1_950) },
+  {
+    type: "step.completed", node: "event", status: "done", durationMs: 700,
+    summary: "Disaster event from the Ida preset; severity medium.",
+    output: event,
+  },
+  { type: "evidence.added", evidence: [...E.event] },
+
+  { type: "step.started", node: "weather", at: at(2_700) },
+  { type: "step.started", node: "sentiment", at: at(2_710) },
+  { type: "step.started", node: "macro", at: at(2_720) },
   { type: "step.progress", node: "weather", message: "Building the Ida track and intersecting refineries" },
   {
     type: "step.completed", node: "weather", status: "done", durationMs: 2_400,
     summary: "Ida: 4 refineries within 100 km of the hurricane-force track.",
     output: weather,
-    usage: usd("claude-haiku-4-5", 900, 140, 0.0016),
+    usage: usage("claude-haiku-4-5", 900, 140, 0.0016),
   },
   { type: "evidence.added", evidence: [...E.weather] },
   {
     type: "step.completed", node: "sentiment", status: "done", durationMs: 3_100,
-    summary: "Energy-sector sentiment is negative.",
+    summary: "Energy and refiner sentiment is negative.",
     output: sentiment,
-    usage: usd("claude-haiku-4-5", 1_300, 120, 0.0019),
+    usage: usage("claude-haiku-4-5", 1_300, 120, 0.0019),
   },
   { type: "evidence.added", evidence: [...E.sentiment] },
   {
     type: "step.completed", node: "macro", status: "done", durationMs: 900,
     summary: "Gasoline inventories are tight; volatility is calm.",
     output: macro,
-    usage: usd("claude-haiku-4-5", 600, 90, 0.0011),
+    usage: usage("claude-haiku-4-5", 600, 90, 0.0011),
   },
   { type: "evidence.added", evidence: [...E.macro] },
 
-  { type: "step.started", node: "analogs", at: at(5_200) },
+  { type: "step.started", node: "analogs", at: at(5_900) },
   {
     type: "step.completed", node: "analogs", status: "done", durationMs: 1_700,
     summary: "Two close hurricane analogs; gasoline forecast up.",
     output: analogs,
-    usage: usd("claude-haiku-4-5", 1_100, 100, 0.0016),
+    usage: usage("claude-haiku-4-5", 1_100, 100, 0.0016),
   },
   { type: "evidence.added", evidence: [...E.analogs] },
 
-  { type: "step.started", node: "risk", at: at(7_000) },
-  { type: "step.completed", node: "risk", status: "done", durationMs: 400, summary: "Scenario loss on the portfolio computed.", output: risk },
+  { type: "step.started", node: "risk", at: at(7_700) },
+  { type: "step.completed", node: "risk", status: "done", durationMs: 400, summary: "Exposure channels and scenario loss computed.", output: risk },
   { type: "evidence.added", evidence: [...E.risk] },
 
-  { type: "step.started", node: "hedging", at: at(7_500) },
-  { type: "step.progress", node: "hedging", message: "Simulating three hedge actions" },
+  { type: "step.started", node: "hedging", at: at(8_200) },
+  { type: "step.progress", node: "hedging", message: "Simulating three actions" },
   {
     type: "step.completed", node: "hedging", status: "done", durationMs: 9_200,
-    summary: "Three hedges within limits cut the scenario loss.",
+    summary: "Three actions within limits cut the scenario loss.",
     output: hedging,
-    usage: usd("claude-sonnet-5-5", 5_800, 1_400, 0.0256),
-    thinkingSummary: "Refiners carry the capacity risk, so reduce broad energy and refiner exposure and add natural gas.",
+    usage: usage("claude-sonnet-5-5", 5_800, 1_400, 0.0256),
+    thinkingSummary: "Refiners carry the capacity risk, so trim Valero, hedge the refiner sleeve and add natural gas.",
   },
   { type: "evidence.added", evidence: [...E.hedging] },
 
-  { type: "step.started", node: "synthesizer", at: at(16_800) },
+  { type: "step.started", node: "synthesizer", at: at(17_500) },
   {
     type: "step.completed", node: "synthesizer", status: "done", durationMs: 6_100,
     summary: "Answer drafted with evidence placeholders.",
     output: answer,
-    usage: usd("claude-sonnet-5-5", 7_200, 1_100, 0.0254),
+    usage: usage("claude-sonnet-5-5", 7_200, 1_100, 0.0254),
   },
-  { type: "step.started", node: "verifier", at: at(22_950) },
+  { type: "step.started", node: "verifier", at: at(23_650) },
   { type: "step.completed", node: "verifier", status: "done", durationMs: 30, summary: "All grounding checks passed.", output: verification },
 
   {
     type: "run.completed",
     status: "succeeded",
     answer,
+    eventProfile: idaEventProfile,
     hedgePlan,
     risk: riskReport,
     forecast: analogs.status === "ok" ? analogs.forecast : null,
     confidence: "medium",
     warnings: [],
-    totals: { tokensIn: 19_300, tokensOut: 3_260, costUsd: 0.0635, durationMs: 23_000 },
+    totals: { tokensIn: 19_300, tokensOut: 3_260, costUsd: 0.0635, durationMs: 23_700 },
   },
 ];

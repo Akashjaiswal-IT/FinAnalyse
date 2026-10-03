@@ -2,6 +2,7 @@ export * from "./common";
 export * from "./evidence";
 export * from "./market";
 export * from "./macro";
+export * from "./event";
 export * from "./news";
 export * from "./weather";
 export * from "./analog";
