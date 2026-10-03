@@ -71,7 +71,8 @@ export class SystemService {
         count: sql<number>`count(*)::int`,
       })
       .from(newsItems)
-      .where(and(isNotNull(newsItems.indexedAt), gte(newsItems.indexedAt, new Date(this.now().getTime() - windowHours * HOUR))));
+      // Both ends in the window: replay seeding stamps fetched_at with the preset's as-of, years before indexing.
+      .where(and(isNotNull(newsItems.indexedAt), gte(newsItems.fetchedAt, new Date(this.now().getTime() - windowHours * HOUR))));
     const round = (v: number | null | undefined) => (v === null || v === undefined ? null : Math.round(Number(v)));
     return { p50Ms: round(row?.p50), p95Ms: round(row?.p95), count: row?.count ?? 0, windowHours };
   }

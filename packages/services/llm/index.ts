@@ -3,6 +3,7 @@ import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { MAX_TOOL_ITERATIONS } from "@repo/contracts";
 import { logger } from "@repo/logger";
 import { anthropic } from "../clients/anthropic";
+import { sourceRecorder, type SourceRecorder } from "../clients/redis";
 import { env } from "../env";
 import { addUsage, makeUsage } from "./cost";
 import { llmFormat, toLlmSchema } from "./schema";
@@ -84,10 +85,14 @@ function failure(reason: LlmFailure["reason"], detail: string, usage: LlmFailure
 }
 
 export class LlmService implements Llm {
-  constructor(private readonly getClient: () => Anthropic = anthropic) {}
+  constructor(
+    private readonly getClient: () => Anthropic = anthropic,
+    private readonly record: SourceRecorder = () => undefined,
+  ) {}
 
   async parseStructured<T>(call: StructuredCall<T>, retried = false): Promise<StructuredResult<T>> {
     const { params, effort } = tierParams(call.tier, call.effort);
+    const started = Date.now();
     try {
       const message = await this.getClient().beta.messages.parse(
         {
@@ -100,6 +105,7 @@ export class LlmService implements Llm {
         },
         requestOptions(call.tier, call.signal),
       );
+      this.record(null, Date.now() - started);
       const usage = usageOf(message);
       if (message.stop_reason === "refusal") {
         logger.warn("llm refusal", { label: call.label, detail: refusalDetail(message) });
@@ -117,6 +123,7 @@ export class LlmService implements Llm {
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
       logger.warn("llm call failed", { label: call.label, detail });
+      this.record(err, Date.now() - started);
       return failure("error", detail, null);
     }
   }
@@ -128,6 +135,7 @@ export class LlmService implements Llm {
     let thinking: string | null = null;
     let finalText = "";
     let iterations = 0;
+    const started = Date.now();
     try {
       const runner = this.getClient().beta.messages.toolRunner(
         {
@@ -160,10 +168,12 @@ export class LlmService implements Llm {
         if (message.stop_reason === "max_tokens") return failure("max_tokens", `${call.label}: output truncated`, usage);
       }
       if (!usage) return failure("error", `${call.label}: no response`, null);
+      this.record(null, Date.now() - started);
       return { ok: true, iterations, finalText, usage, thinkingSummary: thinking };
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
       logger.warn("llm tool loop failed", { label: call.label, detail });
+      this.record(err, Date.now() - started);
       return failure("error", detail, usage);
     }
   }
@@ -173,7 +183,7 @@ let shared: Llm | undefined;
 
 /** The process-wide model client. Tests and drills replace it with `setLlm`. */
 export function llm(): Llm {
-  shared ??= new LlmService();
+  shared ??= new LlmService(anthropic, sourceRecorder("anthropic"));
   return shared;
 }
 

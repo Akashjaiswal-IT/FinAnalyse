@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import type { Mode } from "@repo/contracts";
+import type { MarketEventView, Mode } from "@repo/contracts";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "~/components/ui/resizable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useRunStream } from "~/hooks/use-run-stream";
 import { useTerminalUrl } from "~/hooks/use-terminal-url";
 import { DATA_SOURCE, runDriver } from "~/lib/data-source";
@@ -16,12 +18,16 @@ import { AgentGraph } from "./agent-graph";
 import { AnswerCard } from "./answer-card";
 import { DrilldownSheet } from "./drilldown-sheet";
 import { EventCard } from "./event-card";
+import { ForecastPanel } from "./forecast-panel";
 import { HedgeTable } from "./hedge-table";
+import { EventFeed, NewsFeed, SourceHealth, useLiveRefresh } from "./live-panels";
 import { ModeSwitch } from "./mode-switch";
 import { PortfolioPanel } from "./portfolio-panel";
 import { QueryBar } from "./query-bar";
+import { RiskSummary } from "./risk-summary";
 import { RunProvider, type DrilldownTarget } from "./run-context";
 import { StepLog } from "./step-log";
+import { WeatherMap } from "./weather-map";
 
 /** The terminal: top bar and three resizable columns (portfolio, question and answer, step log). */
 export function Terminal() {
@@ -43,6 +49,20 @@ export function Terminal() {
   const changeMode = useCallback((mode: Mode) => (reset(), setMode(mode)), [reset, setMode]);
   const changePreset = useCallback((id: string) => (reset(), setPreset(id)), [reset, setPreset]);
   const changeAsOf = useCallback((asOf: string) => (reset(), setAsOf(asOf)), [reset, setAsOf]);
+
+  const apiMode = DATA_SOURCE === "api";
+  useLiveRefresh(apiMode && url.mode === "live");
+  const [tab, setTab] = useState("steps");
+  const analyse = (e: MarketEventView) => {
+    setTab("steps");
+    stream.start({
+      query: `How will "${e.title}" affect our portfolio?`,
+      mode: url.mode,
+      asOf: url.asOf,
+      replayPresetId: url.presetId,
+      marketEventId: e.id,
+    });
+  };
 
   // A submit that never started (no recorded run for this selection) leaves no events, only an explanation.
   const notice = stream.status === "failed" && stream.events.length === 0 ? stream.error : null;
@@ -72,9 +92,14 @@ export function Terminal() {
             onPresetChange={changePreset}
             onAsOfChange={changeAsOf}
           />
-          <Button type="button" variant="outline" size="sm" onClick={() => openDrilldown({ kind: "run" })}>
-            Audit
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/reliability">Reliability</Link>
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => openDrilldown({ kind: "run" })}>
+              Audit
+            </Button>
+          </div>
         </header>
 
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
@@ -106,12 +131,38 @@ export function Terminal() {
                 <AgentGraph />
                 <AnswerCard />
                 <HedgeTable />
+                <RiskSummary />
+                <ForecastPanel />
+                {apiMode && <WeatherMap />}
               </div>
             </main>
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="28%" minSize="18%" maxSize="42%">
-            <StepLog events={stream.events} />
+            {apiMode ? (
+              <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0">
+                <TabsList className="m-2 mb-0 w-auto">
+                  <TabsTrigger value="steps">Steps</TabsTrigger>
+                  <TabsTrigger value="events">Events</TabsTrigger>
+                  <TabsTrigger value="news">News</TabsTrigger>
+                  <TabsTrigger value="sources">Sources</TabsTrigger>
+                </TabsList>
+                <TabsContent value="steps" className="min-h-0 flex-1">
+                  <StepLog events={stream.events} />
+                </TabsContent>
+                <TabsContent value="events" className="min-h-0 flex-1 overflow-y-auto p-2">
+                  <EventFeed asOf={url.asOf} disabled={stream.isActive} onAnalyse={analyse} />
+                </TabsContent>
+                <TabsContent value="news" className="min-h-0 flex-1 overflow-y-auto p-2">
+                  <NewsFeed asOf={url.asOf} />
+                </TabsContent>
+                <TabsContent value="sources" className="min-h-0 flex-1 overflow-y-auto p-2">
+                  <SourceHealth />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <StepLog events={stream.events} />
+            )}
           </ResizablePanel>
         </ResizablePanelGroup>
 
