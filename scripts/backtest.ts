@@ -23,12 +23,27 @@ const RESULTS_PATH = resolve(process.cwd(), "docs/RESULTS.md");
 const USAGE = `Usage: pnpm backtest [--from-file events.json] [--export events.json] [--save] [--write-results]`;
 
 async function loadEvents(fromFile: string | undefined): Promise<AnalogEvent[]> {
+  let raw: unknown;
   if (fromFile) {
-    return AnalogEvent.array().parse(JSON.parse(readFileSync(resolve(process.cwd(), fromFile), "utf8")));
+    raw = JSON.parse(readFileSync(resolve(process.cwd(), fromFile), "utf8"));
+  } else {
+    // Imported only here, so --from-file needs neither Postgres nor DATABASE_URL.
+    const { AnalogsService } = await import("@repo/services/analogs");
+    try {
+      raw = await new AnalogsService().list();
+    } catch (error) {
+      throw new Error(`AnalogsService.list() failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
-  // Imported only here, so --from-file needs neither Postgres nor DATABASE_URL.
-  const { AnalogsService } = await import("@repo/services/analogs");
-  return AnalogEvent.array().parse(await new AnalogsService().list());
+  const parsed = AnalogEvent.array().safeParse(raw);
+  if (!parsed.success) {
+    const shown = parsed.error.issues.slice(0, 5).map((i) => `  ${i.path.map(String).join(".")}: ${i.message}`);
+    const more = parsed.error.issues.length - shown.length;
+    throw new Error(
+      `The events do not match AnalogEvent[]:\n${shown.join("\n")}${more > 0 ? `\n  ... and ${more} more` : ""}`,
+    );
+  }
+  return parsed.data;
 }
 
 function gitCommit(): string {
@@ -105,6 +120,7 @@ main().then(
   () => process.exit(0), // the database pool would otherwise keep the process alive
   (error: unknown) => {
     console.error(error instanceof Error ? error.message : error);
+    if ((error as { code?: string } | null)?.code?.startsWith("ERR_PARSE_ARGS")) console.error(USAGE);
     process.exit(1);
   },
 );
