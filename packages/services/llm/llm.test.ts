@@ -57,6 +57,7 @@ describe("LlmService.parseStructured", () => {
     const result = await serviceWith(parse).parseStructured(call({ tier: "fast", effort: undefined }));
     const body = parse.mock.calls[0]?.[0];
     expect(body.temperature).toBe(0);
+    expect(parse.mock.calls[0]?.[1]).toMatchObject({ timeout: 15_000, maxRetries: 1 });
     expect(body.output_config).not.toHaveProperty("effort");
     expect(body).not.toHaveProperty("thinking");
     expect(body).not.toHaveProperty("fallbacks");

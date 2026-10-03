@@ -69,6 +69,12 @@ function tierParams(tier: ModelTier, effort: Effort | undefined) {
       };
 }
 
+/** Haiku calls (notes, classification, scoring) are optional and have a fallback, so they get a short leash;
+ * Sonnet calls keep the client defaults (SPEC 5.7). */
+function requestOptions(tier: ModelTier, signal: AbortSignal | undefined) {
+  return tier === "fast" ? { signal, timeout: 15_000, maxRetries: 1 } : { signal };
+}
+
 function systemBlock(text: string) {
   return [{ type: "text" as const, text, cache_control: { type: "ephemeral" as const } }];
 }
@@ -92,7 +98,7 @@ export class LlmService implements Llm {
           output_config: { ...(effort ? { effort } : {}), format: llmFormat(call.schema) },
           ...params,
         },
-        { signal: call.signal },
+        requestOptions(call.tier, call.signal),
       );
       const usage = usageOf(message);
       if (message.stop_reason === "refusal") {
