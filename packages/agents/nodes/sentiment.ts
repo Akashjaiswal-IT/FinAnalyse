@@ -39,9 +39,10 @@ export const sentimentNode: NodeImpl = async (state: RunStateValue, env) => {
   const query = profile?.title ?? plan.event.name ?? env.ctx.query;
 
   let items = await gather(env, query, watch);
-  if (items.filter((i) => i.sentiment === null).length * 2 > items.length) {
-    // Most hits are unscored: score a batch and look again (SPEC 5.5).
-    const scored = await env.ctx.deps.news.scoreUnscored(20).catch(() => []);
+  const unscored = items.filter((i) => i.sentiment === null).map((i) => i.id);
+  if (unscored.length * 2 > items.length) {
+    // Most hits are unscored: score them and look again (SPEC 5.5).
+    const scored = await env.ctx.deps.news.scoreUnscored(20, unscored).catch(() => []);
     if (scored.length > 0) items = await gather(env, query, watch);
   }
 

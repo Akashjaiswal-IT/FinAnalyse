@@ -238,12 +238,13 @@ export class NewsService {
     return rows.map(toNewsItem);
   }
 
-  /** Score up to `limit` prefiltered, unscored items through `services/llm`; returns the scored ids. */
-  async scoreUnscored(limit: number): Promise<string[]> {
+  /** Score up to `limit` prefiltered, unscored items (only `ids` when given) through `services/llm`; returns the scored ids. */
+  async scoreUnscored(limit: number, ids?: readonly string[]): Promise<string[]> {
+    if (ids?.length === 0) return [];
     const rows = await this.db
       .select()
       .from(newsItems)
-      .where(and(eq(newsItems.prefilterMatch, true), isNull(newsItems.scoredAt)))
+      .where(and(eq(newsItems.prefilterMatch, true), isNull(newsItems.scoredAt), ids ? inArray(newsItems.id, [...ids]) : undefined))
       .orderBy(desc(newsItems.publishedAt))
       .limit(Math.min(limit, ENRICH_BATCH));
     const now = this.now();
