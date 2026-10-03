@@ -4,7 +4,6 @@ import {
   ENRICH_BATCH,
   FRED_FACTOR_SYMBOLS,
   MACRO_SERIES,
-  NEWS_QUERIES,
   TIINGO_SYMBOLS,
   UNIVERSE,
   type SourceStatus,
@@ -15,7 +14,7 @@ import { AlphaVantageClient, normaliseAvFeed, rotationQueryKey } from "../client
 import { defaultHttp } from "../clients/default-http";
 import { EiaClient } from "../clients/eia";
 import { FredClient } from "../clients/fred";
-import { GdeltClient, normaliseArticles } from "../clients/gdelt";
+import { GdeltFilesClient, stampsToFetch, toNewsItems, type GkgRow } from "../clients/gdelt-files";
 import { NhcClient, currentPoint, isAtlantic, stormFromNhc } from "../clients/nhc";
 import { getRedis, takeQuota } from "../clients/redis";
 import { TiingoClient } from "../clients/tiingo";
@@ -38,15 +37,15 @@ export interface IngestResult {
 
 type Db = typeof defaultDb;
 const DAY = 86_400_000;
-/** Each GDELT pass covers the last 30 minutes; the schedule is every 15, so passes overlap and dedupe by URL. */
-const GDELT_TIMESPAN = "30min";
+/** Redis key holding the stamp of the last GDELT article file stored. */
+const GKG_LAST_KEY = "gdelt:gkg:last";
 /** Daily refreshes re-read the last 10 days, which also picks up late corrections. */
 const REFRESH_DAYS = 10;
 const EIA_SERIES = new Set(["WGTSTUS1", "WCESTUS1"]);
 
 const isoDate = (d: Date) => d.toISOString().slice(0, 10);
 
-let gdeltClient: GdeltClient | null = null;
+let gdeltFiles: GdeltFilesClient | null = null;
 
 /** One pass of a source: fetch, validate, normalise, de-duplicate, prefilter, persist and index, publish (SPEC 5.2). */
 export class IngestService {
@@ -88,22 +87,30 @@ export class IngestService {
     return { source, fetched: items.length, inserted: r.inserted.length, latencyMs: r.latencyMs, skipped: r.indexError };
   }
 
+  /**
+   * GDELT's 15-minute article files (static host, not the throttled DOC API search): every file published since the
+   * last pass, filtered to market news, with GDELT's own tone as the source sentiment. The newest file listed is
+   * often not published yet; the pass stops at the first one that is missing and resumes there next time.
+   */
   private async gdelt(): Promise<IngestResult> {
-    gdeltClient ??= new GdeltClient(defaultHttp());
-    const items: NewsItemInput[] = [];
-    const failures: string[] = [];
-    for (const [key, query] of Object.entries(NEWS_QUERIES)) {
-      try {
-        const articles = await gdeltClient.artlist(query, { timespan: GDELT_TIMESPAN });
-        items.push(...normaliseArticles(articles, key, this.now()));
-      } catch (error) {
-        failures.push(`${key}: ${error instanceof Error ? error.message : String(error)}`);
-      }
+    gdeltFiles ??= new GdeltFilesClient(defaultHttp());
+    const redis = getRedis();
+    const newest = await gdeltFiles.newestStamp();
+    if (!newest) return { source: "gdelt", fetched: 0, inserted: 0, latencyMs: null, skipped: "no article file listed" };
+
+    const last = await redis.get(GKG_LAST_KEY);
+    const rows: GkgRow[] = [];
+    let reached = last;
+    for (const stamp of stampsToFetch(last, newest)) {
+      const file = await gdeltFiles.file(stamp);
+      if (file === null) break; // not published yet, and neither is anything after it
+      rows.push(...file);
+      reached = stamp;
     }
-    if (items.length === 0 && failures.length) {
-      return { source: "gdelt", fetched: 0, inserted: 0, latencyMs: null, skipped: failures[0] ?? "failed" };
-    }
-    return this.storeNews("gdelt", items);
+    const items = toNewsItems(rows, this.now().toISOString());
+    const result = await this.storeNews("gdelt", items);
+    if (reached && reached !== last) await redis.set(GKG_LAST_KEY, reached);
+    return reached === last && items.length === 0 ? { ...result, skipped: "no new article file yet" } : result;
   }
 
   private async alphavantage(): Promise<IngestResult> {
