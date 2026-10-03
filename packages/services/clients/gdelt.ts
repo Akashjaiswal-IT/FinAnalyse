@@ -2,10 +2,10 @@ import { z } from "zod";
 import type { NewsItemInput } from "../news/model";
 import type { HttpClient } from "./http";
 
-// GDELT DOC 2.0. Measured: HTTP 429 with a plain-text body even at 6 to 10 s spacing, and 10 to 30 s
-// responses, so requests are spaced 10 s apart with a 45 s timeout (docs/DECISIONS.md, Track A).
+// GDELT DOC 2.0 asks for at most one request every 5 s. Responses take 10 to 30 s, so requests run one at
+// a time and the 5 s count from the end of the previous response; timeout 45 s (docs/DECISIONS.md, Track A).
 
-export const GDELT_MIN_INTERVAL_MS = 10_000;
+export const GDELT_MIN_INTERVAL_MS = 5_000;
 export const GDELT_TIMEOUT_MS = 45_000;
 /** `artlist` keeps only the newest 250 records of a window. */
 export const GDELT_MAX_RECORDS = 250;
@@ -81,7 +81,8 @@ export function parseTimeline(body: GdeltTimeline): TimelinePoint[] {
 }
 
 export class GdeltClient {
-  private next = 0;
+  private lastDone = Number.NEGATIVE_INFINITY;
+  private queue: Promise<unknown> = Promise.resolve();
 
   constructor(
     private readonly http: HttpClient,
@@ -99,11 +100,23 @@ export class GdeltClient {
     return parseTimeline(await this.call(query, mode, { start, end }, GdeltTimeline));
   }
 
-  private async call<T>(query: string, mode: string, window: GdeltWindow, schema: z.ZodType<T>): Promise<T> {
-    // One request at a time, at least 10 s apart, across this process.
-    const wait = this.next - this.now();
-    this.next = Math.max(this.now(), this.next) + GDELT_MIN_INTERVAL_MS;
-    if (wait > 0) await this.sleep(wait);
+  /** One request at a time per client, starting at least 5 s after the previous one finished. */
+  private call<T>(query: string, mode: string, window: GdeltWindow, schema: z.ZodType<T>): Promise<T> {
+    const run = async () => {
+      const wait = this.lastDone + GDELT_MIN_INTERVAL_MS - this.now();
+      if (wait > 0) await this.sleep(wait);
+      try {
+        return await this.request(query, mode, window, schema);
+      } finally {
+        this.lastDone = this.now();
+      }
+    };
+    const result = this.queue.then(run, run);
+    this.queue = result.catch(() => undefined);
+    return result;
+  }
+
+  private request<T>(query: string, mode: string, window: GdeltWindow, schema: z.ZodType<T>): Promise<T> {
     const params = new URLSearchParams({ query, mode, format: "json" });
     if (mode === "artlist") params.set("maxrecords", String(GDELT_MAX_RECORDS));
     if ("timespan" in window) params.set("timespan", window.timespan);
@@ -116,6 +129,8 @@ export class GdeltClient {
       url: `https://api.gdeltproject.org/api/v2/doc/doc?${params}`,
       schema,
       timeoutMs: GDELT_TIMEOUT_MS,
+      // Retries must respect the 5 s rule too (the jitter is +-25%, so 1.5x keeps every gap above 5 s).
+      retryDelaysMs: [GDELT_MIN_INTERVAL_MS * 1.5, GDELT_MIN_INTERVAL_MS * 3],
     });
   }
 }
