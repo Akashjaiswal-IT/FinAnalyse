@@ -140,3 +140,25 @@ describe("full pipeline with the real nodes and fake services", () => {
     expect(got?.run.verification?.passed).toBe(true);
   });
 });
+
+describe("degraded inputs reach the answer", () => {
+  it("names the missing news features and continues when the news service is down", async () => {
+    const { runtime, runs, llm } = newRuntime(handlers(), defaultNodes(), "ukraine");
+    (llm as unknown as { tools: unknown }).tools = tools;
+    const down = async () => { throw new Error("source gdelt is down"); };
+    const deps = (runtime as unknown as { deps: { news: Record<string, unknown> } }).deps;
+    deps.news = { ...deps.news, search: down, newsFeatures: down };
+    const { runId } = await runtime.start({ query: ukraineQuery, mode: "replay", replayPresetId: "geopolitical-russia-ukraine-2022" });
+    await runtime.finished(runId);
+    const got = await runs.get(runId);
+    expect(got?.run.eventProfile).toMatchObject({ newsBasis: "unavailable", volZ: null });
+    expect(got?.steps.find((s) => s.node === "sentiment")?.status).toBe("degraded");
+    expect(got?.run.forecast?.groupsUsed).not.toContain("news");
+    const caveats = got?.run.answer?.caveats.map((c) => c.rendered).join(" ") ?? "";
+    expect(caveats).toMatch(/News coverage features were unavailable/);
+    expect(caveats).toMatch(/Sentiment data was unavailable/);
+    expect(got?.run.confidence).not.toBe("high");
+    expect(got?.run.status).toBe("partial");
+    expect(got?.run.verification?.passed).toBe(true);
+  });
+});

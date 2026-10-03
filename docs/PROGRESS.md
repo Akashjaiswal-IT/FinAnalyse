@@ -119,6 +119,21 @@ Entries at H7, H12 and H18.
 - The Anthropic key in `.env` answers with "credit balance is too low", so no live model call has succeeded yet. The run above finished `partial` through the planner and synthesizer fallbacks, which doubles as the first robustness drill. Request shapes (including `fallbacks`) are unverified against the live API until credit is added.
 - `system.status` and `portfolio.get` belong to Track A's route folders; Track D should not wait on them from Track B.
 
+### Phase 2: vertical slice (2026-10-03, 17:15 IST)
+
+**Works**
+- Real nodes: `event` (replay preset, market event, news search with Haiku classification and keyword fallback, hypothetical, news scan, follow-up reuse), `weather` (skipped unless a weather disaster; replay and live landfall, capacity at risk, category override, hypothetical track), `sentiment` (relevance-weighted, 24-hour half-life), `macro`, `analogs` (Track C's grouped kernel kNN over eligible events, no look-ahead), `risk` (factor betas, exposure channels as evidence, VaR, scenario and analog P&L), `hedging` (simulate_hedges and submit_plan tools, exposed sleeve, fallback hedge), the synthesizer with the verifier loop, computed confidence and run totals. Prompts in `agents/prompts/`.
+- `scripts/run-query.ts` (`--preset`, `--mode`, `--as-of`, `--thread`, `--fake`) prints the events and the answer; exit code 2 marks a `partial` run.
+- `FAKE_SERVICES=1` serves the whole graph from fixture data for the api, so Track D can use real run streams before the seed is complete.
+- Pipeline tests with the real nodes: Ukraine (weather skipped, direct and factor channels, hedges inside the limits, 8 or more cited rows), Ida (weather done, capacity at risk becomes the direct channel, perfect-forecast and flooding caveats), hypothetical storm (confidence capped), fallback hedge, news source down (caveat added, confidence lowered, run `partial`).
+- The rule-based planner matches all 20 queries of `data/eval/queries.json` (intent, type, source, specialists).
+- `live.feed` relays worker events through an in-process bus; `subscribeLive` is wired in `apps/api` and logs a warning until Track A's relay lands.
+
+**GATE B2: not yet.** The two `run-query` runs need the seeded services and a funded Anthropic key.
+- The key in `.env` is rejected with "credit balance is too low", so no model call has succeeded; prompts, schemas and `fallbacks` are untested against the live API.
+- `news.search`, `newsFeatures`, `weather`, `analogs` and `portfolio` are still "not implemented" in `main`.
+- With the model off and fixture data, `run-query --fake` ends `partial` for both presets through the fallbacks (rule-based plan, fallback hedge, template answer) and the verifier passes.
+
 
 ## Track C: Quant and proof
 

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FakeLlm, fakeFailure } from "@repo/services/llm";
 import type { EventType, Plan } from "@repo/contracts";
@@ -124,5 +126,40 @@ describe("assumptions", () => {
     await plannerNode(emptyState(), env);
     const [row] = env.ctx.ledger.all();
     expect(row).toMatchObject({ key: "E1", kind: "assumption", basis: "assumption", source: "user", value: 4, unit: "category" });
+  });
+});
+
+describe("rule-based plan on the orchestration eval set", () => {
+  interface EvalQuery {
+    id: string;
+    query: string;
+    mode: "live" | "replay";
+    presetId?: string;
+    followUpOf?: string;
+    expectedIntent: Plan["intent"];
+    expectedEventType?: EventType | null;
+    expectedEventSource?: Plan["event"]["source"];
+    requiredSpecialists?: Partial<Plan["specialists"]>;
+  }
+  const { queries } = JSON.parse(readFileSync(join(__dirname, "../../data/eval/queries.json"), "utf8")) as { queries: EvalQuery[] };
+
+  it("gets intent, event type, source and required specialists right for at least 90 percent", () => {
+    const plans = new Map<string, Plan>();
+    const misses: string[] = [];
+    for (const q of queries) {
+      const plan = rulePlan({
+        query: q.query, mode: q.mode, replayEventId: q.presetId ?? null, marketEventId: null,
+        previousPlan: q.followUpOf ? (plans.get(q.followUpOf) ?? null) : null,
+      });
+      plans.set(q.id, plan);
+      const wrong =
+        plan.intent !== q.expectedIntent ||
+        (q.expectedEventType !== undefined && plan.event.type !== q.expectedEventType) ||
+        (q.expectedEventSource !== undefined && plan.event.source !== q.expectedEventSource) ||
+        Object.entries(q.requiredSpecialists ?? {}).some(([k, v]) => v && !plan.specialists[k as keyof Plan["specialists"]]);
+      if (wrong) misses.push(q.id);
+    }
+    expect(queries.length).toBeGreaterThanOrEqual(20);
+    expect(misses.length / queries.length).toBeLessThanOrEqual(0.1);
   });
 });
