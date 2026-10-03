@@ -3,6 +3,7 @@ import type { Ledger } from "./ledger";
 import type { RunStateValue } from "./state";
 import { forecastTag, TAG } from "./tags";
 
+const MAX_FINDINGS = 4;
 const FORECAST_SENTENCES: readonly [string, string][] = [
   ["WTI", "WTI crude"],
   ["GLD", "gold"],
@@ -48,6 +49,9 @@ export function buildTemplateAnswer(state: RunStateValue, ledger: Ledger): Answe
     });
   }
   bullet([ph(TAG.macroVix)], ([v]) => `Market volatility reads ${v} on the VIX.`);
+  // Specialist findings passed the placeholder, digit and symbol checks when they were written.
+  const findings = [state.weatherOut, state.sentimentOut, state.macroOut].flatMap((o) => (o?.status === "ok" ? o.findings : []));
+  for (const f of findings.slice(0, MAX_FINDINGS)) bullets.push({ text: f.text.template, evidenceKeys: f.evidenceKeys });
   bullet([ph(TAG.hedgeGross), ph(TAG.hedgeAfterPnl)], ([g, a]) =>
     `The proposed hedges have gross notional ${g} and put the scenario result at ${a}.`,
   );
