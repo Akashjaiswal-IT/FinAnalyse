@@ -59,6 +59,11 @@ export async function takeQuota(redis: Redis, name: string, max: number, now: Da
   return true;
 }
 
+/** Gives back units taken for work that did not happen (a failed model call). */
+export async function returnQuota(redis: Redis, name: string, units: number, now: Date): Promise<void> {
+  if (units > 0) await redis.decrby(quotaKey(name, now), units);
+}
+
 export async function quotaUsed(redis: Redis, name: string, now: Date): Promise<number> {
   return Number((await redis.get(quotaKey(name, now))) ?? 0);
 }

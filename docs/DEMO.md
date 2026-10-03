@@ -10,9 +10,14 @@ About five minutes. Rehearse it twice on the machine you present from.
    env -u ANTHROPIC_API_KEY -u ANTHROPIC_BASE_URL pnpm --filter @repo/worker dev
    pnpm --filter web dev
    ```
-2. Open <http://localhost:3000>, open the Sources tab and check that anthropic, pinecone, tiingo and fred are green. Run the Ukraine question once so every cache is warm.
-3. If the Anthropic key has no credit, answers are built from templates and the run ends `partial`. Say so if asked; the numbers are the same, only the prose differs.
-4. If the network fails during the demo, restart web with `NEXT_PUBLIC_DATA_SOURCE=fixture` to play the recorded Ukraine and Ida runs. The header then shows a "fixture data" badge.
+2. Run `pnpm score:replay` once (idempotent), so replay runs do not wait on news scoring.
+3. Open <http://localhost:3000>, open the Sources tab and check that anthropic, pinecone, tiingo and fred are green. Run the Ukraine question once so every cache is warm.
+4. If the Anthropic key has no credit, answers are built from templates and the run ends `partial`. Say so if asked; the numbers are the same, only the prose differs.
+5. If the network fails during the demo, restart web with `NEXT_PUBLIC_DATA_SOURCE=fixture` to play the recorded Ukraine and Ida runs. The header then shows a "fixture data" badge.
+
+A run takes about a minute. If the page is reloaded mid-run, it follows the same run again (the run id is in the URL). A finished run opens instantly from its URL, which is the quickest fallback when the model or network is slow: on the demo machine, the Ida run `05647989-c68a-4e39-af9a-0ad1d2a60612` is at `/?mode=replay&preset=disaster-hurricane-ida-2021&run=05647989-c68a-4e39-af9a-0ad1d2a60612`. Run ids exist only in the database that ran them.
+
+A recorded walkthrough (Ukraine, Ida, Live tabs, Reliability; 4 minutes, 1600x1000) is kept outside the repository as `tempest-demo-backup.webm`; it plays in Chrome.
 
 ## The story
 

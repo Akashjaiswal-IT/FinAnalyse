@@ -80,6 +80,12 @@ function requestOptions(tier: ModelTier, signal: AbortSignal | undefined) {
 const isRateLimited = (err: unknown) => (err as { status?: unknown } | null)?.status === 429;
 /** After a 429 on the reasoning model, reasoning calls go straight to the fast model for this long. */
 const RATE_LIMIT_COOLDOWN_MS = 5 * 60_000;
+/** Upper bounds on one call and on one tool loop, retries included, so a stalled API cannot hold a run for minutes. */
+const CALL_DEADLINE_MS = 90_000;
+const TOOL_LOOP_DEADLINE_MS = 150_000;
+
+const withDeadline = (signal: AbortSignal | undefined, ms: number) =>
+  signal ? AbortSignal.any([signal, AbortSignal.timeout(ms)]) : AbortSignal.timeout(ms);
 
 function systemBlock(text: string) {
   return [{ type: "text" as const, text, cache_control: { type: "ephemeral" as const } }];
@@ -122,7 +128,7 @@ export class LlmService implements Llm {
           output_config: { ...(effort ? { effort } : {}), format: llmFormat(call.schema) },
           ...params,
         },
-        requestOptions(call.tier, call.signal),
+        requestOptions(call.tier, withDeadline(call.signal, CALL_DEADLINE_MS)),
       );
       this.record(null, Date.now() - started);
       const usage = usageOf(message);
@@ -182,7 +188,7 @@ export class LlmService implements Llm {
           output_config: effort ? { effort } : undefined,
           ...params,
         },
-        { signal: call.signal },
+        { signal: withDeadline(call.signal, TOOL_LOOP_DEADLINE_MS) },
       );
       for await (const message of runner) {
         iterations += 1;
