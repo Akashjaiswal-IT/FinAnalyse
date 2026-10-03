@@ -1,18 +1,30 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
   DETECT_MIN_RELEVANCE,
+  ENRICH_BATCH,
+  ENRICH_DAILY_MAX,
+  MAX_TOKENS,
+  NEWS_BASELINE_DAYS,
   NEWS_SUMMARY_MAX_CHARS,
   NEWS_WINDOW_HOURS,
+  Scores,
   type EventType,
   type FactorName,
   type FactorDirection,
   type NewsEventType,
   type NewsItem,
 } from "@repo/contracts";
-import defaultDb, { and, desc, eq, gte, inArray, isNotNull, lte, ne, or, sql, type SQL } from "@repo/database";
+import defaultDb, { and, desc, eq, gte, inArray, isNotNull, isNull, lte, ne, or, sql, type SQL } from "@repo/database";
 import { newsItems, type NewsItemRow, type NewNewsItemRow } from "@repo/database/schema";
+import { windowZ } from "@repo/quant";
+import type { Redis } from "ioredis";
+import { defaultHttp } from "../clients/default-http";
+import { GdeltClient } from "../clients/gdelt";
+import type { HttpClient } from "../clients/http";
 import { getPinecone, type FlatMetadata, type PineconeClient, type TextRecord } from "../clients/pinecone";
-import { notImplemented } from "../not-implemented";
+import { getRedis, takeQuota } from "../clients/redis";
+import { llm, type Llm } from "../llm";
+import { SCORING_SYSTEM, scoreUpdate, scoringUser } from "./score";
 import type {
   NewsFeatures,
   NewsFilters,
@@ -33,7 +45,24 @@ export type Maybe<T> = { data: T; stale: boolean } | { unavailable: string };
 type Db = typeof defaultDb;
 
 const HOUR = 3_600_000;
+const DAY = 24 * HOUR;
 const DEFAULT_TOP_K = 20;
+
+export interface NewsDeps {
+  http: () => HttpClient;
+  gdelt: () => GdeltClient;
+  llm: () => Llm;
+  redis: () => Redis;
+}
+
+let sharedGdelt: GdeltClient | null = null;
+// One GDELT client per process, so its one-request-per-5-s queue covers every caller.
+const defaultDeps: NewsDeps = {
+  http: defaultHttp,
+  gdelt: () => (sharedGdelt ??= new GdeltClient(defaultHttp())),
+  llm,
+  redis: getRedis,
+};
 
 /** Pinecone id of a news item (SPEC 5.4). */
 export function newsRecordId(url: string): string {
@@ -84,6 +113,7 @@ export class NewsService {
     private readonly db: Db = defaultDb,
     private readonly pinecone: () => PineconeClient = getPinecone,
     private readonly now: () => Date = () => new Date(),
+    private readonly deps: NewsDeps = defaultDeps,
   ) {}
 
   /**
@@ -210,7 +240,37 @@ export class NewsService {
 
   /** Score up to `limit` prefiltered, unscored items through `services/llm`; returns the scored ids. */
   async scoreUnscored(limit: number): Promise<string[]> {
-    return notImplemented(limit);
+    const rows = await this.db
+      .select()
+      .from(newsItems)
+      .where(and(eq(newsItems.prefilterMatch, true), isNull(newsItems.scoredAt)))
+      .orderBy(desc(newsItems.publishedAt))
+      .limit(Math.min(limit, ENRICH_BATCH));
+    const now = this.now();
+    const allowed: typeof rows = [];
+    for (const row of rows) {
+      if (!(await takeQuota(this.deps.redis(), "enrich", ENRICH_DAILY_MAX, now))) break;
+      allowed.push(row);
+    }
+    if (allowed.length === 0) return [];
+    const result = await this.deps.llm().parseStructured({
+      label: "news-scoring",
+      tier: "fast",
+      system: SCORING_SYSTEM,
+      user: scoringUser(allowed),
+      schema: Scores,
+      maxTokens: MAX_TOKENS.scoring,
+    });
+    if (!result.ok) throw new Error(`news scoring failed: ${result.reason} ${result.detail}`);
+    const byId = new Map(allowed.map((r) => [r.id, r]));
+    const scored: string[] = [];
+    for (const score of result.data.scores) {
+      const row = byId.get(score.id);
+      if (!row) continue;
+      await this.db.update(newsItems).set(scoreUpdate(score, row.tickers, result.usage.model, now)).where(eq(newsItems.id, row.id));
+      scored.push(row.id);
+    }
+    return scored;
   }
 
   /**
@@ -236,9 +296,34 @@ export class NewsService {
     return rows.map((r) => ({ eventType: r.eventType as EventType, date: r.date, count: r.count }));
   }
 
-  /** One function for every event's news features (SPEC 5.9): GDELT tone and volume timelines. Waits for
-   * `@repo/quant` in `services` (Track B request), where the z-score math lives. */
+  /** One function for every event's news features (SPEC 5.9): GDELT volume and tone timelines over the window
+   * and the `NEWS_BASELINE_DAYS` before it; the z-score math is `quant/stats.ts`. */
   async newsFeatures(query: string, windowStart: Date, windowEnd: Date): Promise<Maybe<NewsFeatures>> {
-    return notImplemented(query, windowStart, windowEnd);
+    const start = new Date(windowStart.getTime() - (NEWS_BASELINE_DAYS + 1) * DAY);
+    // Past windows never change; live ones refresh every 15 minutes.
+    const ttl = windowEnd.getTime() < this.now().getTime() - DAY ? 7 * 86_400 : 15 * 60;
+    const key = `features:${query}|${start.toISOString()}|${windowEnd.toISOString()}`;
+    try {
+      const { data, stale } = await this.deps.http().cached("gdelt", key, ttl, async () => {
+        const gdelt = this.deps.gdelt();
+        const vol = await gdelt.timeline(query, "timelinevol", start, windowEnd);
+        const tone = await gdelt.timeline(query, "timelinetone", start, windowEnd);
+        return { vol, tone };
+      });
+      const ws = windowStart.toISOString();
+      const we = windowEnd.toISOString();
+      return {
+        data: {
+          query,
+          windowStart: ws,
+          windowEnd: we,
+          volZ: windowZ(data.vol, ws, we, NEWS_BASELINE_DAYS),
+          toneZ: windowZ(data.tone, ws, we, NEWS_BASELINE_DAYS),
+        },
+        stale,
+      };
+    } catch (error) {
+      return { unavailable: `gdelt: ${error instanceof Error ? error.message : String(error)}` };
+    }
   }
 }

@@ -1,5 +1,6 @@
+import { Queue } from "bullmq";
 import { z } from "zod";
-import { notImplemented } from "../not-implemented";
+import { createRedisConnection } from "../clients/redis";
 
 /** BullMQ queue names (SPEC 6). No `:` in queue names or job ids (ROADMAP gotcha 13). */
 export const QUEUE_NAMES = {
@@ -36,7 +37,40 @@ export interface JobPayloads {
   detect: DetectJob;
 }
 
+export const JOB_SCHEMAS: { [K in QueueKey]: z.ZodType<JobPayloads[K]> } = {
+  gdelt: IngestJob,
+  alphavantage: IngestJob,
+  nhc: IngestJob,
+  openmeteo: IngestJob,
+  fred: IngestJob,
+  tiingo: IngestJob,
+  enrich: EnrichJob,
+  detect: DetectJob,
+};
+
+const queues = new Map<QueueKey, Queue>();
+
+/** One producer queue per name, sharing one Redis connection per queue. */
+export function getQueue(key: QueueKey): Queue {
+  let q = queues.get(key);
+  if (!q) {
+    q = new Queue(QUEUE_NAMES[key], {
+      connection: createRedisConnection({ maxRetriesPerRequest: null }),
+      defaultJobOptions: { removeOnComplete: 200, removeOnFail: 500 },
+    });
+    queues.set(key, q);
+  }
+  return q;
+}
+
 /** Producer: validates the payload and adds one job. Returns the job id. */
 export async function enqueue<K extends QueueKey>(queue: K, payload: JobPayloads[K]): Promise<string> {
-  return notImplemented(queue, payload);
+  const data = JOB_SCHEMAS[queue].parse(payload);
+  const job = await getQueue(queue).add(queue, data);
+  return job.id ?? "";
+}
+
+export async function closeQueues(): Promise<void> {
+  await Promise.all([...queues.values()].map((q) => q.close()));
+  queues.clear();
 }
