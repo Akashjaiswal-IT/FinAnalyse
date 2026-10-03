@@ -123,7 +123,7 @@ The repository already contains the team template (Turborepo + pnpm, `@repo/*` s
 │   │   ├── hedge.ts                 min-variance hedge ratio, sizing, constraint checks, simulate
 │   │   ├── geo.ts                   haversine, track interpolation, capacity at risk
 │   │   ├── forecast.ts              feature z-scoring, grouped kernel kNN forecast
-│   │   ├── detect.ts                NEW  news-cluster thresholds and severity rules (5.14)
+│   │   ├── detect.ts                NEW  news clustering and severity rules (5.14)
 │   │   ├── backtest.ts              leave-one-out harness and metrics
 │   │   └── *.test.ts
 │   ├── agents                       NEW  LangGraph.js graph
@@ -138,8 +138,8 @@ The repository already contains the team template (Turborepo + pnpm, `@repo/*` s
 │   ├── trpc
 │   │   ├── server
 │   │   │   ├── trpc.ts, context.ts  template; context carries the request's demo token
-│   │   │   ├── routes/              health, system, portfolio, market, news, events, weather, macro, analogs, runs, live, backtest
-│   │   │   ├── services/index.ts    instantiates service classes (template pattern)
+│   │   │   ├── routes/              health, system, portfolio, market, news, events, weather, macro, analogs, runs, live, backtest;
+│   │   │   │                        each route file creates the service instances it needs
 │   │   │   └── index.ts             serverRouter
 │   │   └── client/index.ts          router types + @trpc/client re-exports (template)
 │   ├── logger, eslint-config, typescript-config      template
@@ -171,8 +171,8 @@ The repository already contains the team template (Turborepo + pnpm, `@repo/*` s
 |---|---|
 | market | `instruments`, `bars(symbol, from, asOf)`, `closesAt(symbols, asOf)`, `returns(symbols, lookback, asOf)`, `adv(symbol, asOf)`, `realized(symbols, asOf, horizonDays)` |
 | macro | `snapshot(asOf)`, `series(id, from, asOf)` |
-| news | `upsertBatch(items)`, `search(text, { asOf, windowHours, tickers, eventTypes })`, `list(filters)`, `scoreUnscored(limit)`, `typeCounts(asOf, days)` |
-| events | `active(asOf)`, `get(id)`, `detect(asOf)` (P1, 5.14), `profileFromNews(query, asOf)` |
+| news | `upsertBatch(items)`, `search(text, { asOf, windowHours, tickers, eventTypes })`, `list(filters)`, `scoreUnscored(limit)`, `typeCounts(asOf, days)`, `newsFeatures(query, windowStart, windowEnd)` (5.9) |
+| events | `active(asOf)`, `get(id)`, `detect(asOf)` (P1, 5.14), `profileFromNews(query, asOf)`, `buildEventQuery(profile)` (5.9) |
 | weather | `stormsAt(asOf)`, `track(stormId, asOf)`, `hypotheticalTrack(params, asOf)`, `refineries()`, `hubForecasts()` |
 | analogs | `search(text, { types, asOf, topK })`, `get(ids)`, `list()` |
 | portfolio | `snapshot(portfolioId, asOf)` |
@@ -243,7 +243,7 @@ Every read takes `asOf`. A live run uses the run start time; a replay run uses t
 Stages: BullMQ job scheduler per source, fetch through the HTTP wrapper (5.3), Zod validation, normalisation to `contracts` types, de-duplication (news by URL; bars, observations and storm points by primary key), prefilter (news only), then in parallel the Postgres write and the Pinecone `upsertRecords` (batches of at most 96, prefiltered news only), then `indexed_at`, then a `LiveEvent` on the Redis channel `live`, then an `enrich` job for new prefiltered news ids.
 
 - **Latency:** `fetched_at` is when the upstream response body is fully received; `indexed_at` is when both writes resolved. Both are stored on every news item, so latency is a SQL query over indexed items.
-- **Queries:** `NEWS_QUERIES` is a record keyed by event type (5.14) plus `company` queries built from `TICKER_ALIASES` and `EXTERNAL_PEERS`, chunked so each query stays under GDELT's length limit. One GDELT pass runs every 15 minutes (about 12 queries at 1 per 5 s). `SENTIMENT_QUERIES` (same keys) drive tone and volume timelines. Alpha Vantage rotates hourly through `AV_ROTATION` (topic filters and ticker groups).
+- **Queries:** `NEWS_QUERIES` is a record keyed by event type (5.14) plus `company` queries built from `TICKER_ALIASES` and `EXTERNAL_PEERS`, chunked so each query stays under GDELT's length limit. One GDELT pass runs every 15 minutes (about 12 queries at 1 per 5 s). Tone and volume timelines use each event's own `gdelt_query` (5.9), never these collection queries. Alpha Vantage rotates hourly through `AV_ROTATION` (topic filters and ticker groups).
 - **Prefilter** (rule-based, fast, in the sub-second path): an item passes if its title or summary matches `TICKER_ALIASES`, `EXTERNAL_PEERS` or `EVENT_KEYWORDS[type]`, or Alpha Vantage tagged it with a universe ticker. Every item goes to Postgres with `prefilter_match`; only passing items are embedded and scored.
 - **Ticker tagging** at ingest: alias matches give `tickers` (universe symbols named directly); `EXTERNAL_PEERS` matches give `peer_tickers` (universe symbols whose competitor is named).
 - **Enrichment** (`enrich` queue, concurrency 2, at most `ENRICH_DAILY_MAX` items per day): batches of up to 20 prefiltered, unscored items go to Haiku for structured scoring: sentiment -1 to 1, relevance 0 to 1, event type (5.14 or `none`), entity tickers from the universe only, per-entity sentiment, and factor directions (`up`, `down` or `unclear` per factor in `FACTORS`). Updates the row and publishes `news.scored`. Not part of the sub-second path.
@@ -294,9 +294,9 @@ flowchart LR
 | Node | Job | LLM | Writes |
 |---|---|---|---|
 | `planner` | Turn the question, thread history, portfolio summary, mode, active market events and active storms into a `Plan`: intent (`event_impact`, `portfolio_risk`, `hedge`, `what_if`, `news_scan`, `explain`, `out_of_scope`), event source (`live`, `replay`, `hypothetical` or `none`), event hint (type, name, entities) or hypothetical parameters, focus symbols and sectors, horizon (default 5 trading days), which specialists are needed, whether reallocation was asked for. Fallback: keyword rules in `fallbacks.ts` | Sonnet, effort low, structured | `plan` |
-| `event` | Resolve and profile the event (5.14): live from `market_events` or a news search, replay from the preset, hypothetical from the plan. Builds the `EventProfile`: type, subtype, title, first report time, entities, peer symbols, affected sectors, factor directions, article and domain counts, news volume and tone z-scores, severity. For `news_scan`, up to 3 profiles ranked by exposed value. Fallback: keyword classifier in `fallbacks.ts` | Haiku, structured (classification only, when the event comes from a news search) | `event` |
+| `event` | Resolve and profile the event (5.14): live from `market_events` or a news search, replay from the preset, hypothetical from the plan. Builds the `EventProfile`: type, subtype, title, first report time, entities, peer symbols, affected sectors, factor directions, article and domain counts, news volume and tone z-scores, severity. For `news_scan`, up to 3 profiles ranked by exposed value; the top one drives `weather`, `analogs`, `risk` and `hedging`, and the answer lists the other two with their exposure only. Fallback: keyword classifier in `fallbacks.ts` | Haiku, structured (classification only, when the event comes from a news search) | `event` |
 | `weather` | Runs only when the event is a weather disaster (`disaster` with subtype `hurricane`, `tropical_storm` or `winter_storm`) or the plan asks for weather; otherwise `skipped`. Resolve the storm, build its track, compute capacity at risk for the Gulf Coast and per company, read hub forecasts (live only). Rules in 5.8 | Haiku note | `weather` |
-| `sentiment` | Search Pinecone `news` at `asOf` with the event profile and per holding; score unscored hits; aggregate per-holding, per-peer-group and per-sector sentiment (relevance-weighted, 24-hour recency half-life); read GDELT tone and volume z-scores for the event's `SENTIMENT_QUERIES` entry | Haiku note (and scoring) | `sentiment` |
+| `sentiment` | Search Pinecone `news` at `asOf` with the event profile and per holding; score unscored hits; aggregate per-holding, per-peer-group and per-sector sentiment (relevance-weighted, 24-hour recency half-life); report the event profile's `volZ` and `toneZ` (computed once by the `event` node, 5.9) | Haiku note (and scoring) | `sentiment` |
 | `macro` | FRED snapshot: VIX level (calm below 18, elevated to 25, stressed above) and its z-score, 10-year yield and dollar index 20-day change, fed funds level; gasoline and crude inventories against their 5-year same-week average (tight below -3%, loose above +3%) when the portfolio has energy exposure | Haiku note | `macro` |
 | `analogs` | Search Pinecone `events` with a description built from the event profile (same template as 10.5); grouped kernel kNN forecast for `FORECAST_TARGETS` and every holding (5.9); cross-asset reaction table of the top analogs; top 3 same-type and top 3 other-type parallels | Haiku note | `analogs` |
 | `risk` | Portfolio snapshot, factor betas, correlations, exposure channels per holding (5.14), VaR/CVaR, scenario and analog P&L (5.10) | none | `risk` |
@@ -381,25 +381,32 @@ Known limit, stated in caveats when relevant: the model uses wind distance only 
 
 **Targets:** 5-trading-day forward log return from the last close at or before `asOf` of every holding and of `FORECAST_TARGETS` (`SPY`, `WTI`, `GULF_GASOLINE`, `HH_NATGAS`, `GLD`, `TLT`).
 
-**Event features** (z-scored across the event set), in groups
+**Event features** (z-scored across the event set, except `type`), in groups
 
 | Feature | Group | Defined for | Definition |
 |---|---|---|---|
-| `type` | type | all | One-hot of the 8 event types (5.14), scaled by `TYPE_WEIGHT` (1.5) |
-| `volZ` | news | all | GDELT `timelinevol` for the event's query: mean over the feature window against the mean and std of the 28 days before it |
+| `type` | type | all | Not a vector and not z-scored: contributes `TYPE_WEIGHT²` (1.5² = 2.25) to the type group's squared distance when the two events' types differ, 0 when they match |
+| `volZ` | news | all | GDELT `timelinevol` for the event's `gdelt_query`: mean over the feature window against the mean and std of the 28 days before it |
 | `toneZ` | news | all | The same with `timelinetone` |
 | `vixZ` | regime | all | VIX (FRED `VIXCLS`) at t0 against its 252-day mean and std |
 | `windKt` | weather | hurricanes | Maximum wind of track points in the 24 hours before landfall (or closest approach to the hub centroid) |
 | `capAtRisk` | weather | hurricanes | Gulf Coast capacity at risk (5.8) using the event's track |
 | `offshoreExposure` | weather | hurricanes | Share of hurricane-force track points inside `OFFSHORE_BOX` (26-29.5°N, 95-88°W) |
 
+**News features, one function for every event.** `newsFeatures(query, windowStart, windowEnd)` in `services/news` reads the two GDELT timelines; the z-score math lives in `quant/stats.ts`. Curated events, hurricanes, replay presets and live events all go through it, so the backtest measures the same features the live model uses. Each event has one `gdelt_query`:
+
+- Curated events: hand-written in `data/seed/analog-events.json`.
+- Hurricanes: `("Hurricane <Name>" OR "Tropical Storm <Name>")`, built by the seed.
+- Live events (detected or from a news search): `buildEventQuery(...)` ORs the two most frequent entity names from `TICKER_ALIASES` and `EXTERNAL_PEERS` with the type's `EVENT_KEYWORDS`, plus `sourcelang:english`. Their feature window is `[firstReportAt, min(firstReportAt + 24 hours, asOf)]`.
+- Hypothetical events: no query; news features come from the plan's severity (5.12).
+
 **Feature window and t0.** Curated events: the feature window is the 24 hours after `first_report_at`; `feature_at` = `first_report_at` + 24 hours; t0 = the last close at or before `feature_at`. Hurricanes keep their v1 rule: t0 = the last close at least 24 hours before landfall, with the news window the 2 days before t0. A forecast is never made from information after t0.
 
-**Model:** grouped Gaussian kernel kNN. Distance is computed over the groups both events have (the weather group only between two hurricanes): `d² = Σ_groups ‖x_g - x_jg‖² / (number of groups used)`; `w_j = exp(-d² / (2h²))`, `h = 1.0` (`KNN_BANDWIDTH`), fixed and never tuned on results. Forecast = weighted mean of the analogs' realized returns; spread = weighted std; effective n = `(Σw)² / Σw²`. A holding with realized returns in fewer than 3 analogs (for example a recent listing) uses `β_SPY × forecast(SPY)` and says so.
+**Model:** grouped Gaussian kernel kNN. Distance is computed over the groups both events have (the weather group only between two hurricanes): `d² = Σ_groups ‖x_g - x_jg‖² / (number of groups used)`; `w_j = exp(-d² / (2h²))`, `h = 1.0` (`KNN_BANDWIDTH`), fixed and never tuned on results. With three groups, a type mismatch multiplies an analog's weight by exp(-0.375), about 0.69, so other-type events still count; the type-only variant (T) shows what same-type events alone predict. Forecast = weighted mean of the analogs' realized returns; spread = weighted std; effective n = `(Σw)² / Σw²`. A holding with realized returns in fewer than 3 analogs (for example a recent listing) uses `β_SPY × forecast(SPY)` and says so.
 
 **Variants:** combined (C, all groups), type-only (T, mean of same-type events), news-only (S), regime-only (M), weather-only (W, hurricanes only), unconditional (N, plain mean of all events).
 
-**Live:** C over every eligible event (5.1). If news features are unavailable, use type and regime and say so; hypothetical events have no news features, so they always use type, regime and (storms) weather. Evidence: mean and spread per target and per holding, effective n, and the top analogs with similarity, weight and realized 5-day returns. The same functions run the backtest (section 9.1), so the reported reliability is the reliability of the live model.
+**Live:** C over every eligible event (5.1). If news features are unavailable, use type and regime and say so; hypothetical events take their news features from the plan's severity (5.12) and use type, regime, that assumed news group and (storms) weather. Evidence: mean and spread per target and per holding, effective n, and the top analogs with similarity, weight and realized 5-day returns. The same functions run the backtest (section 9.1), so the reported reliability is the reliability of the live model.
 
 ### 5.10 Risk engine (`packages/quant`)
 
@@ -442,7 +449,7 @@ Known limit, stated in caveats when relevant: the model uses wind distance only 
 - Any `asOf` from 2017-01-01 is allowed.
 - **Replay news:** the seed fetches GDELT `artlist` for `[asOf - 72h, asOf]` for each preset with its `gdelt_query` and its type's `NEWS_QUERIES` entry, then stores, indexes and scores the items.
 - **Replay forecast track (hurricanes):** the next 72 hours of best track, labelled "perfect-forecast replay" in the UI and in caveats.
-- **Hypothetical events:** the plan supplies type, subtype, entities (universe symbols or `EXTERNAL_PEERS` names), factor directions and severity (low, medium, high), all evidence with basis `assumption`. The event node builds the profile without news counts; the forecast uses type, regime and severity only, labelled "hypothetical". Example: "What if China blockades Taiwan?" becomes geopolitical, entities `TSM`, factor directions `MARKET` down, `GOLD` up.
+- **Hypothetical events:** the plan supplies type, subtype, entities (universe symbols or `EXTERNAL_PEERS` names), factor directions and severity (low, medium, high), all evidence with basis `assumption`. The event node builds the profile without news counts; the plan's severity sets the news features through `SEVERITY_VOLZ` (low 0.5, medium 2, high 4; `toneZ` 0), so the forecast uses type, regime and that assumed news group, labelled "hypothetical". Example: "What if China blockades Taiwan?" becomes geopolitical, entities `TSM`, factor directions `MARKET` down, `GOLD` up.
 - **Hypothetical storms:** the plan supplies category (1 to 5), landfall region (`LANDFALL_REGIONS`) and hours to landfall (default 48). Track: 6-hourly straight line from 24.5°N 89.0°W to the region anchor; wind 75, 90, 105, 125 or 145 kt by category until landfall, then one inland point 12 hours later at half wind. Evidence basis `assumption`.
 - **What happened next (P2, replay only, outside the run):** realized 1-day and 5-day moves of the targets and the portfolio after `asOf`, next to the run's forecast.
 
@@ -477,14 +484,14 @@ A holding can have several channels. The portfolio panel shows one badge per cha
 
 **Event profile** (`EventProfile` in `contracts/schemas/event.ts`): `id` (market event id, analog id or `hypothetical`), `source` (live, replay, hypothetical), `type`, `subtype`, `title` (top article title or analog name; never LLM-written), `firstReportAt`, `entities`, `peerSymbols`, `affectedSectors`, `factorDirections`, `articleCount`, `domainCount`, `volZ`, `toneZ`, `severity` (low, medium, high), `topNewsIds`. Counts, z-scores and severity are computed and become evidence; type, subtype, entities and factor directions are model or rule outputs with basis `model`.
 
-**Severity** (`quant/detect.ts`): from `volZ`: low below 1, medium from 1 to 3, high at 3 or above. Hypothetical events take the severity from the plan.
+**Severity** (`quant/detect.ts`): from `volZ` (the 5.9 news feature): low below 1, medium from 1 to 3, high at 3 or above. Hypothetical events take the severity from the plan.
 
-**Live detection (P1, `detect` job every 15 minutes, `DETECTION_ENABLED`):**
+**Live detection (P1, `detect` job every 15 minutes, `DETECTION_ENABLED`).** Clustering is a pure function in `quant/detect.ts` and makes no Pinecone or LLM calls.
 
 1. Take scored news from the last 24 hours with relevance at least 0.5 and an event type other than `none`.
-2. For each item not yet in a cluster, search Pinecone `news` (same window) for neighbours with score at least `DETECT_SIM` (0.8) and the same event type.
-3. A cluster with at least `DETECT_MIN_ARTICLES` (5) items from at least `DETECT_MIN_DOMAINS` (3) domains becomes, or updates, a `market_events` row. `title` = the earliest high-relevance title in the cluster. Entities = the union of item tickers; factor directions = the majority vote of item directions.
-4. `vol_z` = the cluster's article count in the last 24 hours against the daily counts of the same event type over the previous 7 days (`news.typeCounts`).
+2. Two items belong together when they have the same event type and either share a ticker (`tickers` or `peer_tickers`) or have a title-word Jaccard similarity of at least `DETECT_JACCARD` (0.3) after stopword removal. Clusters are the connected groups.
+3. A cluster with at least `DETECT_MIN_ARTICLES` (5) items from at least `DETECT_MIN_DOMAINS` (3) domains becomes a `market_events` row, or updates the active row of the same type whose entities or title match by the same rule. `title` = the earliest high-relevance title in the cluster. Entities = the union of item tickers; factor directions = the majority vote of item directions; `gdelt_query` = `buildEventQuery` (5.9); `vol_z` and `tone_z` from `newsFeatures`.
+4. `cluster_z` = the cluster's article count in the last 24 hours against the daily counts of the same event type over the previous 7 days (`news.typeCounts`). It ranks the event feed only; it is never a forecast feature.
 5. Status: `active` while new items arrive within 6 hours, then `faded`. Publish `event.detected` or `event.updated`.
 
 Until detection lands, the live `event` node uses `events.profileFromNews(question, asOf)`: a Pinecone news search plus the Haiku classification of the top hits.
@@ -581,7 +588,9 @@ Indexes: (`published_at` DESC); (`event_type`, `published_at` DESC).
 | first_seen_at | timestamptz | NOT NULL | as-of filter |
 | last_seen_at | timestamptz | NOT NULL | fade rule |
 | article_count, domain_count | int | NOT NULL | detection thresholds |
-| vol_z, tone_mean | real | NULL | |
+| cluster_z | real | NULL | ranks the event feed (5.14 step 4); never a forecast feature |
+| gdelt_query | text | NOT NULL | built by `buildEventQuery` (5.9) |
+| vol_z, tone_z | real | NULL | `newsFeatures` (5.9) |
 | entities | text[] | NOT NULL, default `{}` | universe symbols |
 | factor_directions | jsonb | NOT NULL, default `{}` | majority vote |
 | status | varchar | NOT NULL, CHECK in (`active`, `faded`) | |
@@ -621,7 +630,7 @@ Indexes: (`published_at` DESC); (`event_type`, `published_at` DESC).
 | region | varchar | NULL | `LANDFALL_REGIONS` key, or a free region label |
 | entities | text[] | NOT NULL, default `{}` | universe symbols directly involved |
 | affected_sectors | text[] | NOT NULL, default `{}` | |
-| gdelt_query | text | NULL | the query used for its `volZ`, `toneZ` and replay news |
+| gdelt_query | text | NOT NULL | the query used for its `volZ`, `toneZ` and replay news (5.9) |
 | features | jsonb | NOT NULL | `volZ`, `toneZ`, `vixZ`, `windKt`, `capAtRisk`, `offshoreExposure` (nullable members) |
 | company_cap_at_risk | jsonb | NULL | `{ ticker: fraction }`, hurricanes only |
 | reactions | jsonb | NOT NULL | `{ symbol: { d1, d5, d20 } }` log returns from t0; null where data is missing |
@@ -799,8 +808,8 @@ Raw API responses are cached in `data/cache/` so a re-run costs no quota. Steps 
 3. **Storms:** HURDAT2, Atlantic seasons 2015 onward, into `storms` and `storm_points` (observed; `record_id` kept).
 4. **Refineries:** `data/seed/refineries.geojson` (EIA Energy Atlas "Petroleum Refineries") joined with `data/seed/refinery-tickers.json` (company to ticker). PADD 3 total computed from the table.
 5. **Analog events:**
-   - Hurricanes: Atlantic storms 2017 to 2025 with at least one point of 64 kt or more inside `GULF_BOX`. Landfall = first HURDAT2 `L` record on the US Gulf coast (25-31°N, 98-81°W), else closest approach to the hub centroid. t0 = last close at least 24 hours before landfall. Type `disaster`, subtype `hurricane`. Features (5.9), company capacity at risk, entities = companies with capacity at risk, reactions (d1, d5, d20) for every universe symbol and factor, `realized_until`.
-   - Curated: `data/seed/analog-events.json` (committed, hand-written). At least 30 events from 2017 onward, at least 3 per type. Each has `id`, `type`, `subtype`, `name`, `first_report_at`, `entities`, `affected_sectors`, `gdelt_query` and at least one source URL that confirms the date. Features from GDELT timelines over the feature window and VIX at t0; reactions computed the same way as hurricanes. Starting candidates (confirm each date against a source before adding; drop any that cannot be sourced):
+   - Hurricanes: Atlantic storms 2017 to 2025 with at least one point of 64 kt or more inside `GULF_BOX`. Landfall = first HURDAT2 `L` record on the US Gulf coast (25-31°N, 98-81°W), else closest approach to the hub centroid. t0 = last close at least 24 hours before landfall. Type `disaster`, subtype `hurricane`. `gdelt_query` as in 5.9. Features (5.9), company capacity at risk, entities = companies with capacity at risk, reactions (d1, d5, d20) for every universe symbol and factor, `realized_until`.
+   - Curated: `data/seed/analog-events.json` (committed, hand-written). At least 30 events from 2017 onward, at least 3 per type. Each has `id`, `type`, `subtype`, `name`, `first_report_at`, `entities`, `affected_sectors`, `gdelt_query` and at least one source URL that confirms the date. When the source gives only a date, `first_report_at` is 23:59 UTC that day: t0 can then only move later, never earlier, so no news is used before it existed. Features from GDELT timelines over the feature window and VIX at t0; reactions computed the same way as hurricanes. Starting candidates (confirm each date against a source before adding; drop any that cannot be sourced):
      - geopolitical: Abqaiq attack (Sep 2019), Soleimani strike (Jan 2020), Russia invades Ukraine (Feb 2022), Hamas attack on Israel (Oct 2023), Red Sea shipping attacks (Dec 2023), Iran strikes Israel (Apr 2024)
      - policy: US steel and aluminium tariffs (Mar 2018), US-China tariff escalation (May 2019), Inflation Reduction Act passage (Aug 2022), US "Liberation Day" tariffs (Apr 2025)
      - macro: COVID emergency rate cut (Mar 2020), first 75 bp Fed hike (Jun 2022), UK gilt crisis (Sep 2022), COVID-19 demand collapse (Mar 2020)
@@ -869,7 +878,7 @@ Demo portfolio "Tempest Multi-Sector Fund": NAV $10,000,000, the weights above (
 
 `MACRO_SERIES`: `WGTSTUS1` (gasoline stocks), `WCESTUS1` (crude stocks excluding SPR), `VIXCLS`, `DGS10`, `DFF`, `DTWEXBGS`.
 
-Other constants: `EVENT_TYPES`, `EVENT_SUBTYPES`, `EVENT_KEYWORDS`, `FACTORS`, `FORECAST_TARGETS`, `TYPE_WEIGHT` (1.5), `MIN_TYPE_EVENTS` (5), `FACTOR_BETA_MIN` (0.5), `DETECT_SIM` (0.8), `DETECT_MIN_ARTICLES` (5), `DETECT_MIN_DOMAINS` (3), `ENRICH_DAILY_MAX` (2,000), `AV_ROTATION`, `HUBS` (Corpus Christi 27.81, -97.40; Houston/Baytown 29.73, -95.02; Port Arthur/Beaumont 29.90, -93.93; Lake Charles 30.22, -93.25; Baton Rouge 30.48, -91.17; New Orleans/St. Charles 29.95, -90.37; Pascagoula 30.35, -88.53), `LANDFALL_REGIONS` (TX_SOUTH 27.8, -97.4; TX_UPPER 29.5, -94.5; LA_WEST 29.8, -93.3; LA_SOUTHEAST 29.2, -90.1; MS_AL 30.3, -88.5; FL_PANHANDLE 30.1, -85.7), `GULF_BOX`, `OFFSHORE_BOX`, `IMPACT_RADIUS_KM`, `NEWS_WINDOW_HOURS`, `HORIZON_DAYS` (5), `KNN_BANDWIDTH`, `HEDGE_MENU`, `HEDGE_LIMITS`, `MODEL_PRICES`, `REPLAY_PRESETS`, `NEWS_QUERIES`, `SENTIMENT_QUERIES`, `TICKER_ALIASES`, `NUMERIC_ALLOWLIST`.
+Other constants: `EVENT_TYPES`, `EVENT_SUBTYPES`, `EVENT_KEYWORDS`, `FACTORS`, `FORECAST_TARGETS`, `TYPE_WEIGHT` (1.5), `MIN_TYPE_EVENTS` (5), `FACTOR_BETA_MIN` (0.5), `DETECT_JACCARD` (0.3), `DETECT_MIN_ARTICLES` (5), `DETECT_MIN_DOMAINS` (3), `ENRICH_DAILY_MAX` (2,000), `SEVERITY_VOLZ` (low 0.5, medium 2, high 4), `AV_ROTATION`, `HUBS` (Corpus Christi 27.81, -97.40; Houston/Baytown 29.73, -95.02; Port Arthur/Beaumont 29.90, -93.93; Lake Charles 30.22, -93.25; Baton Rouge 30.48, -91.17; New Orleans/St. Charles 29.95, -90.37; Pascagoula 30.35, -88.53), `LANDFALL_REGIONS` (TX_SOUTH 27.8, -97.4; TX_UPPER 29.5, -94.5; LA_WEST 29.8, -93.3; LA_SOUTHEAST 29.2, -90.1; MS_AL 30.3, -88.5; FL_PANHANDLE 30.1, -85.7), `GULF_BOX`, `OFFSHORE_BOX`, `IMPACT_RADIUS_KM`, `NEWS_WINDOW_HOURS`, `HORIZON_DAYS` (5), `KNN_BANDWIDTH`, `HEDGE_MENU`, `HEDGE_LIMITS`, `MODEL_PRICES`, `REPLAY_PRESETS`, `NEWS_QUERIES`, `TICKER_ALIASES`, `NUMERIC_ALLOWLIST`.
 
 **`NEWS_QUERIES` defaults** (GDELT syntax; test each in the first hour and log changes):
 
@@ -896,5 +905,5 @@ Authentication and users, real order routing, options and futures pricing, intra
 4. NOAA MapServer forecast-point field names can only be confirmed while a storm is active; until then the persistence fallback covers live mode.
 5. If the backtest shows no lift for the combined model, overall or for a type, report it as measured and present the analog evidence qualitatively.
 6. Curated events need a source URL each. If fewer than 30 can be sourced in time, seed what is sourced and report n per type.
-7. Detection thresholds (`DETECT_SIM`, `DETECT_MIN_ARTICLES`, `DETECT_MIN_DOMAINS`) are starting values; tune them once on live data in Phase 3 and log the final values.
+7. Detection thresholds (`DETECT_JACCARD`, `DETECT_MIN_ARTICLES`, `DETECT_MIN_DOMAINS`) are starting values; tune them once on live data in Phase 3 and log the final values.
 8. GDELT query length limits for the `company_*` chunks are unconfirmed; split further if a query is rejected.
