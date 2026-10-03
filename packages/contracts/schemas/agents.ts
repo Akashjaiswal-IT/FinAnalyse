@@ -96,6 +96,14 @@ export const WeatherOutput = z.union([
     companyCapAtRisk: z.record(z.string(), z.number()),
     atRisk: z.array(AtRiskRefinery),
     hubs: z.array(HubForecast).nullable(),
+    /** The weather features of the analog model (SPEC 5.9) for this storm, for the `analogs` node. */
+    features: z
+      .object({
+        windKt: z.number().nullable(),
+        capAtRisk: z.number().nullable(),
+        offshoreExposure: z.number().nullable(),
+      })
+      .optional(),
     findings: z.array(Finding),
   }),
   Unavailable,

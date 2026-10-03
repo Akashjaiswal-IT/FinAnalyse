@@ -470,7 +470,7 @@ export const MAX_TOKENS = {
 
 /** Strings allowed to contain digits in LLM-authored text (SPEC 5.6). Longer entries first: the verifier
  * strips them in order. */
-export const NUMERIC_ALLOWLIST = ["S&P 500", "737 MAX 9", "737 MAX", "COVID-19", "G20", "G7"] as const;
+export const NUMERIC_ALLOWLIST = ["20+ Year Treasury", "Phillips 66", "S&P 500", "737 MAX 9", "737 MAX", "COVID-19", "G20", "G7"] as const;
 
 export const FIXTURE_SOURCE = "fixture";
 
@@ -489,17 +489,17 @@ export interface ReplayPreset {
   confirmed: boolean;
 }
 
-// Curated presets: asOf = firstReportAt + 24 hours (`feature_at`). The times below are provisional
-// starting points; Track A replaces each with the sourced value and sets `confirmed`.
+// Curated presets: asOf = firstReportAt + 24 hours (`feature_at`). Times are the sourced values of
+// data/seed/analog-events.json (docs/DECISIONS.md, check 15).
 export const REPLAY_PRESETS: readonly ReplayPreset[] = [
   {
     id: "geopolitical-russia-ukraine-2022",
     type: "geopolitical",
     name: "Russia invades Ukraine",
     year: 2022,
-    firstReportAt: "2022-02-24T03:00:00.000Z",
-    asOf: "2022-02-25T03:00:00.000Z",
-    confirmed: false,
+    firstReportAt: "2022-02-24T02:40:00.000Z",
+    asOf: "2022-02-25T02:40:00.000Z",
+    confirmed: true,
   },
   {
     id: "disaster-hurricane-ida-2021",
@@ -515,36 +515,36 @@ export const REPLAY_PRESETS: readonly ReplayPreset[] = [
     type: "supply_shock",
     name: "OPEC+ surprise production cut",
     year: 2023,
-    firstReportAt: "2023-04-02T13:00:00.000Z",
-    asOf: "2023-04-03T13:00:00.000Z",
-    confirmed: false,
+    firstReportAt: "2023-04-02T13:57:00.000Z",
+    asOf: "2023-04-03T13:57:00.000Z",
+    confirmed: true,
   },
   {
     id: "policy-us-tariffs-2025",
     type: "policy",
     name: 'US "Liberation Day" tariffs',
     year: 2025,
-    firstReportAt: "2025-04-02T20:00:00.000Z",
-    asOf: "2025-04-03T20:00:00.000Z",
-    confirmed: false,
+    firstReportAt: "2025-04-02T20:06:00.000Z",
+    asOf: "2025-04-03T20:06:00.000Z",
+    confirmed: true,
   },
   {
     id: "corporate-svb-2023",
     type: "corporate",
     name: "Silicon Valley Bank collapse",
     year: 2023,
-    firstReportAt: "2023-03-08T21:30:00.000Z",
-    asOf: "2023-03-09T21:30:00.000Z",
-    confirmed: false,
+    firstReportAt: "2023-03-08T21:06:00.000Z",
+    asOf: "2023-03-09T21:06:00.000Z",
+    confirmed: true,
   },
   {
     id: "accident-boeing-door-2024",
     type: "accident",
     name: "Alaska Airlines 737 MAX 9 door-plug blowout",
     year: 2024,
-    firstReportAt: "2024-01-06T01:30:00.000Z",
-    asOf: "2024-01-07T01:30:00.000Z",
-    confirmed: false,
+    firstReportAt: "2024-01-06T01:12:33.000Z",
+    asOf: "2024-01-07T01:12:33.000Z",
+    confirmed: true,
   },
 ];
 export const DEFAULT_REPLAY_PRESET_ID = "geopolitical-russia-ukraine-2022";
