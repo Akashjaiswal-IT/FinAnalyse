@@ -30,3 +30,39 @@ export function upsertResultsSection(text: string, name: string, body: string): 
   }
   return out.replace(new RegExp(`\\n*${PLACEHOLDER}\\n*`), "\n\n").replace(/\n{3,}/g, "\n\n");
 }
+
+/** The body between the `results:<name>` markers (without them, trimmed), or null when the section is absent. */
+export function getResultsSection(text: string, name: string): string | null {
+  const { start, end } = markers(name);
+  const from = text.indexOf(start);
+  const to = text.indexOf(end);
+  if (from === -1 || to === -1 || to < from) return null;
+  return text.slice(from + start.length, to).trim();
+}
+
+/** Lines that say when and where a section was produced; they change on every run and are not results. */
+const PROVENANCE_LINE = /^- Run: /;
+
+export interface ResultsDiff {
+  same: boolean;
+  /** Why not, in one line: the section is missing, or the first line that differs. */
+  reason: string | null;
+}
+
+/**
+ * Whether the recorded `results:<name>` section of `docs/RESULTS.md` equals `body`, ignoring the "- Run:" line
+ * (date, machine, commit). Used to check that re-running a script reproduces the recorded numbers (Gate C3).
+ */
+export function diffResultsSection(text: string, name: string, body: string): ResultsDiff {
+  const recorded = getResultsSection(text, name);
+  if (recorded === null) return { same: false, reason: `no "${name}" section is recorded in the results file` };
+  const lines = (s: string) => s.split("\n").filter((l) => !PROVENANCE_LINE.test(l));
+  const a = lines(recorded);
+  const b = lines(body.trim());
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (a[i] !== b[i]) {
+      return { same: false, reason: `line ${i + 1} differs: recorded ${JSON.stringify(a[i] ?? null)}, fresh ${JSON.stringify(b[i] ?? null)}` };
+    }
+  }
+  return { same: true, reason: null };
+}

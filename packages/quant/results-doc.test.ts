@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { upsertResultsSection } from "./results-doc";
+import { diffResultsSection, getResultsSection, upsertResultsSection } from "./results-doc";
 
 const HEADER = "# Results\n\nTables below are written only from script output.\n\nNothing has been measured yet.\n";
 const mark = (name: string, body: string) => `<!-- results:${name}:start -->\n${body}\n<!-- results:${name}:end -->`;
@@ -46,5 +46,40 @@ describe("upsertResultsSection", () => {
       upsertResultsSection("<!-- results:backtest:end -->\n<!-- results:backtest:start -->", "backtest", "b"),
     ).toThrow(/misplaced/);
     expect(() => upsertResultsSection(`${mark("backtest", "a")}\n${mark("backtest", "b")}`, "backtest", "c")).toThrow(/misplaced/);
+  });
+});
+
+describe("getResultsSection", () => {
+  it("returns the trimmed body between the markers, or null", () => {
+    const text = upsertResultsSection(upsertResultsSection(HEADER, "backtest", "## B\n\nrows"), "eval", "## E");
+    expect(getResultsSection(text, "backtest")).toBe("## B\n\nrows");
+    expect(getResultsSection(text, "eval")).toBe("## E");
+    expect(getResultsSection(text, "drills")).toBeNull();
+    expect(getResultsSection("<!-- results:backtest:end -->\n<!-- results:backtest:start -->", "backtest")).toBeNull();
+  });
+});
+
+describe("diffResultsSection", () => {
+  const body = "## Backtest\n\n- Run: 2026-10-03T12:18:14Z on host-a, commit `abc`.\n- Events: 64.\n\n| N | 384 | 49.3% |";
+  const text = upsertResultsSection(HEADER, "backtest", body);
+
+  it("is the same when only the Run line (date, machine, commit) differs", () => {
+    const rerun = body.replace(/- Run: .*\n/, "- Run: 2026-10-04T09:00:00Z on host-b, commit `def`.\n");
+    expect(diffResultsSection(text, "backtest", rerun)).toEqual({ same: true, reason: null });
+  });
+  it("names the first line that differs", () => {
+    const d = diffResultsSection(text, "backtest", body.replace("49.3%", "49.4%"));
+    expect(d.same).toBe(false);
+    expect(d.reason).toBe('line 5 differs: recorded "| N | 384 | 49.3% |", fresh "| N | 384 | 49.4% |"');
+  });
+  it("notices a longer or shorter table", () => {
+    expect(diffResultsSection(text, "backtest", `${body}\n| T | 384 | 61.4% |`).reason).toContain("recorded null");
+    expect(diffResultsSection(text, "backtest", "## Backtest").reason).toContain("fresh null");
+  });
+  it("is not the same when nothing is recorded", () => {
+    expect(diffResultsSection(HEADER, "backtest", body)).toEqual({
+      same: false,
+      reason: 'no "backtest" section is recorded in the results file',
+    });
   });
 });

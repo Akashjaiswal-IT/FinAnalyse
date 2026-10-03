@@ -171,6 +171,11 @@ Entries at H7, H12 and H18.
 - `backtest.latest` route (`GET /api/backtest/latest`, also tRPC `backtest.latest`): the newest backtest or `null`. Tested through a tRPC caller, and the OpenAPI document of the whole server router is generated in a test, since the api does that at boot. Checked over real HTTP against the built api and the dev Postgres: `null` when empty, then the saved row, with the path in `/openapi.json`.
 - Checked against Track A's branch merged into a scratch worktree, with a real Postgres and a scratch database (migration `0000_init`): the script type-checks against their `AnalogsService`, `db` and `backtests`; a saved row read back through the service equals a fresh run of the same events (metrics, predictions, caveats, config); two runs from the same events give identical tables; `RESULTS.md` is stable when re-written. The events were synthetic and are not recorded as a result.
 
+### Gate C3 check (2026-10-03)
+
+- `pnpm backtest --verify` re-runs the backtest on the events and fails (exit 1) unless the recorded numbers are reproduced exactly: the backtest section of `docs/RESULTS.md` (all but its "Run:" line) and the latest saved `backtests` row. `--skip-db` checks the results file alone. Tested on a copy of the results file and the dev Postgres with synthetic events: untouched passes; a changed number, a changed event set, a missing row, a missing file or section, and `--verify` with `--save` each fail with the reason.
+- **To close Gate C3:** on a machine that has the seeded data and the saved run (Akash's), run `pnpm backtest --verify` and record the result here. It cannot be closed from a database with no analog events.
+
 **Note for Track A**
 - The script (`pnpm backtest`) needs `AnalogsService.list()` to return every analog event as a contracts `AnalogEvent` (ISO strings for dates, `reactions` with `d5`). It is a stub on your branch: the script prints "AnalogsService.list() failed: not implemented" until it lands.
 
