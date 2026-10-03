@@ -1,0 +1,146 @@
+{
+ "items": "3",
+ "sentiment_score_definition": "x <= -0.35: Bearish; -0.35 < x <= -0.15: Somewhat-Bearish; -0.15 < x < 0.15: Neutral; 0.15 <= x < 0.35: Somewhat_Bullish; x >= 0.35: Bullish",
+ "relevance_score_definition": "0 < x <= 1, with a higher score indicating higher relevance.",
+ "feed": [
+  {
+   "title": "Pennsylvania American Water Highlights Year-Round Commitment to Source Water Protection",
+   "url": "https://bucksco.today/2026/10/pennsylvania-american-water-source-water-protection/",
+   "time_published": "20261003T091819",
+   "authors": [
+    "David Bjorkgren"
+   ],
+   "summary": "Pennsylvania American Water is emphasizing its ongoing dedication to source water protection through advanced technology, extensive water quality monitoring, and community partnerships. This commitment is highlighted during the American Water Works Association's Annual Source Water Protection Week. The company urges residents to adopt practices such as proper waste disposal and chemical management to help safeguard water resources year-round, underscoring that protecting source water is crucial for providing safe, clean, and reliable drinking water.",
+   "banner_image": "https://bucksco.today/wp-content/uploads/sites/6/2026/09/Drinking-Water.jpg",
+   "source": "BUCKSCO.Today",
+   "category_within_source": "General",
+   "source_domain": "BUCKSCO.Today",
+   "topics": [
+    {
+     "topic": "energy_transportation",
+     "relevance_score": "0.846904"
+    }
+   ],
+   "overall_sentiment_score": 0.442495,
+   "overall_sentiment_label": "Bullish",
+   "ticker_sentiment": [
+    {
+     "ticker": "AWK",
+     "relevance_score": "1.000000",
+     "ticker_sentiment_score": "0.431676",
+     "ticker_sentiment_label": "Bullish"
+    }
+   ]
+  },
+  {
+   "title": "NextEra Energy stock trades 0.03 percent above its Xetra close of EUR 68.13 in weekend trading",
+   "url": "https://www.ad-hoc-news.de/boerse/news/corporate-news/nextera-energy-stock-trades-0-03-percent-above-its-xetra-close-of-eur/70219942",
+   "time_published": "20261003T084222",
+   "authors": [
+    "Rafael Müller"
+   ],
+   "summary": "NextEra Energy stock is trading at EUR 68.15 in weekend trading on October 3, 2026, slightly above its Xetra close of EUR 68.13 from October 2, 2026. The company confirmed its adjusted earnings per share outlook for 2026 and long-term growth targets through 2035, and also mentioned a proposed combination with Dominion Energy expected in late 2027.",
+   "banner_image": "https://mdb.ad-hoc-news.de/bild/bild-2704346_1200_0.webp",
+   "source": "AD HOC NEWS",
+   "category_within_source": "General",
+   "source_domain": "AD HOC NEWS",
+   "topics": [
+    {
+     "topic": "earnings",
+     "relevance_score": "0.908107"
+    },
+    {
+     "topic": "financial_markets",
+     "relevance_score": "0.805963"
+    },
+    {
+     "topic": "mergers_and_acquisitions",
+     "relevance_score": "0.641298"
+    },
+    {
+     "topic": "energy_transportation",
+     "relevance_score": "0.633556"
+    }
+   ],
+   "overall_sentiment_score": 0.289925,
+   "overall_sentiment_label": "Somewhat-Bullish",
+   "ticker_sentiment": [
+    {
+     "ticker": "NEE",
+     "relevance_score": "1.000000",
+     "ticker_sentiment_score": "0.287281",
+     "ticker_sentiment_label": "Somewhat-Bullish"
+    }
+   ]
+  },
+  {
+   "title": "Is Honeywell International (HON) A Bargain On The Dangote Refinery Win?",
+   "url": "https://simplywall.st/stocks/us/capital-goods/nasdaq-hon/honeywell-international/news/is-honeywell-international-hon-a-bargain-on-the-dangote-refi",
+   "time_published": "20261003T081900",
+   "authors": [
+    "SI Simply Wall St"
+   ],
+   "summary": "Honeywell International (HON) gained attention after securing a contract with Dangote Petroleum Refinery for its upcoming 700,000 barrel-per-day refinery in Kenya. Despite a recent share price uptick of 3.84% over the past month, its 90-day return is down 6.90%. The company's valuation is debated, with one popular narrative suggesting it is 33% undervalued at $320.19 per share, while the SWS DCF model indicates it might be overvalued with an intrinsic value of $137.49 per share.",
+   "banner_image": "https://simplywall.st/cdn-cgi/image/format=auto,fit=cover,w=64,h=64,q=80,blur=0,metadata=none/https://images.ctfassets.net/n07nr2koi959/1txW1Rnk3fUjh2FW939y6e/a1bb305c92d46eae2c7f925893392fdd/avatar-v2.png?w=64&h=64&q=90&fit=fill&f=top",
+   "source": "Simply Wall Street",
+   "category_within_source": "General",
+   "source_domain": "Simply Wall Street",
+   "topics": [
+    {
+     "topic": "earnings",
+     "relevance_score": "0.839722"
+    },
+    {
+     "topic": "financial_markets",
+     "relevance_score": "0.935244"
+    },
+    {
+     "topic": "manufacturing",
+     "relevance_score": "0.705531"
+    },
+    {
+     "topic": "energy_transportation",
+     "relevance_score": "0.725559"
+    },
+    {
+     "topic": "finance",
+     "relevance_score": "0.622820"
+    }
+   ],
+   "overall_sentiment_score": 0.349292,
+   "overall_sentiment_label": "Somewhat-Bullish",
+   "ticker_sentiment": [
+    {
+     "ticker": "HON",
+     "relevance_score": "1.000000",
+     "ticker_sentiment_score": "0.305091",
+     "ticker_sentiment_label": "Somewhat-Bullish"
+    },
+    {
+     "ticker": "CRM",
+     "relevance_score": "0.643087",
+     "ticker_sentiment_score": "0.315583",
+     "ticker_sentiment_label": "Somewhat-Bullish"
+    },
+    {
+     "ticker": "MU",
+     "relevance_score": "0.610594",
+     "ticker_sentiment_score": "0.274608",
+     "ticker_sentiment_label": "Somewhat-Bullish"
+    },
+    {
+     "ticker": "NVDA",
+     "relevance_score": "0.567573",
+     "ticker_sentiment_score": "0.441524",
+     "ticker_sentiment_label": "Bullish"
+    },
+    {
+     "ticker": "AAPL",
+     "relevance_score": "0.585378",
+     "ticker_sentiment_score": "0.437328",
+     "ticker_sentiment_label": "Bullish"
+    }
+   ]
+  }
+ ]
+}

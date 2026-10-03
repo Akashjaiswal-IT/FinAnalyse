@@ -1,0 +1,232 @@
+{
+ "layers": [
+  {
+   "id": 5,
+   "name": "AT1 Forecast Information"
+  },
+  {
+   "id": 6,
+   "name": "AT1 Forecast Points"
+  },
+  {
+   "id": 7,
+   "name": "AT1 Forecast Track"
+  },
+  {
+   "id": 8,
+   "name": "AT1 Forecast Cone"
+  },
+  {
+   "id": 9,
+   "name": "AT1 Watch-Warning"
+  },
+  {
+   "id": 10,
+   "name": "AT1 Past Track Infomation"
+  },
+  {
+   "id": 11,
+   "name": "AT1 Past Points"
+  },
+  {
+   "id": 12,
+   "name": "AT1 Past Track"
+  },
+  {
+   "id": 13,
+   "name": "AT1 Past Cumulative Wind Swath"
+  },
+  {
+   "id": 14,
+   "name": "AT1 Past Wind Radii"
+  },
+  {
+   "id": 15,
+   "name": "AT1 Wind Information"
+  },
+  {
+   "id": 16,
+   "name": "AT1 Forecast Wind Radii"
+  },
+  {
+   "id": 17,
+   "name": "AT1 Advisory Wind Field"
+  },
+  {
+   "id": 18,
+   "name": "AT1 Arrival Time of TS Winds"
+  },
+  {
+   "id": 19,
+   "name": "AT1 Earliest Reasonable Arrival Time"
+  },
+  {
+   "id": 20,
+   "name": "AT1 Most Likely Arrival Time"
+  },
+  {
+   "id": 21,
+   "name": "AT1 Inundation and Tidal Mask"
+  },
+  {
+   "id": 22,
+   "name": "AT1 Inundation"
+  },
+  {
+   "id": 26,
+   "name": "AT1 Tidal Mask"
+  },
+  {
+   "id": 31,
+   "name": "AT2 Forecast Information"
+  },
+  {
+   "id": 32,
+   "name": "AT2 Forecast Points"
+  },
+  {
+   "id": 33,
+   "name": "AT2 Forecast Track"
+  },
+  {
+   "id": 34,
+   "name": "AT2 Forecast Cone"
+  },
+  {
+   "id": 35,
+   "name": "AT2 Watch-Warning"
+  },
+  {
+   "id": 36,
+   "name": "AT2 Past Track Infomation"
+  },
+  {
+   "id": 37,
+   "name": "AT2 Past Points"
+  },
+  {
+   "id": 38,
+   "name": "AT2 Past Track"
+  },
+  {
+   "id": 39,
+   "name": "AT2 Past Cumulative Wind Swath"
+  },
+  {
+   "id": 40,
+   "name": "AT2 Past Wind Radii"
+  },
+  {
+   "id": 41,
+   "name": "AT2 Wind Information"
+  },
+  {
+   "id": 42,
+   "name": "AT2 Forecast Wind Radii"
+  },
+  {
+   "id": 43,
+   "name": "AT2 Advisory Wind Field"
+  },
+  {
+   "id": 44,
+   "name": "AT2 Arrival Time of TS Winds"
+  },
+  {
+   "id": 45,
+   "name": "AT2 Earliest Reasonable Arrival Time"
+  },
+  {
+   "id": 46,
+   "name": "AT2 Most Likely Arrival Time"
+  },
+  {
+   "id": 47,
+   "name": "AT2 Inundation and Tidal Mask"
+  },
+  {
+   "id": 48,
+   "name": "AT2 Inundation"
+  },
+  {
+   "id": 52,
+   "name": "AT2 Tidal Mask"
+  },
+  {
+   "id": 187,
+   "name": "EP3 Forecast Information"
+  },
+  {
+   "id": 188,
+   "name": "EP3 Forecast Points"
+  },
+  {
+   "id": 189,
+   "name": "EP3 Forecast Track"
+  },
+  {
+   "id": 190,
+   "name": "EP3 Forecast Cone"
+  },
+  {
+   "id": 191,
+   "name": "EP3 Watch-Warning"
+  },
+  {
+   "id": 192,
+   "name": "EP3 Past Track Infomation"
+  },
+  {
+   "id": 193,
+   "name": "EP3 Past Points"
+  },
+  {
+   "id": 194,
+   "name": "EP3 Past Track"
+  },
+  {
+   "id": 195,
+   "name": "EP3 Past Cumulative Wind Swath"
+  },
+  {
+   "id": 196,
+   "name": "EP3 Past Wind Radii"
+  },
+  {
+   "id": 197,
+   "name": "EP3 Wind Information"
+  },
+  {
+   "id": 198,
+   "name": "EP3 Forecast Wind Radii"
+  },
+  {
+   "id": 199,
+   "name": "EP3 Advisory Wind Field"
+  },
+  {
+   "id": 200,
+   "name": "EP3 Arrival Time of TS Winds"
+  },
+  {
+   "id": 201,
+   "name": "EP3 Earliest Reasonable Arrival Time"
+  },
+  {
+   "id": 202,
+   "name": "EP3 Most Likely Arrival Time"
+  },
+  {
+   "id": 203,
+   "name": "EP3 Inundation and Tidal Mask"
+  },
+  {
+   "id": 204,
+   "name": "EP3 Inundation"
+  },
+  {
+   "id": 208,
+   "name": "EP3 Tidal Mask"
+  }
+ ]
+}
