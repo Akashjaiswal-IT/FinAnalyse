@@ -2,6 +2,8 @@
 
 Four tracks work in parallel (docs/ROADMAP.md section 0). These rules keep merges clean. They add to the roadmap and change nothing in it. Hours (H7, H12, H18, H21) count from the start of Phase 0.
 
+Start every work session with your track's brief in docs/BRIEFS.md.
+
 ## Who owns what
 
 | Track | Owns |
