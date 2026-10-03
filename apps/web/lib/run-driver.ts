@@ -24,4 +24,6 @@ export interface RunDriverHandlers {
 export interface RunDriver {
   /** Begins a run and returns a function that stops delivery. A stopped driver never calls a handler again. */
   start(request: RunStartRequest, handlers: RunDriverHandlers): () => void;
+  /** Streams an existing run from its first event, for a reload mid-run. Absent where runs are not stored. */
+  attach?(runId: string, handlers: RunDriverHandlers): () => void;
 }
