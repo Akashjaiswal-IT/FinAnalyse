@@ -14,7 +14,7 @@ import { AlphaVantageClient, normaliseAvFeed, rotationQueryKey } from "../client
 import { defaultHttp } from "../clients/default-http";
 import { EiaClient } from "../clients/eia";
 import { FredClient } from "../clients/fred";
-import { GdeltFilesClient, stampsToFetch, toNewsItems, type GkgRow } from "../clients/gdelt-files";
+import { GdeltFilesClient, MAX_FILES_PER_PASS, stampsToFetch, toNewsItems, type GkgRow } from "../clients/gdelt-files";
 import { NhcClient, currentPoint, isAtlantic, stormFromNhc } from "../clients/nhc";
 import { getRedis, takeQuota } from "../clients/redis";
 import { TiingoClient } from "../clients/tiingo";
@@ -91,8 +91,9 @@ export class IngestService {
    * GDELT's 15-minute article files (static host, not the throttled DOC API search): every file published since the
    * last pass, filtered to market news, with GDELT's own tone as the source sentiment. The newest file listed is
    * often not published yet; the pass stops at the first one that is missing and resumes there next time.
+   * `maxFiles` caps one pass: 12 files (3 hours) normally, more for a one-off catch-up on an empty database.
    */
-  private async gdelt(): Promise<IngestResult> {
+  async gdelt(maxFiles = MAX_FILES_PER_PASS): Promise<IngestResult> {
     gdeltFiles ??= new GdeltFilesClient(defaultHttp());
     const redis = getRedis();
     const newest = await gdeltFiles.newestStamp();
@@ -101,7 +102,7 @@ export class IngestService {
     const last = await redis.get(GKG_LAST_KEY);
     const rows: GkgRow[] = [];
     let reached = last;
-    for (const stamp of stampsToFetch(last, newest)) {
+    for (const stamp of stampsToFetch(last, newest, maxFiles)) {
       const file = await gdeltFiles.file(stamp);
       if (file === null) break; // not published yet, and neither is anything after it
       rows.push(...file);
