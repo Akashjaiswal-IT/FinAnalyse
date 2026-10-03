@@ -49,9 +49,13 @@ export function Terminal() {
   const { start } = stream;
   useEffect(() => {
     if (!autoRun.current) return;
-    autoRun.current = false;
-    const query = url.initialQuery ?? (url.presetId ? presetQuestion(url.presetId) : null);
-    if (query) start({ query, mode: url.mode, asOf: url.asOf, replayPresetId: url.presetId });
+    // Deferred so React's development double mount cancels the first attempt instead of starting two runs.
+    const timer = setTimeout(() => {
+      autoRun.current = false;
+      const query = url.initialQuery ?? (url.presetId ? presetQuestion(url.presetId) : null);
+      if (query) start({ query, mode: url.mode, asOf: url.asOf, replayPresetId: url.presetId });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [start, url.initialQuery, url.presetId, url.mode, url.asOf]);
 
   // A reload mid-run follows the run named in the URL again, from its first event.

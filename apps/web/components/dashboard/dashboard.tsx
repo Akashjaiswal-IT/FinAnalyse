@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import type { Format } from "@number-flow/react";
 import { Activity, ArrowRight, ArrowUpRight, Landmark, Sparkles, Wallet } from "lucide-react";
 import { formatValue, HOLDING_HORIZON, type PositionView } from "@repo/contracts";
 import { PageHeader } from "~/components/shell/page-header";
+import { startTour, tourSeen } from "~/components/shell/tour";
 import { SEVERITY_DOT } from "~/components/shell/severity";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -134,6 +135,14 @@ export function Dashboard() {
   const snapshot = portfolio.data;
   const pick = (symbol: string) => setPicked(snapshot?.positions.find((p) => p.symbol === symbol) ?? null);
   const longCount = snapshot?.positions.filter((p) => HOLDING_HORIZON[p.symbol] === "long").length ?? 0;
+
+  // First visit: the tour starts once the portfolio is on screen, so every step has its element.
+  const ready = Boolean(snapshot);
+  useEffect(() => {
+    if (!ready || tourSeen()) return;
+    const t = setTimeout(() => startTour("/"), 1200);
+    return () => clearTimeout(t);
+  }, [ready]);
 
   return (
     <main className="h-full overflow-y-auto">
