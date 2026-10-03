@@ -4,3 +4,4 @@ export * from "./news";
 export * from "./portfolio";
 export * from "./storm";
 export * from "./ukraine-run";
+export * from "./insights";
