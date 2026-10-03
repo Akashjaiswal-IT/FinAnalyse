@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { createRedisConnection, quotaKey, quotaUsed, redisKvStore, takeQuota } from "./redis";
+import { createRedisConnection, quotaKey, quotaUsed, redisKvStore, returnQuota, takeQuota } from "./redis";
 
 // Runs against the Redis from docker compose (CI starts one too).
 const redis = createRedisConnection({ maxRetriesPerRequest: 1 });
@@ -22,6 +22,10 @@ describe("redis client", () => {
     expect(taken).toEqual([true, true, true, false]);
     expect(await quotaUsed(redis, name, now)).toBe(3);
     expect(await redis.ttl(quotaKey(name, now))).toBeGreaterThan(86_400);
+
+    await returnQuota(redis, name, 2, now);
+    expect(await quotaUsed(redis, name, now)).toBe(1);
+    expect(await takeQuota(redis, name, 3, now)).toBe(true);
   });
 
   it("implements the KvStore used by the HTTP wrapper", async () => {
