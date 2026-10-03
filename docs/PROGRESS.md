@@ -47,6 +47,20 @@ Entries at H7, H12 and H18.
 **Open**
 - Replay preset times other than Ida are provisional until Track A confirms them (ROADMAP section 2, check 15).
 
+### Phase 1: foundations (2026-10-03)
+
+**Works**
+- `services/llm`: `parseStructured` (effort, adaptive summarized thinking, fallbacks, refusal and `max_tokens` handling, usage and cost from `MODEL_PRICES`), `runTools` (strict tools, at most 6 iterations), `FakeLlm`. Tested against a stub client for the request shape.
+- `agents`: evidence ledger, verifier (placeholders, digits, hedge limits, universe, caveats), answer rendering, computed confidence, rule-based plan and event classifier, template answer, ten-node graph with `PostgresSaver` and the `history` reducer. Real planner, synthesizer and verifier; the seven data nodes return the Ukraine and Ida fixture outputs until Phase 2.
+- `services/runs`: create, append event with `seq`, add evidence, complete, get, list, `eventsAfter`, resumable `stream`, boot cleanup. In-memory repo until Track A's tables land.
+- Routes `runs.create/get/list/stream` (tracked SSE with `lastEventId`), the concurrency guard (2 runs, one per thread), the `x-demo-token` check, boot cleanup. `live.feed` stays the heartbeat stub.
+- `scripts/stream-run.ts <runId> [--drop-after=n]` prints a run's events and reconnects with `lastEventId`.
+
+**Gate B:** `pnpm check-types`, `pnpm lint`, `pnpm test` (162 tests) and `pnpm build` are green. The fake-LLM graph tests cover the full event order, a node that throws ending `degraded` with the run still completing, and one raw digit causing exactly one repair and then the template answer. `curl -X POST localhost:8000/api/runs` returns a run id; `stream-run.ts` printed all 28 events across a reconnect at `lastEventId=7`. The PostgresSaver was checked against the compose Postgres: a second run on the same thread saw the first run in `history`.
+
+**Open**
+- The Anthropic key in `.env` answers with "credit balance is too low", so no live model call has succeeded yet. The run above finished `partial` through the planner and synthesizer fallbacks, which doubles as the first robustness drill. Request shapes (including `fallbacks`) are unverified against the live API until credit is added.
+- `system.status` and `portfolio.get` belong to Track A's route folders; Track D should not wait on them from Track B.
 
 
 ## Track C: Quant and proof

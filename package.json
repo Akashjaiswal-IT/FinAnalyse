@@ -29,6 +29,9 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@repo/agents": "workspace:*",
+    "@repo/contracts": "workspace:*",
+    "@repo/services": "workspace:*",
     "dotenv-cli": "^11.0.0"
   }
 }

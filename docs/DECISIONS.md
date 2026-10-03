@@ -38,6 +38,16 @@ Every deviation from `docs/SPEC.md` or `docs/ROADMAP.md`, with the reason.
 | 2026-10-03 | `RiskReport` drops the refiner elasticity `gamma`; `analogPnl` is in USD. | SPEC v2 5.10 forecasts every holding directly, so the capacity elasticity is no longer used. |
 | 2026-10-03 | Backtest metrics are partial records per model. | The weather-only model (W) exists only for hurricanes. |
 | 2026-10-03 | Tickers that are also common words (SPY, BA, DAL, USO) are matched by company or fund name only; Alpha Vantage ticker entries hold one ticker each. | Broad news would tag "spy" or "ba" wrongly; several tickers in one Alpha Vantage call means AND. |
+| 2026-10-03 | Structured output and strict tool schemas come from `services/llm/schema.ts`, not `betaZodOutputFormat`. | In @anthropic-ai/sdk 0.131.0 the helper moves `enum` and `const` into the description text, so the API no longer constrains the model to the enum values. Our transform keeps them and drops only the keywords the API rejects (numeric and string bounds, patterns); Zod re-checks every reply. `betaZodTool` still supplies `run` and `parse`. |
+| 2026-10-03 | `fallbacks: "default"` with beta `server-side-fallback-2026-07-01` is sent on Sonnet parse and tool-runner calls only. | The installed SDK types accept it on `beta.messages.parse` and `toolRunner`. Not verified against the live API: the account had no credit when tested. |
+| 2026-10-03 | Graph state channels are named `eventOut`, `weatherOut`, `sentimentOut`, `macroOut`, `analogsOut`, `riskOut`, `hedgingOut`. | LangGraph rejects a channel whose name equals a node name, and the node names are fixed by the contracts. |
+| 2026-10-03 | A node that throws emits `step.completed` with status `degraded` and output `{ status: "unavailable", reason }`, not `step.failed`. `step.failed` is used only for cancellation. | SPEC 5.5 rule 4 and GATE B say the node ends degraded and the run continues. |
+| 2026-10-03 | A run ends `partial` when the template answer was used or any node ended `degraded`; otherwise `succeeded`. | SPEC 5.6 names only the template case; the drills need a degraded input to be visible in the run status. |
+| 2026-10-03 | The verifier's `caveats` check is reported as failed when it had to append a caveat, but it never blocks a pass or triggers a repair. | Missing caveats are fixed deterministically (SPEC 5.6, check 5); the drilldown still shows that the draft omitted them. |
+| 2026-10-03 | `services/runs` is built on a `RunsRepo` interface with an in-memory implementation; the api uses it until Track A's run tables land. | TEAM rule 7: fake behind the same signature until the real tables merge. Runs are lost on api restart until then. |
+| 2026-10-03 | The template answer finds evidence through in-process tags set with `ledger.add({ tag })`, not through labels. | Tags are not persisted and not in the contracts; a missing tag drops that sentence from the template instead of guessing. |
+| 2026-10-03 | `NODE_ENV` accepts `test` and `production` in `packages/logger` and `apps/api`. | Vitest sets `test`; the template enum only allowed `development` and `prod`. |
+| 2026-10-03 | `scripts/stream-run.ts` parses the tRPC SSE stream with `fetch`, not `httpSubscriptionLink`. | Node 22 has no global `EventSource`; this adds no dependency. |
 
 ## Track C: Quant and proof
 

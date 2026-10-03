@@ -30,7 +30,7 @@ function finish(state: RunStateValue, ledger: Ledger, query: string, draft: Draf
   };
   return {
     update,
-    status: draft.source === "template" ? "degraded" : "done",
+    status: draft.source === "template" && !verification.passed ? "degraded" : "done",
     summary: verification.passed ? "All grounding checks passed." : "Model draft failed verification; template answer used.",
     output: verification,
   };
