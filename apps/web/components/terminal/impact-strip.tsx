@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import NumberFlow, { type Format } from "@number-flow/react";
 import { formatValue, type Confidence, type ExposureChannel } from "@repo/contracts";
 import { cn } from "~/lib/utils";
 import { signTone } from "~/lib/tone";
@@ -11,6 +12,11 @@ const CHANNEL_BAR: Record<ExposureChannel, string> = {
   peer: "bg-model",
   factor: "bg-info",
 };
+
+const USD: Format = { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 };
+
+/** Server numbers rolled into place; the format matches `formatValue("usd")`. */
+const Usd = ({ value }: { value: number }) => <NumberFlow value={value} format={USD} locales="en-US" />;
 
 const CONFIDENCE_LEVEL: Record<Confidence, number> = { low: 1, medium: 2, high: 3 };
 const CONFIDENCE_BAR: Record<Confidence, string> = { low: "bg-negative", medium: "bg-warning", high: "bg-positive" };
@@ -48,10 +54,12 @@ export function ImpactStrip() {
           )
         }
       >
-        <span className={signTone(risk.scenario.pnl)}>{formatValue("usd", risk.scenario.pnl)}</span>
+        <span className={signTone(risk.scenario.pnl)}>
+          <Usd value={risk.scenario.pnl} />
+        </span>
       </Tile>
       <Tile label="1-day VaR, 95%" sub={`5-day ${formatValue("usd", risk.var5d.var95)}`}>
-        {formatValue("usd", risk.var1d.var95)}
+        <Usd value={risk.var1d.var95} />
         {plan && <span className="ml-1.5 text-xs font-normal text-info">→ {formatValue("usd", plan.after.var1d.var95)}</span>}
       </Tile>
       <Tile

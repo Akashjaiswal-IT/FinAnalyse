@@ -38,6 +38,8 @@ export function useTerminalUrl() {
   return {
     /** A question handed over in the URL; read once, when the query bar mounts. */
     initialQuery: search.get("q"),
+    /** `go=1`: start the run as soon as the page opens (links from alerts and ideas). */
+    autoRun: search.get("go") === "1",
     /** The run on screen, so a reload can follow it again. */
     runId,
     setRunId,

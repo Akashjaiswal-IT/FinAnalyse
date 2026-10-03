@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -16,6 +16,7 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { useTheme } from "next-themes";
 import {
   BadgeCheck,
   Brain,
@@ -148,7 +149,7 @@ function AgentNode({ data }: NodeProps<AgentFlowNode>) {
 
 const nodeTypes = { agent: AgentNode };
 
-const MUTED = "oklch(1 0 0 / 22%)";
+const MUTED = "color-mix(in oklch, var(--foreground) 22%, transparent)";
 
 function isFinished(s: NodeVisualStatus) {
   return s === "done" || s === "degraded";
@@ -180,6 +181,11 @@ const LEGEND: readonly NodeVisualStatus[] = ["pending", "running", "done", "skip
 
 export function AgentGraph() {
   const { view, openDrilldown } = useRun();
+  const { resolvedTheme } = useTheme();
+  // React Flow puts the mode on its wrapper as a class; the server cannot know the theme, so the first render
+  // matches it ("dark") and the real mode follows after mount instead of failing hydration.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const nodes = useMemo<AgentFlowNode[]>(
     () =>
@@ -253,7 +259,7 @@ export function AgentGraph() {
             // also what gives the nodes pointer events: React Flow disables them on nodes that cannot be
             // selected or dragged and have no handler, so a click would land on the pane instead.
             onNodeClick={(_, node) => openDrilldown({ kind: "node", node: node.data.view.node })}
-            colorMode="dark"
+            colorMode={mounted && resolvedTheme === "light" ? "light" : "dark"}
             fitView
             fitViewOptions={{ padding: 0.05, maxZoom: 1.3 }}
             minZoom={0.3}
@@ -267,7 +273,7 @@ export function AgentGraph() {
             zoomOnDoubleClick={false}
             preventScrolling={false}
           >
-            <Background variant={BackgroundVariant.Dots} gap={14} size={1} color="oklch(1 0 0 / 9%)" />
+            <Background variant={BackgroundVariant.Dots} gap={14} size={1} color="color-mix(in oklch, var(--foreground) 10%, transparent)" />
             <RefitOnResize />
           </ReactFlow>
         </ReactFlowProvider>

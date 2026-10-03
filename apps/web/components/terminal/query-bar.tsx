@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Activity, CloudLightning, CornerDownLeft, Flame, LoaderCircle, Ship, Swords, Wind } from "lucide-react";
-import { DEFAULT_REPLAY_PRESET_ID, EXAMPLE_QUERIES, MAX_QUERY_LENGTH } from "@repo/contracts";
+import { DEFAULT_REPLAY_PRESET_ID, EXAMPLE_QUERIES, MAX_QUERY_LENGTH, REPLAY_PRESETS } from "@repo/contracts";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 
@@ -14,6 +14,14 @@ const EXAMPLE_PRESETS: Partial<Record<(typeof EXAMPLE_QUERIES)[number], string>>
   [EXAMPLE_QUERIES[0]]: DEFAULT_REPLAY_PRESET_ID,
   [EXAMPLE_QUERIES[1]]: "disaster-hurricane-ida-2021",
 };
+
+/** The question a preset is about: its example when there is one, otherwise a question naming the event. */
+export function presetQuestion(presetId: string): string | null {
+  const example = Object.entries(EXAMPLE_PRESETS).find(([, id]) => id === presetId)?.[0];
+  if (example) return example;
+  const preset = REPLAY_PRESETS.find((p) => p.id === presetId);
+  return preset ? `How will "${preset.name}" affect our portfolio?` : null;
+}
 
 /** One icon per example, in the order of `EXAMPLE_QUERIES`. */
 const EXAMPLE_ICONS = [Swords, CloudLightning, Flame, Ship, Activity, Wind] as const;
@@ -27,10 +35,27 @@ interface QueryBarProps {
   onPickExample: (presetId: string) => void;
   /** A question passed in the URL (`?q=`), for example from the command menu. */
   initialQuery?: string | null;
+  /** The selected replay preset; choosing another one puts its question in the box. */
+  presetId?: string | null;
+  /** The question of the run on screen (after a reload or from a link). */
+  runQuery?: string | null;
 }
 
-export function QueryBar({ disabled, notice, onSubmit, onPickExample, initialQuery }: QueryBarProps) {
-  const [query, setQuery] = useState<string>(initialQuery?.slice(0, MAX_QUERY_LENGTH) || EXAMPLE_QUERIES[0]);
+export function QueryBar({ disabled, notice, onSubmit, onPickExample, initialQuery, presetId, runQuery }: QueryBarProps) {
+  const [query, setQuery] = useState<string>(
+    initialQuery?.slice(0, MAX_QUERY_LENGTH) || (presetId ? presetQuestion(presetId) : null) || EXAMPLE_QUERIES[0],
+  );
+  const lastPreset = useRef(presetId);
+  useEffect(() => {
+    if (presetId && presetId !== lastPreset.current) {
+      const q = presetQuestion(presetId);
+      if (q) setQuery(q);
+    }
+    lastPreset.current = presetId;
+  }, [presetId]);
+  useEffect(() => {
+    if (runQuery) setQuery(runQuery);
+  }, [runQuery]);
   const trimmed = query.trim();
   const canSubmit = !disabled && trimmed.length > 0;
 

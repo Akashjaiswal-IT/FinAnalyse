@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowDownRight, ArrowUpRight, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { formatValue, UNIVERSE, type Idea } from "@repo/contracts";
-import { HorizonBadge } from "~/components/dashboard/holdings-table";
 import { PageHeader } from "~/components/shell/page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -25,12 +24,17 @@ function IdeaCard({ idea, index }: { idea: Idea; index: number }) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-lg font-semibold">{idea.symbol}</span>
-                <HorizonBadge symbol={idea.symbol} />
+                <Badge
+                  variant="outline"
+                  className={cn("px-1.5 py-0 text-[10px] font-normal", idea.horizon === "long" ? "border-info/40 text-info" : "border-primary/40 text-primary")}
+                >
+                  {idea.horizon === "long" ? "Long-term" : "Short-term"}
+                </Badge>
               </div>
               <div className="text-[12px] text-muted-foreground">{nameOf(idea.symbol)}</div>
             </div>
-            <Badge variant="outline" className={cn("capitalize", CONFIDENCE_TONE[idea.confidence])}>
-              {idea.confidence} confidence
+            <Badge variant="outline" className={CONFIDENCE_TONE[idea.confidence]}>
+              {idea.confidence.charAt(0).toUpperCase() + idea.confidence.slice(1)} confidence
             </Badge>
           </div>
 

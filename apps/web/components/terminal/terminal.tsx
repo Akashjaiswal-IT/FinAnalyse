@@ -23,7 +23,7 @@ import { ImpactStrip } from "./impact-strip";
 import { EventFeed, NewsFeed, SourceHealth, useLiveRefresh } from "./live-panels";
 import { ModeSwitch } from "./mode-switch";
 import { PortfolioPanel } from "./portfolio-panel";
-import { QueryBar } from "./query-bar";
+import { QueryBar, presetQuestion } from "./query-bar";
 import { RiskSummary } from "./risk-summary";
 import { RunProvider, type DrilldownTarget } from "./run-context";
 import { StepLog } from "./step-log";
@@ -43,6 +43,16 @@ export function Terminal() {
   const fixtureSnapshot = useMemo(() => fixturePortfolioAt(url.asOf), [url.asOf]);
   const portfolio = trpc.portfolio.get.useQuery(url.asOf ? { asOf: url.asOf } : {}, { enabled: DATA_SOURCE === "api" });
   const snapshot = DATA_SOURCE === "api" ? (portfolio.data ?? null) : fixtureSnapshot;
+
+  // Links from alerts and ideas (`&go=1`) start the run on arrival, once.
+  const autoRun = useRef(url.autoRun && !url.runId);
+  const { start } = stream;
+  useEffect(() => {
+    if (!autoRun.current) return;
+    autoRun.current = false;
+    const query = url.initialQuery ?? (url.presetId ? presetQuestion(url.presetId) : null);
+    if (query) start({ query, mode: url.mode, asOf: url.asOf, replayPresetId: url.presetId });
+  }, [start, url.initialQuery, url.presetId, url.mode, url.asOf]);
 
   // A reload mid-run follows the run named in the URL again, from its first event.
   const { attach } = stream;
@@ -125,6 +135,8 @@ export function Terminal() {
                   }
                   onPickExample={changePreset}
                   initialQuery={url.initialQuery}
+                  presetId={url.presetId}
+                  runQuery={stream.view.query}
                 />
                 </div>
                 <EventCard preview={preset} />

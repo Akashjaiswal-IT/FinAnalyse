@@ -83,8 +83,8 @@ export function PortfolioPanel({ snapshot, asOfLabel }: PortfolioPanelProps) {
                   <li
                     key={p.symbol}
                     className={cn(
-                      "rounded-md border-l-2 border-transparent px-2 py-1.5 transition-colors hover:bg-accent/40",
-                      channels.includes("direct") && "border-primary/70 bg-primary/[0.04]",
+                      "rounded-md px-2 py-1.5 transition-colors hover:bg-accent/40",
+                      channels.includes("direct") && "bg-primary/[0.06]",
                     )}
                   >
                     <div className="flex items-baseline justify-between gap-2">

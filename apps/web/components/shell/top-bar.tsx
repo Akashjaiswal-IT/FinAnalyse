@@ -105,6 +105,9 @@ function AlertsBell() {
 
 function CommandMenu() {
   const [open, setOpen] = useState(false);
+  // The dialog's hidden title carries generated ids; rendering it only in the browser keeps hydration exact.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const pathname = usePathname();
@@ -137,6 +140,7 @@ function CommandMenu() {
         <span>Search</span>
         <kbd className="rounded border px-1 font-mono text-[10px]">⌘K</kbd>
       </button>
+      {mounted && (
       <CommandDialog open={open} onOpenChange={setOpen} title="Command menu" description="Go to a page, replay an event or ask an example question">
         <CommandInput placeholder="Go to, replay or ask…" />
         <CommandList>
@@ -170,6 +174,7 @@ function CommandMenu() {
           </CommandGroup>
         </CommandList>
       </CommandDialog>
+      )}
     </>
   );
 }

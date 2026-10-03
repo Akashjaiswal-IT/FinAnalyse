@@ -18,7 +18,9 @@ import { cn } from "~/lib/utils";
 
 const nameOf = (symbol: string) => UNIVERSE.find((u) => u.symbol === symbol)?.name ?? symbol;
 const analyzeHref = (a: Alert) =>
-  a.replayPresetId ? `/analyze?mode=replay&preset=${a.replayPresetId}` : `/analyze?q=${encodeURIComponent(`How will "${a.title}" affect our portfolio?`)}`;
+  a.replayPresetId
+    ? `/analyze?mode=replay&preset=${a.replayPresetId}&go=1`
+    : `/analyze?q=${encodeURIComponent(`How will "${a.title}" affect our portfolio?`)}&go=1`;
 
 function AlertCard({ alert, highlighted, onDismiss }: { alert: Alert; highlighted: boolean; onDismiss(): void }) {
   return (
@@ -65,8 +67,8 @@ function AlertCard({ alert, highlighted, onDismiss }: { alert: Alert; highlighte
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
           <span>{alert.articleCount} articles</span>
-          <Badge variant="outline" className={cn("capitalize", CONFIDENCE_TONE[alert.confidence])}>
-            {alert.confidence} confidence
+          <Badge variant="outline" className={CONFIDENCE_TONE[alert.confidence]}>
+            {alert.confidence.charAt(0).toUpperCase() + alert.confidence.slice(1)} confidence
           </Badge>
         </div>
 
