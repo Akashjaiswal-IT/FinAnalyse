@@ -222,3 +222,48 @@ The reported result is h = 1. The other bandwidths are shown next to it, never i
 - An event with no realized 5-day return for a target is left out of that target's metrics.
 - Under leave-one-out the unconditional mean (N) predicts each event from all the others, so its prediction falls as the event's own return rises: its per-target Spearman is -1 by construction when every event has data, and the same effect lowers T within a type. Compare models on MAE and directional accuracy before Spearman.
 <!-- results:backtest:end -->
+
+<!-- results:eval:start -->
+## Orchestration eval (SPEC 9.2)
+
+- Run: 2026-10-03T12:54:03.149Z on Akashs-MacBook-Air.local, commit `d18e5c1 (uncommitted changes)`, 20 queries from data/eval/queries.json.
+- Runs: 0 succeeded, 20 partial, 0 failed.
+- Plans: 0 model, 20 rule-based. Answers: 0 model, 20 template.
+
+| Metric | Value |
+|---|---|
+| Intent accuracy | 100.0% (20/20) |
+| Event-type accuracy | 100.0% (20/20) |
+| Event-source accuracy | 100.0% (20/20) |
+| Specialist recall | 100.0% (53/53) |
+| Specialist precision | 89.8% (53/59) |
+| Verifier pass, first try | 70.0% |
+| Verifier pass, after repair | 70.0% |
+| Hedge-limit pass | 100.0% (15 plans) |
+| Run latency p50 / p95 | 8.0 s / 87.5 s |
+| First completed step p50 / p95 | 0.8 s / 19.0 s |
+| Cost per run (mean) | $0.0000 |
+
+| Query | Group | Status | Intent | Event type | Source | Specialists called | Answer |
+|---|---|---|---|---|---|---|---|
+| q01 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q02 | event_impact | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
+| q03 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q04 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q05 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q06 | event_impact | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q07 | what_if | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q08 | what_if | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q09 | what_if | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
+| q10 | follow_up | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
+| q11 | follow_up | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q12 | portfolio_risk | partial | ok | ok | ok | sentiment, macro | template |
+| q13 | portfolio_risk | partial | ok | ok | ok | sentiment, macro | template |
+| q14 | reallocation | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q15 | reallocation | partial | ok | ok | ok | weather, sentiment, macro, analogs | template |
+| q16 | news_scan | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q17 | news_scan | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q18 | competitor | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q19 | statement | partial | ok | ok | ok | sentiment, macro, analogs | template |
+| q20 | out_of_scope | partial | ok | ok | ok | none | template |
+<!-- results:eval:end -->

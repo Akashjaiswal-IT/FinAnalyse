@@ -2,11 +2,13 @@
  * Runs one question through the agent graph from the command line and prints the events and the answer.
  *
  *   pnpm tsx scripts/run-query.ts [--preset=<id>] [--mode=live|replay] [--as-of=<ISO>] [--thread=<uuid>]
- *                                 [--market-event=<uuid>] [--fake] [--json] "<question>"
+ *                                 [--market-event=<uuid>] [--fake] [--json] [--out=<file>] "<question>"
  *
- * --fake reads fixture data instead of the seeded services (the model is still called). Exit code is 1 when the
+ * --fake reads fixture data instead of the seeded services (the model is still called). --out writes the stored run
+ * (`runs.get` output) as JSON to a file, for scripts. Exit code is 1 when the
  * run fails and 2 when it ends `partial`, so scripts can tell a clean run from a degraded one.
  */
+import { writeFileSync } from "node:fs";
 import { AgentRuntime, createCheckpointer, createServices } from "@repo/agents";
 import { llm } from "@repo/services/llm";
 import { createPostgresRuns } from "@repo/services/runs/postgres";
@@ -59,6 +61,8 @@ async function main() {
   const got = await runs.get(runId);
   if (!got) throw new Error("run not found after it finished");
   const { run, evidence, steps } = got;
+  const out = flag("out");
+  if (out) writeFileSync(out, JSON.stringify(got));
   if (quiet) {
     console.log(JSON.stringify(got, null, 2));
   } else {
