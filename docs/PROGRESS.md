@@ -64,7 +64,7 @@ Entries at H7, H12 and H18.
 
 **Team data cache:** `data/cache/tempest-data-cache-2026-10-03.zip` (6.3 MB: Tiingo, FRED, EIA, HURDAT2, EIA refineries). Unzip into `data/cache/`, then `pnpm seed` uses no API quota. Shared inside the team only (Tiingo licence).
 
-### Phase 2 progress (2026-10-03, 17:20 IST)
+### Phase 2 progress (2026-10-03, 16:45 IST)
 
 **Works**
 - `weather`: `stormsAt`, `track` (observed + perfect-forecast replay for HURDAT2, latest NHC advisory live, persistence fallback), `hypotheticalTrack` (SPEC 5.12), `refineries`, `hubForecasts`; at-risk refineries within 100 km of 64 kt points at 1-hour steps. At the Ida as-of: 6 observed points, 14 forecast points to 2021-08-30 18:00 labelled `perfect_forecast_replay`, 9 refineries at risk.
