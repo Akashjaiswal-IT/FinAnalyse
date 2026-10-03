@@ -6,6 +6,8 @@
 //   pnpm backtest --from-file f.json   use the events in f.json (AnalogEvent[]) instead of Postgres
 //   pnpm backtest --export f.json      write the events used, so the run can be repeated exactly
 //
+// Workspace code is imported by relative path, as scripts/seed.ts does: the root package has no workspace dependencies.
+//
 // The reported result is bandwidth h = KNN_BANDWIDTH. h = 0.75 and 1.5 are shown next to it, never instead of it.
 // TYPE_WEIGHT is fixed. Nothing here tunes the forecast on the results.
 import { execSync } from "node:child_process";
@@ -13,9 +15,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { hostname } from "node:os";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { AnalogEvent, KNN_BANDWIDTH } from "@repo/contracts";
-import { renderBacktestSection, runBacktest, upsertResultsSection } from "@repo/quant";
-import { BacktestService, type BacktestStore } from "@repo/services/backtest";
+import { AnalogEvent, KNN_BANDWIDTH } from "../packages/contracts/index";
+import { renderBacktestSection, runBacktest, upsertResultsSection } from "../packages/quant/index";
 
 const ALTERNATIVE_BANDWIDTHS = [0.75, 1.5] as const;
 const RESULTS_PATH = resolve(process.cwd(), "docs/RESULTS.md");
@@ -23,12 +24,27 @@ const RESULTS_PATH = resolve(process.cwd(), "docs/RESULTS.md");
 const USAGE = `Usage: pnpm backtest [--from-file events.json] [--export events.json] [--save] [--write-results]`;
 
 async function loadEvents(fromFile: string | undefined): Promise<AnalogEvent[]> {
+  let raw: unknown;
   if (fromFile) {
-    return AnalogEvent.array().parse(JSON.parse(readFileSync(resolve(process.cwd(), fromFile), "utf8")));
+    raw = JSON.parse(readFileSync(resolve(process.cwd(), fromFile), "utf8"));
+  } else {
+    // Imported only here, so --from-file needs neither Postgres nor DATABASE_URL.
+    const { AnalogsService } = await import("../packages/services/analogs/index");
+    try {
+      raw = await new AnalogsService().list();
+    } catch (error) {
+      throw new Error(`AnalogsService.list() failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
-  // Imported only here, so --from-file needs neither Postgres nor DATABASE_URL.
-  const { AnalogsService } = await import("@repo/services/analogs");
-  return AnalogEvent.array().parse(await new AnalogsService().list());
+  const parsed = AnalogEvent.array().safeParse(raw);
+  if (!parsed.success) {
+    const shown = parsed.error.issues.slice(0, 5).map((i) => `  ${i.path.map(String).join(".")}: ${i.message}`);
+    const more = parsed.error.issues.length - shown.length;
+    throw new Error(
+      `The events do not match AnalogEvent[]:\n${shown.join("\n")}${more > 0 ? `\n  ... and ${more} more` : ""}`,
+    );
+  }
+  return parsed.data;
 }
 
 function gitCommit(): string {
@@ -39,22 +55,6 @@ function gitCommit(): string {
   } catch {
     return "unknown";
   }
-}
-
-async function postgresStore(): Promise<BacktestStore> {
-  const { db, desc } = await import("@repo/database");
-  const { backtests } = await import("@repo/database/schema");
-  return {
-    async insert(row) {
-      const [saved] = await db.insert(backtests).values(row).returning();
-      if (!saved) throw new Error("the backtests insert returned no row");
-      return saved;
-    },
-    async latest() {
-      const [row] = await db.select().from(backtests).orderBy(desc(backtests.createdAt)).limit(1);
-      return row ?? null;
-    },
-  };
 }
 
 async function main(): Promise<void> {
@@ -96,7 +96,9 @@ async function main(): Promise<void> {
     console.error("Updated the backtest section of docs/RESULTS.md");
   }
   if (values.save) {
-    const saved = await new BacktestService(await postgresStore()).save(headline);
+    // Imported only here, so printing a backtest needs no database.
+    const { createPostgresBacktests } = await import("../packages/services/backtest/postgres");
+    const saved = await createPostgresBacktests().save(headline);
     console.error(`Saved backtest ${saved.id} (${saved.createdAt})`);
   }
 }
@@ -105,6 +107,7 @@ main().then(
   () => process.exit(0), // the database pool would otherwise keep the process alive
   (error: unknown) => {
     console.error(error instanceof Error ? error.message : error);
+    if ((error as { code?: string } | null)?.code?.startsWith("ERR_PARSE_ARGS")) console.error(USAGE);
     process.exit(1);
   },
 );

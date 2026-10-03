@@ -117,8 +117,19 @@ Entries at H7, H12 and H18.
 - Track B: `buildForecast` (then `withSimilarity`), `exposureChannels`, `factorExposures`, `riskSnapshot`, `suggestHedges` / `checkHedgeLimits` / `simulateHedges` are the calls for the analogs, risk and hedging nodes. See my decisions for the shapes that differ from the first signatures.
 
 **Open**
-- Backtest, eval, bench and drill scripts, `services/backtest` and the `backtest` route wait for Track A's tables and Track B's graph (Phase 2 and 3).
+- Eval, bench and drill scripts wait for Track B's graph and Track A's ingest (Phase 3).
 - The hand-check of one VaR and one scenario P&L at the Ukraine as-of needs the seeded prices.
+
+### Backtest script (2026-10-03)
+
+**Works**
+- `pnpm backtest` loads the events from `AnalogsService.list()` (Track A's interface), runs the leave-one-out backtest at h = 1 (reported) and 0.75 and 1.5 (shown next to it), and prints the pooled, per-target, per-type and bandwidth tables with the caveats. `--from-file` / `--export` use and write an events JSON, so a run can be repeated exactly; `--write-results` updates the backtest section of `docs/RESULTS.md`; `--save` stores the reported run in `backtests`.
+- `services/backtest`: `BacktestService.save` / `latest` behind a store interface, with an in-memory store and a Postgres store (`createPostgresBacktests()`); the same suite runs against both (16 tests).
+- `backtest.latest` route (`GET /api/backtest/latest`, also tRPC `backtest.latest`): the newest backtest or `null`. Tested through a tRPC caller, and the OpenAPI document of the whole server router is generated in a test, since the api does that at boot. Checked over real HTTP against the built api and the dev Postgres: `null` when empty, then the saved row, with the path in `/openapi.json`.
+- Checked against Track A's branch merged into a scratch worktree, with a real Postgres and a scratch database (migration `0000_init`): the script type-checks against their `AnalogsService`, `db` and `backtests`; a saved row read back through the service equals a fresh run of the same events (metrics, predictions, caveats, config); two runs from the same events give identical tables; `RESULTS.md` is stable when re-written. The events were synthetic and are not recorded as a result.
+
+**Note for Track A**
+- The script (`pnpm backtest`) needs `AnalogsService.list()` to return every analog event as a contracts `AnalogEvent` (ISO strings for dates, `reactions` with `d5`). It is a stub on your branch: the script prints "AnalogsService.list() failed: not implemented" until it lands.
 
 
 
