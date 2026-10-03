@@ -45,7 +45,7 @@ flowchart LR
 |---|---|
 | `apps/api` | Express: `/trpc` (queries, mutations, SSE subscriptions), `/api` (REST), `/openapi.json`, `/docs` (Scalar), `/health`. Runs the agent graph in process. |
 | `apps/worker` | BullMQ ingestion, enrichment and event detection. |
-| `apps/web` | The terminal: live agent graph, event card, answer with evidence chips, hedge table, risk and forecast charts, storm map, Events / News / Sources tabs, drilldown, `/reliability`. |
+| `apps/web` | Five pages: Dashboard (heatmap, holdings, stock drawer), Analyze (live agent graph, evidence chips, hedges, risk and forecast charts, storm map, drilldown), Alerts, Ideas and Reliability; dark and light themes, a guided tour and a command menu (⌘K). |
 | `packages/contracts` | Zod schemas, constants, formatters and fixtures shared by every package. Browser-safe. |
 | `packages/agents` | The LangGraph graph, evidence ledger, verifier, fallbacks, prompts. |
 | `packages/quant` | Pure maths: returns, betas, VaR, exposure channels, hedge sizing, kernel kNN forecast, backtest. No I/O, no clock. |
@@ -68,7 +68,7 @@ pnpm seed                # prices, macro, storms, refineries, curated events, Pi
 pnpm dev                 # api on :8000, web on :3000, worker
 ```
 
-Open <http://localhost:3000>, pick Replay, choose "Russia invades Ukraine" and ask the example question.
+Open <http://localhost:3000> for the dashboard, or <http://localhost:3000/analyze>, pick Replay, choose "Russia invades Ukraine" and ask the example question.
 
 Without the seed or while a data source is down, `FAKE_SERVICES=1 pnpm dev` serves the agent graph from fixture data. It is for interface work and offline rehearsal, never for a demo.
 

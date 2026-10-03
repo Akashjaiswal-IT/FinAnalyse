@@ -4,9 +4,13 @@ import "leaflet/dist/leaflet.css";
 import type { AtRiskRefinery, StormPoint } from "@repo/contracts";
 import { formatValue } from "@repo/contracts";
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip } from "react-leaflet";
+import { useTheme } from "next-themes";
 import { formatDateTime } from "~/lib/display";
 
-const TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const TILES = {
+  dark: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  light: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+};
 const ATTRIBUTION = "Tiles &copy; Esri";
 const GULF: [number, number][] = [
   [18, -98],
@@ -17,6 +21,7 @@ const line = (points: StormPoint[]) => points.map((p) => [p.lat, p.lon] as [numb
 
 /** Leaflet touches `window`, so this module is loaded only in the browser through `next/dynamic`. */
 export default function WeatherMapInner({ points, refineries }: { points: StormPoint[]; refineries: AtRiskRefinery[] }) {
+  const { resolvedTheme } = useTheme();
   const observed = points.filter((p) => p.kind === "observed");
   const forecast = points.filter((p) => p.kind === "forecast");
   // The forecast line starts at the last observed point so the two read as one track.
@@ -27,7 +32,7 @@ export default function WeatherMapInner({ points, refineries }: { points: StormP
 
   return (
     <MapContainer bounds={bounds} boundsOptions={{ padding: [16, 16] }} scrollWheelZoom={false} className="h-72 w-full rounded-md">
-      <TileLayer url={TILES} attribution={ATTRIBUTION} />
+      <TileLayer key={resolvedTheme} url={resolvedTheme === "light" ? TILES.light : TILES.dark} attribution={ATTRIBUTION} />
       <Polyline positions={line(observed)} pathOptions={{ color: "#f59e0b", weight: 3 }} />
       <Polyline positions={line(forecastLine)} pathOptions={{ color: "#f59e0b", weight: 2, dashArray: "6 6" }} />
       {points.map((p) => (

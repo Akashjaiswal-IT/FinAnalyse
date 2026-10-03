@@ -11,3 +11,4 @@ export * from "./agents";
 export * from "./runs";
 export * from "./live";
 export * from "./backtest";
+export * from "./insights";

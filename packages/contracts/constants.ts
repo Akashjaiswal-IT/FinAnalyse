@@ -134,6 +134,14 @@ export const DEMO_PORTFOLIO = {
   })),
 } as const;
 
+/** The paper portfolio's mandate per holding: core positions are held for the long term, the rest are tactical. */
+export const HOLDING_HORIZON: Readonly<Record<string, "short" | "long">> = {
+  XOM: "long", CVX: "long", MSFT: "long", AAPL: "long", NVDA: "long", JPM: "long", BAC: "long", LMT: "long",
+  WMT: "long", SPY: "long", TLT: "long", GLD: "long",
+  XLE: "short", VLO: "short", MPC: "short", USO: "short", NEM: "short", TSM: "short", XLF: "short", RTX: "short",
+  BA: "short", DAL: "short", FXI: "short",
+};
+
 export const MACRO_SERIES = ["WGTSTUS1", "WCESTUS1", "VIXCLS", "DGS10", "DFF", "DTWEXBGS"] as const;
 
 // Peers and names (SPEC 5.14, 11)

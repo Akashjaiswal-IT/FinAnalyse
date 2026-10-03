@@ -1,3 +1,6 @@
+import { Alert, Idea } from "../schemas";
+import { HOLDING_HORIZON, REPLAY_PRESETS, UNIVERSE } from "../constants";
+import { previewAlerts, previewIdeas } from "./insights";
 import { describe, expect, it } from "vitest";
 import { HEDGE_LIMITS, HEDGE_MENU, NODE_ORDER, NUMERIC_ALLOWLIST, SEVERITY_BOUNDS, UNIVERSE_SYMBOLS } from "../constants";
 import { extractPlaceholders, renderTemplate } from "../format";
@@ -162,5 +165,19 @@ describe("event model fixtures", () => {
     for (const e of fixtureMarketEvents) MarketEventView.parse(e);
     for (const n of [...fixtureNews, ...fixtureNewsUkraine]) NewsItem.parse(n);
     StormTrack.parse(fixtureStormTrack);
+  });
+});
+
+describe("preview insights", () => {
+  it("parse against the schemas, name universe holdings and replay presets", () => {
+    for (const a of previewAlerts) {
+      expect(Alert.safeParse(a).success).toBe(true);
+      expect(REPLAY_PRESETS.some((p) => p.id === a.replayPresetId)).toBe(true);
+      for (const h of a.holdings) expect(HOLDING_HORIZON[h.symbol]).toBeDefined();
+    }
+    for (const i of previewIdeas) {
+      expect(Idea.safeParse(i).success).toBe(true);
+      expect(UNIVERSE.some((u) => u.symbol === i.symbol)).toBe(true);
+    }
   });
 });

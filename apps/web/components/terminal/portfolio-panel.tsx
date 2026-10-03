@@ -42,6 +42,7 @@ export function PortfolioPanel({ snapshot, asOfLabel }: PortfolioPanelProps) {
       return positions ? [{ sector, positions }] : [];
     });
   }, [snapshot.positions]);
+  const maxWeight = useMemo(() => Math.max(...snapshot.positions.map((p) => p.weight ?? 0), 1e-9), [snapshot.positions]);
 
   return (
     <section className="flex h-full min-h-0 flex-col" aria-label="Portfolio">
@@ -51,16 +52,25 @@ export function PortfolioPanel({ snapshot, asOfLabel }: PortfolioPanelProps) {
           <span className="truncate text-[11px] text-muted-foreground">{asOfLabel}</span>
         </div>
         <div className="truncate text-sm font-medium">{snapshot.name}</div>
-        <div className="grid grid-cols-2 gap-3">
-          <Stat label="NAV">{formatValue("usd", snapshot.nav)}</Stat>
-          <Stat label="Cash">{formatValue("usd", snapshot.cash)}</Stat>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-md border bg-card/60 px-2.5 py-1.5">
+            <Stat label="NAV">
+              <span className="text-base font-semibold">{formatValue("usd", snapshot.nav)}</span>
+            </Stat>
+          </div>
+          <div className="rounded-md border bg-card/60 px-2.5 py-1.5">
+            <Stat label="Cash">
+              <span className="text-base font-semibold">{formatValue("usd", snapshot.cash)}</span>
+            </Stat>
+          </div>
         </div>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-1.5 py-1.5">
         {groups.map(({ sector, positions }) => (
           <div key={sector} className="mb-2">
-            <h3 className="px-2 pt-1 pb-0.5 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+            <h3 className="flex items-center gap-1.5 px-2 pt-1 pb-0.5 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+              <span className="size-1.5 rounded-full bg-primary/60" aria-hidden />
               {humanize(sector)}
             </h3>
             <ul>
@@ -70,7 +80,13 @@ export function PortfolioPanel({ snapshot, asOfLabel }: PortfolioPanelProps) {
                 const channels = exposure ? CHANNEL_ORDER.filter((c) => exposure.channels.some((l) => l.channel === c)) : [];
                 const direction = exposure ? DIRECTION_GLYPH[exposure.expectedSign] : null;
                 return (
-                  <li key={p.symbol} className="rounded px-2 py-1.5 hover:bg-accent/40">
+                  <li
+                    key={p.symbol}
+                    className={cn(
+                      "rounded-md px-2 py-1.5 transition-colors hover:bg-accent/40",
+                      channels.includes("direct") && "bg-primary/[0.06]",
+                    )}
+                  >
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="flex min-w-0 items-baseline gap-1.5">
                         <span className="font-mono text-[13px] font-semibold">{p.symbol}</span>
@@ -113,6 +129,9 @@ export function PortfolioPanel({ snapshot, asOfLabel }: PortfolioPanelProps) {
                           sent {signed(formatValue("score", sentiment.score), sentiment.score)}
                         </span>
                       )}
+                    </div>
+                    <div className="mt-1 h-0.5 rounded-full bg-muted/60" aria-hidden>
+                      <div className="h-full rounded-full bg-primary/45" style={{ width: `${(100 * (p.weight ?? 0)) / maxWeight}%` }} />
                     </div>
                   </li>
                 );

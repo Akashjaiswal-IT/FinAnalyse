@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { ScrollText } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MarketEventView, Mode } from "@repo/contracts";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "~/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -20,10 +19,11 @@ import { DrilldownSheet } from "./drilldown-sheet";
 import { EventCard } from "./event-card";
 import { ForecastPanel } from "./forecast-panel";
 import { HedgeTable } from "./hedge-table";
+import { ImpactStrip } from "./impact-strip";
 import { EventFeed, NewsFeed, SourceHealth, useLiveRefresh } from "./live-panels";
 import { ModeSwitch } from "./mode-switch";
 import { PortfolioPanel } from "./portfolio-panel";
-import { QueryBar } from "./query-bar";
+import { QueryBar, presetQuestion } from "./query-bar";
 import { RiskSummary } from "./risk-summary";
 import { RunProvider, type DrilldownTarget } from "./run-context";
 import { StepLog } from "./step-log";
@@ -37,12 +37,25 @@ export function Terminal() {
   const [drill, setDrill] = useState<{ target: DrilldownTarget | null; open: boolean }>({ target: null, open: false });
 
   const openDrilldown = useCallback((target: DrilldownTarget) => setDrill({ target, open: true }), []);
-  const runContext = useMemo(() => ({ view: stream.view, openDrilldown }), [stream.view, openDrilldown]);
 
   const preset = findPreset(url.presetId);
   const fixtureSnapshot = useMemo(() => fixturePortfolioAt(url.asOf), [url.asOf]);
   const portfolio = trpc.portfolio.get.useQuery(url.asOf ? { asOf: url.asOf } : {}, { enabled: DATA_SOURCE === "api" });
   const snapshot = DATA_SOURCE === "api" ? (portfolio.data ?? null) : fixtureSnapshot;
+
+  // Links from alerts and ideas (`&go=1`) start the run on arrival, once.
+  const autoRun = useRef(url.autoRun && !url.runId);
+  const { start } = stream;
+  useEffect(() => {
+    if (!autoRun.current) return;
+    // Deferred so React's development double mount cancels the first attempt instead of starting two runs.
+    const timer = setTimeout(() => {
+      autoRun.current = false;
+      const query = url.initialQuery ?? (url.presetId ? presetQuestion(url.presetId) : null);
+      if (query) start({ query, mode: url.mode, asOf: url.asOf, replayPresetId: url.presetId });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [start, url.initialQuery, url.presetId, url.mode, url.asOf]);
 
   // A reload mid-run follows the run named in the URL again, from its first event.
   const { attach } = stream;
@@ -65,6 +78,11 @@ export function Terminal() {
   const apiMode = DATA_SOURCE === "api";
   useLiveRefresh(apiMode && url.mode === "live");
   const [tab, setTab] = useState("steps");
+  const showNews = useCallback(() => {
+    setDrill((d) => ({ ...d, open: false }));
+    setTab("news");
+  }, []);
+  const runContext = useMemo(() => ({ view: stream.view, openDrilldown, showNews }), [stream.view, openDrilldown, showNews]);
   const analyse = (e: MarketEventView) => {
     setTab("steps");
     stream.start({
@@ -81,38 +99,23 @@ export function Terminal() {
 
   return (
     <RunProvider value={runContext}>
-      <div className="flex h-dvh flex-col bg-background">
-        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b px-4 py-2">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm font-bold tracking-[0.25em] text-primary">TEMPEST</span>
-            {DATA_SOURCE === "fixture" && (
-              <Badge
-                variant="outline"
-                className="border-warning/50 bg-warning/10 text-warning"
-                title="Runs are recorded fixtures from @repo/contracts. Their numbers are hand-built, not market data."
-              >
-                fixture data
-              </Badge>
-            )}
+      <div className="flex h-full flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b px-4 py-2">
+          <div data-tour="mode">
+            <ModeSwitch
+              mode={url.mode}
+              presetId={url.presetId}
+              asOf={url.asOf}
+              disabled={stream.isActive}
+              onModeChange={changeMode}
+              onPresetChange={changePreset}
+              onAsOfChange={changeAsOf}
+            />
           </div>
-          <ModeSwitch
-            mode={url.mode}
-            presetId={url.presetId}
-            asOf={url.asOf}
-            disabled={stream.isActive}
-            onModeChange={changeMode}
-            onPresetChange={changePreset}
-            onAsOfChange={changeAsOf}
-          />
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/reliability">Reliability</Link>
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => openDrilldown({ kind: "run" })}>
-              Audit
-            </Button>
-          </div>
-        </header>
+          <Button type="button" variant="outline" size="sm" onClick={() => openDrilldown({ kind: "run" })}>
+            <ScrollText className="size-3.5" /> Audit this run
+          </Button>
+        </div>
 
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
           <ResizablePanel defaultSize="22%" minSize="15%" maxSize="38%">
@@ -129,8 +132,9 @@ export function Terminal() {
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="50%" minSize="30%">
-            <main className="h-full overflow-y-auto">
+            <main className="bg-grid h-full overflow-y-auto">
               <div className="mx-auto max-w-4xl space-y-3 p-3">
+                <div data-tour="ask">
                 <QueryBar
                   disabled={stream.isActive}
                   notice={notice}
@@ -138,10 +142,21 @@ export function Terminal() {
                     stream.start({ query, mode: url.mode, asOf: url.asOf, replayPresetId: url.presetId })
                   }
                   onPickExample={changePreset}
+                  initialQuery={url.initialQuery}
+                  presetId={url.presetId}
+                  runQuery={stream.view.query}
                 />
+                </div>
                 <EventCard preview={preset} />
-                <AgentGraph />
-                <AnswerCard />
+                <div data-tour="graph">
+                  <AgentGraph />
+                </div>
+                <div data-tour="impact">
+                  <ImpactStrip />
+                </div>
+                <div data-tour="answer">
+                  <AnswerCard />
+                </div>
                 <HedgeTable />
                 <RiskSummary />
                 <ForecastPanel />
@@ -153,7 +168,7 @@ export function Terminal() {
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="28%" minSize="18%" maxSize="42%">
             {apiMode ? (
-              <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0">
+              <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0" data-tour="side">
                 <TabsList className="m-2 mb-0 w-auto">
                   <TabsTrigger value="steps">Steps</TabsTrigger>
                   <TabsTrigger value="events">Events</TabsTrigger>
