@@ -1,7 +1,9 @@
 {
   "extends": "@repo/typescript-config/node.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   },
   "include": ["."],
   "exclude": ["node_modules"]

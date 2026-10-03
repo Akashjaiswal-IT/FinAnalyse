@@ -53,6 +53,30 @@ Entries at H7, H12 and H18.
 
 Entries at H7, H12 and H18.
 
+### Phase 1: quant library (2026-10-03)
+
+**Works** (`packages/quant`, 328 tests; every exported function is referenced by a test)
+- `series`, `stats`: aligned log returns (a day with a non-positive price is dropped for all symbols), rolling sums, forward returns on each series' own calendar, OLS beta and R², Spearman, weighted mean and spread, effective n, `trailingZ`, `windowZ`.
+- `risk`: historical-simulation P&L (1 and 5 days), discrete VaR/CVaR, scenario and analog-replay P&L, P&L by sector and by channel, factor betas, top exposures, `riskSnapshot`.
+- `exposure`: direct, peer and factor channels, exposed sleeve, exposed value by channel.
+- `hedge`: limit checks (SPEC 5.11), largest allowed quantity, minimum-variance ratios and suggestions, fallback, `simulateHedges`.
+- `geo`: haversine, hourly track interpolation, capacity at risk, Saffir-Simpson category, HURDAT2 landfall rule, Gulf hurricane test.
+- `forecast`: feature scaler, grouped kernel weights, per-target and per-holding forecasts with the SPY-beta fallback, variants N, T, S, M, W, C, analog eligibility.
+- `detect`: title tokens, `sameStory`, connected-component clustering, `isEvent`, severity, `clusterZ`, matching to active events, fade status.
+- `backtest`: metrics, leave-one-out predictions, pooled / per-target / per-type summary, caveats.
+- `event-builder`: curated and hurricane event builders (t0, features, reactions, `realizedUntil`) and the description template.
+- Known-answer values come from independent Python calculations (`statistics`, `math`), not from this code. The kernel kNN and the leave-one-out backtest were re-implemented in Python and compared on a six-event pool, all six models, pooled, per target and per type.
+
+**Gate C:** `pnpm check-types`, `pnpm lint`, `pnpm test` (390 tests across the repo) and `pnpm build` are green.
+
+**For the other tracks**
+- Track A: `buildCuratedEvent` and `buildHurricaneEvent` are what seed step 5 calls. They return `realizedUntil: null` when the price data does not yet reach 20 trading days after t0; skip such an event. `describeEvent` builds the Pinecone text. `windowZ` and `trailingZ` are the z-score maths for `newsFeatures` and the VIX z-score.
+- Track B: `buildForecast` (then `withSimilarity`), `exposureChannels`, `factorExposures`, `riskSnapshot`, `suggestHedges` / `checkHedgeLimits` / `simulateHedges` are the calls for the analogs, risk and hedging nodes. See my decisions for the shapes that differ from the first signatures.
+
+**Open**
+- Backtest, eval, bench and drill scripts, `services/backtest` and the `backtest` route wait for Track A's tables and Track B's graph (Phase 2 and 3).
+- The hand-check of one VaR and one scenario P&L at the Ukraine as-of needs the seeded prices.
+
 
 
 ## Track D: Terminal
