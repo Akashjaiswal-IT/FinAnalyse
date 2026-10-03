@@ -91,7 +91,7 @@ const SECTOR_SIGNALS: readonly [Sector, RegExp][] = [
   ["consumer", /\b(consumer|retail\w*)\b/i],
 ];
 
-const DEFAULT_FACTORS: Record<EventType, FactorDirectionEntry[]> = {
+export const DEFAULT_FACTORS: Record<EventType, FactorDirectionEntry[]> = {
   geopolitical: [
     { factor: "MARKET", direction: "down" },
     { factor: "GOLD", direction: "up" },

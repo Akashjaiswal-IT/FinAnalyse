@@ -5,7 +5,8 @@ import type { AnswerDraft, Plan } from "@repo/contracts";
 import { type NodeEnv, type RunContext } from "./context";
 import { Ledger } from "./ledger";
 import { AgentRuntime } from "./runner";
-import type { NodeSet } from "./graph";
+import { fakeServices, type Scenario } from "./fakes";
+import { fixtureNodes, type NodeSet } from "./graph";
 import type { RunStateValue } from "./state";
 
 // Helpers for the agents tests. Not exported from the package.
@@ -14,10 +15,10 @@ export const NOW = new Date("2026-10-03T12:00:00.000Z");
 
 type Handlers = ConstructorParameters<typeof FakeLlm>[0];
 
-export function newRuntime(handlers: Handlers, nodes?: NodeSet) {
+export function newRuntime(handlers: Handlers, nodes?: NodeSet, scenario: Scenario = "ukraine") {
   const runs = new RunsService();
   const llm = new FakeLlm(handlers);
-  const runtime = new AgentRuntime({ deps: { llm, runs, now: () => NOW }, checkpointer: new MemorySaver(), nodes });
+  const runtime = new AgentRuntime({ deps: { llm, runs, now: () => NOW, ...fakeServices(scenario) }, checkpointer: new MemorySaver(), nodes: nodes ?? fixtureNodes() });
   return { runtime, runs, llm };
 }
 
@@ -37,11 +38,12 @@ export function makeEnv(llm: FakeLlm, over: Partial<RunContext> = {}): NodeEnv {
     replayEventId: null,
     marketEventId: null,
     ledger,
-    deps: { llm, runs: new RunsService(), now: () => NOW },
+    deps: { llm, runs: new RunsService(), now: () => NOW, ...fakeServices() },
     signal: new AbortController().signal,
     startedAtMs: Date.now(),
     totals: { tokensIn: 0, tokensOut: 0, costUsd: 0 },
     warnings: [],
+    memo: new Map(),
     degraded: new Set(),
     emit: async () => undefined,
     ...over,
@@ -68,20 +70,30 @@ export function modelPlan(over: Partial<Plan["event"]> = {}, rest: Partial<Plan>
   };
 }
 
+type Call = { user: string };
+
+const evidenceOf = (call: Call) => (JSON.parse(call.user) as { evidence: { key: string; label: string }[] }).evidence;
+
 /** What a well-behaved synthesizer returns for the evidence it was shown: cites real keys, writes no digits. */
-export function goodDraft(user: string): AnswerDraft {
+export function goodDraft(user: string, cite = 3): AnswerDraft {
   const evidence = (JSON.parse(user) as { evidence: { key: string }[] }).evidence;
-  const [a, b, c] = evidence.map((e) => e.key);
-  const keys = [a, b, c].filter((k): k is string => Boolean(k));
+  const keys = evidence.map((e) => e.key);
+  const first = keys[0] as string;
+  const groups: string[][] = [];
+  for (let i = 0; i < Math.max(cite, 3); i += 3) groups.push(keys.slice(i, i + 3));
   return {
-    headline: `The event reaches the portfolio, with a scenario result of {{${keys[0]}}}.`,
-    summary: `The main reading is {{${keys[0]}}} and the next is {{${keys[1] ?? keys[0]}}}.`,
-    bullets: [
-      { text: `First finding {{${keys[0]}}}.`, evidenceKeys: [keys[0] as string] },
-      { text: `Second finding {{${keys[1] ?? keys[0]}}} and {{${keys[2] ?? keys[0]}}}.`, evidenceKeys: keys.slice(1).length ? keys.slice(1) : [keys[0] as string] },
-    ],
+    headline: `The event reaches the portfolio, with a scenario result of {{${first}}}.`,
+    summary: `The main reading is {{${first}}} and the next is {{${keys[1] ?? first}}}.`,
+    bullets: groups.filter((g) => g.length > 0).map((g, n) => ({ text: `Finding ${["one", "two", "three", "four", "five", "six"][n] ?? "more"}: ${g.map((k) => `{{${k}}}`).join(" and ")}.`, evidenceKeys: g })),
     caveats: ["Forecasts come from past events and can be wrong."],
   };
+}
+
+/** A specialist note over the first evidence rows it was shown. */
+export function goodNotes(call: Call) {
+  const [a, b] = evidenceOf(call);
+  const keys = [a, b].filter((e): e is NonNullable<typeof a> => Boolean(e)).map((e) => e.key);
+  return { findings: [{ template: `The reading is ${keys.map((k) => `{{${k}}}`).join(" and ")}.`, evidenceKeys: keys }] };
 }
 
 export function emptyState(over: Partial<RunStateValue> = {}): RunStateValue {

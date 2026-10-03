@@ -470,7 +470,7 @@ export const MAX_TOKENS = {
 
 /** Strings allowed to contain digits in LLM-authored text (SPEC 5.6). Longer entries first: the verifier
  * strips them in order. */
-export const NUMERIC_ALLOWLIST = ["S&P 500", "737 MAX 9", "737 MAX", "COVID-19", "G20", "G7"] as const;
+export const NUMERIC_ALLOWLIST = ["20+ Year Treasury", "Phillips 66", "S&P 500", "737 MAX 9", "737 MAX", "COVID-19", "G20", "G7"] as const;
 
 export const FIXTURE_SOURCE = "fixture";
 

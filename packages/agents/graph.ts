@@ -1,16 +1,38 @@
 import { END, START, StateGraph, type BaseCheckpointSaver } from "@langchain/langgraph";
 import type { NodeName } from "@repo/contracts";
 import { instrumentNode, type NodeImpl, type Recover } from "./context";
+import { analogsNode } from "./nodes/analogs";
+import { eventNode } from "./nodes/event";
+import { hedgingNode } from "./nodes/hedging";
+import { macroNode } from "./nodes/macro";
 import { plannerNode, plannerRecover } from "./nodes/planner";
+import { riskNode } from "./nodes/risk";
+import { sentimentNode } from "./nodes/sentiment";
 import { DATA_NODES, stubNode } from "./nodes/stubs";
+import { weatherNode } from "./nodes/weather";
 import { synthesizerNode, synthesizerRecover } from "./nodes/synthesizer";
 import { verifierNode, verifierRecover } from "./nodes/verifier";
 import { RunState, type RunStateValue } from "./state";
 
 export type NodeSet = Record<NodeName, NodeImpl>;
 
-/** The ten nodes. The data nodes are fixture stubs until each real one lands (Phase 2). */
+/** The ten nodes. */
 export const defaultNodes = (): NodeSet => ({
+  planner: plannerNode,
+  event: eventNode,
+  weather: weatherNode,
+  sentiment: sentimentNode,
+  macro: macroNode,
+  analogs: analogsNode,
+  risk: riskNode,
+  hedging: hedgingNode,
+  synthesizer: synthesizerNode,
+  verifier: verifierNode,
+});
+
+/** The real planner, synthesizer and verifier around fixture outputs for the seven data nodes. For tests of the
+ * orchestration (event order, degradation, repair) that must not depend on service data. */
+export const fixtureNodes = (): NodeSet => ({
   planner: plannerNode,
   event: stubNode("event"),
   weather: stubNode("weather"),

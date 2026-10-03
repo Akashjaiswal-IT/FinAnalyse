@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fakeFailure } from "@repo/services/llm";
 import type { RunEvent } from "@repo/contracts";
-import { activeRunCount, defaultNodes, TooManyRunsError } from "./index";
+import { activeRunCount, fixtureNodes, TooManyRunsError } from "./index";
 import { eventsOf, goodDraft, idaQuery, modelPlan, newRuntime, ukraineQuery } from "./testkit";
 
 const types = (events: { event: RunEvent }[]) => events.map((e) => e.event.type);
@@ -51,7 +51,7 @@ describe("graph run", () => {
   });
 
   it("ends a node that throws as degraded and still completes the run", async () => {
-    const nodes = { ...defaultNodes(), sentiment: () => { throw new Error("pinecone unreachable"); } };
+    const nodes = { ...fixtureNodes(), sentiment: () => { throw new Error("pinecone unreachable"); } };
     const { runtime, runs } = newRuntime(happy, nodes);
     const { runId } = await runtime.start({ query: ukraineQuery, mode: "replay", replayPresetId: "geopolitical-russia-ukraine-2022" });
     await runtime.finished(runId);

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { isTrackedEnvelope } from "@trpc/server";
-import { AgentRuntime } from "@repo/agents";
+import { AgentRuntime, fakeServices, fixtureNodes } from "@repo/agents";
 import { FakeLlm } from "@repo/services/llm";
 import { RunsService } from "@repo/services/runs";
 import type { Plan, RunEvent } from "@repo/contracts";
@@ -30,7 +30,7 @@ function boot(demoToken?: string, gate?: Promise<void>) {
     },
     // No synthesizer script: the call fails and the run ends with the template answer.
   });
-  const agents = new AgentRuntime({ deps: { llm, runs, now: () => new Date("2026-10-03T12:00:00.000Z") } });
+  const agents = new AgentRuntime({ deps: { llm, runs, now: () => new Date("2026-10-03T12:00:00.000Z"), ...fakeServices() }, nodes: fixtureNodes() });
   setApiRuntime({ agents, runs, demoToken });
   return { agents, runs, caller: createCallerFactory(serverRouter)({ demoToken }) };
 }

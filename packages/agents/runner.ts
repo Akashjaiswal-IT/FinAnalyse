@@ -99,6 +99,7 @@ export class AgentRuntime {
       startedAtMs: Date.now(),
       totals: { tokensIn: 0, tokensOut: 0, costUsd: 0 },
       warnings: [],
+      memo: new Map(),
       degraded: new Set(),
       emit: async (event: RunEvent) => void (await this.deps.runs.appendEvent(runId, event)),
     };

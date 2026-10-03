@@ -24,6 +24,8 @@ export interface RunContext {
   startedAtMs: number;
   totals: { tokensIn: number; tokensOut: number; costUsd: number };
   warnings: string[];
+  /** Reads shared by several nodes of one run (portfolio, returns); in-process, never checkpointed. */
+  memo: Map<string, Promise<unknown>>;
   /** Nodes that ended `degraded`; any entry makes the run `partial`. */
   degraded: Set<string>;
   emit: (event: RunEvent) => Promise<void>;

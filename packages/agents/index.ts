@@ -8,3 +8,4 @@ export * from "./render";
 export * from "./runner";
 export * from "./state";
 export * from "./verify";
+export * from "./fakes";

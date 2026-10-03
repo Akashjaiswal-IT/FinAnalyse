@@ -3,6 +3,7 @@ import {
   HEDGE_MENU,
   NUMERIC_ALLOWLIST,
   PLACEHOLDER_RE,
+  UNIVERSE,
   UNIVERSE_SYMBOLS,
   type AnswerDraft,
   type HedgePlan,
@@ -50,10 +51,15 @@ export function placeholderViolations(text: string, ledger: Ledger): string[] {
   return violations;
 }
 
+/** Fund and company names carry capitals of their own (SPDR, DB); they are removed before scanning. */
+const NAMES_LONGEST_FIRST = UNIVERSE.map((u) => u.name).sort((a, b) => b.length - a.length);
+
 export function unknownSymbols(text: string): string[] {
   const universe = new Set<string>(UNIVERSE_SYMBOLS);
   const out = new Set<string>();
-  for (const m of stripAllowed(text).matchAll(/\b[A-Z]{2,5}\b/g)) {
+  let scan = stripAllowed(text);
+  for (const name of NAMES_LONGEST_FIRST) scan = scan.split(name).join(" ");
+  for (const m of scan.matchAll(/\b[A-Z]{2,5}\b/g)) {
     const word = m[0];
     if (!universe.has(word) && !KNOWN_ACRONYMS.has(word)) out.add(word);
   }

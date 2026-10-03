@@ -72,6 +72,20 @@ export function normalizePlan(plan: Plan, mode: Mode, marketEventId: string | nu
   };
 }
 
+/** Market events and storms the planner may mention. Either read failing just leaves it out. */
+async function activeContext(env: NodeEnv): Promise<{ events: unknown[]; storms: unknown[] }> {
+  const { deps, asOf } = env.ctx;
+  const when = new Date(asOf);
+  const [events, storms] = await Promise.all([
+    deps.events.active(when).catch(() => []),
+    deps.weather.stormsAt(when).catch(() => []),
+  ]);
+  return {
+    events: events.slice(0, 5).map((e) => ({ id: e.id, type: e.type, title: e.title, entities: e.entities })),
+    storms: storms.map((s) => ({ id: s.id, name: s.name })),
+  };
+}
+
 function plannerContext(state: RunStateValue, env: NodeEnv, extra: { events: unknown[]; storms: unknown[] }): PlannerContext {
   const { ctx } = env;
   const names = new Map(UNIVERSE.map((u) => [u.symbol, u]));
@@ -142,7 +156,7 @@ function summarize(plan: Plan): string {
 
 export const plannerNode: NodeImpl = async (state, env) => {
   const { ctx } = env;
-  const extra = (await ctx.deps.activeContext?.(ctx.asOf).catch(() => undefined)) ?? { events: [], storms: [] };
+  const extra = await activeContext(env);
   const result = await env.llm.parseStructured({
     label: "planner",
     tier: "reasoning",
