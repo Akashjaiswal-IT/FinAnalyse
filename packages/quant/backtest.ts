@@ -129,6 +129,7 @@ export function runBacktest(events: readonly PoolEvent[], options: BacktestOptio
       "Hurricane weather features use the best track, which is more accurate than the forecast available at the time.",
       "Leave-one-out also trains on events that happened after the one it predicts; it is not a walk-forward test.",
       "An event with no realized 5-day return for a target is left out of that target's metrics.",
+      "Under leave-one-out the unconditional mean (N) predicts each event from all the others, so its prediction falls as the event's own return rises: its per-target Spearman is -1 by construction when every event has data, and the same effect lowers T within a type. Compare models on MAE and directional accuracy before Spearman.",
     ],
   };
 }

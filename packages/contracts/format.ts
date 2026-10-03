@@ -20,17 +20,18 @@ function signedPct(fraction: number): string {
 function usd(n: number): string {
   const abs = Math.abs(n);
   const sign = n < 0 ? "-" : "";
-  if (abs >= 1e9) return `${sign}$${trimmed(abs / 1e9, 1)}B`;
-  if (abs >= 1e6) return `${sign}$${trimmed(abs / 1e6, 1)}M`;
-  if (abs >= 1e3) return `${sign}$${trimmed(abs / 1e3, 1)}K`;
+  // The thresholds sit just below each power of ten so a value that rounds up moves to the next unit.
+  if (abs >= 999.95e6) return `${sign}$${trimmed(abs / 1e9, 1)}B`;
+  if (abs >= 999.95e3) return `${sign}$${trimmed(abs / 1e6, 1)}M`;
+  if (abs >= 999.5) return `${sign}$${trimmed(abs / 1e3, 1)}K`;
   return `${sign}$${Math.round(abs)}`;
 }
 
 function bpd(n: number): string {
   const abs = Math.abs(n);
   const sign = n < 0 ? "-" : "";
-  if (abs >= 1e6) return `${sign}${trimmed(abs / 1e6, 2)}M b/d`;
-  if (abs >= 1e3) return `${sign}${trimmed(abs / 1e3, 1)}K b/d`;
+  if (abs >= 999_995) return `${sign}${trimmed(abs / 1e6, 2)}M b/d`;
+  if (abs >= 999.5) return `${sign}${trimmed(abs / 1e3, 1)}K b/d`;
   return `${sign}${Math.round(abs)} b/d`;
 }
 

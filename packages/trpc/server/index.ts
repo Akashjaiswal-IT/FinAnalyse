@@ -29,4 +29,5 @@ export const serverRouter = router({
 });
 
 export { createContext } from "./context";
+export { setApiRuntime, type ApiRuntime } from "./runtime";
 export type ServerRouter = typeof serverRouter;

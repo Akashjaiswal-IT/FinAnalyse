@@ -6,6 +6,7 @@ export const SourceName = z.enum([
   "tiingo",
   "fred",
   "alphavantage",
+  "eia",
   "gdelt",
   "nhc",
   "openmeteo",

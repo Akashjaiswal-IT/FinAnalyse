@@ -101,7 +101,7 @@ export const ukraineEventProfile: EventProfile = {
   type: "geopolitical",
   subtype: "war",
   title: "Russia invades Ukraine",
-  firstReportAt: "2022-02-24T03:00:00.000Z",
+  firstReportAt: "2022-02-24T02:40:00.000Z",
   entities: ["LMT", "RTX"],
   externalNames: [],
   peerSymbols: [],

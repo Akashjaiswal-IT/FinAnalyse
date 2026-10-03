@@ -8,6 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@repo/agents':
+        specifier: workspace:*
+        version: link:packages/agents
+      '@repo/contracts':
+        specifier: workspace:*
+        version: link:packages/contracts
+      '@repo/services':
+        specifier: workspace:*
+        version: link:packages/services
       dotenv-cli:
         specifier: ^11.0.0
         version: 11.0.0
@@ -527,6 +536,9 @@ importers:
       '@repo/logger':
         specifier: workspace:*
         version: link:../logger
+      '@repo/quant':
+        specifier: workspace:*
+        version: link:../quant
       bullmq:
         specifier: ^6.3.11
         version: 6.3.11(ioredis@6.0.0)(pg@8.16.3)

@@ -16,7 +16,7 @@ const FIXTURE_CHANGE_1D: Record<string, number> = {
 };
 
 export const FIXTURE_AS_OF = "2021-08-27T21:00:00.000Z";
-export const FIXTURE_AS_OF_UKRAINE = "2022-02-25T03:00:00.000Z";
+export const FIXTURE_AS_OF_UKRAINE = "2022-02-25T02:40:00.000Z";
 export const FIXTURE_PRICES = FIXTURE_CLOSES;
 
 const nav = DEMO_PORTFOLIO.nav;

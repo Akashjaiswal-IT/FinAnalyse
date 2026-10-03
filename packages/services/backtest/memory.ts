@@ -13,8 +13,12 @@ export class MemoryBacktestStore implements BacktestStore {
     return structuredClone(record);
   }
 
+  /** The newest row; rows saved in the same millisecond resolve to the one saved last. */
   async latest(): Promise<BacktestRecord | null> {
-    const newest = [...this.rows].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+    let newest: BacktestRecord | undefined;
+    for (const row of this.rows) {
+      if (!newest || row.createdAt.getTime() >= newest.createdAt.getTime()) newest = row;
+    }
     return newest ? structuredClone(newest) : null;
   }
 }

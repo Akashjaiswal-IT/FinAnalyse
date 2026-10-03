@@ -151,6 +151,12 @@ describe("summarizePredictions", () => {
     expect(m.WTI?.C?.directionalAccuracy).toBeCloseTo(0.8, 12);
     expect(m.WTI?.C?.excludedSmallMoves).toBe(1); // e4 realized WTI move is 0
   });
+  it("the unconditional mean has a per-target Spearman of exactly -1 under leave-one-out (python: -1.0)", () => {
+    // N predicts event i with (sum - x_i) / (n - 1), a strictly decreasing function of x_i.
+    const m = summarizePredictions(preds, 1);
+    expect(m.SPY?.N?.spearman).toBeCloseTo(-1, 12);
+    expect(m.WTI?.N?.spearman).toBeCloseTo(-1, 12);
+  });
   it("per-type metrics match the python reference when a type has enough events", () => {
     const m = summarizePredictions(preds, 1);
     expect(m["type:geopolitical"]?.C).toMatchObject({ n: 4 });
@@ -198,13 +204,14 @@ describe("runBacktest", () => {
     expect(run.metrics).toEqual(summarizePredictions(run.predictions));
   });
   it("states its caveats, with the event counts and the types too thin to claim", () => {
-    expect(run.caveats).toHaveLength(5);
+    expect(run.caveats).toHaveLength(6);
     expect(run.caveats[0]).toContain("6 events");
     expect(run.caveats[0]).toContain("disaster 2");
     expect(run.caveats[0]).toContain("(disaster, geopolitical, macro, policy)");
     expect(run.caveats.join(" ")).toMatch(/hindsight/);
     expect(run.caveats.join(" ")).toMatch(/walk-forward/);
     expect(run.caveats.join(" ")).toMatch(/best track/);
+    expect(run.caveats.join(" ")).toMatch(/-1 by construction/);
   });
   it("is deterministic: the same numbers and text whatever the order of the events", () => {
     expect(runBacktest(pool, options)).toEqual(run);

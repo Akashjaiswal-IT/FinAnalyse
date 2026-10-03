@@ -16,4 +16,6 @@ export const tRPCContext = initTRPC
 
 export const router = tRPCContext.router;
 
+export const createCallerFactory = tRPCContext.createCallerFactory;
+
 export const publicProcedure = tRPCContext.procedure;
