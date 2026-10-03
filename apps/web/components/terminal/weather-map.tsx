@@ -38,7 +38,7 @@ export function WeatherMap() {
           <Stat label="Category now / peak">
             {formatValue("category", weather.currentCategory)} / {formatValue("category", weather.peakCategory)}
           </Stat>
-          <Stat label="Landfall">{weather.landfallRegion ?? "none forecast"}</Stat>
+          <Stat label="Landfall">{weather.landfallRegion ? humanize(weather.landfallRegion.toLowerCase()) : "none forecast"}</Stat>
           <Stat label="Refineries at risk">{formatValue("count", weather.refineriesAtRisk)}</Stat>
           <Stat label="Gulf capacity at risk">{formatValue("pct", weather.gulfCapAtRisk)}</Stat>
         </div>

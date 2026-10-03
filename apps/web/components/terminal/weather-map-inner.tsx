@@ -6,9 +6,12 @@ import { formatValue } from "@repo/contracts";
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip } from "react-leaflet";
 import { formatDateTime } from "~/lib/display";
 
-const TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-const GULF_CENTER: [number, number] = [27, -88];
+const TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const ATTRIBUTION = "Tiles &copy; Esri";
+const GULF: [number, number][] = [
+  [18, -98],
+  [31, -80],
+];
 
 const line = (points: StormPoint[]) => points.map((p) => [p.lat, p.lon] as [number, number]);
 
@@ -20,8 +23,10 @@ export default function WeatherMapInner({ points, refineries }: { points: StormP
   const lastObserved = observed.at(-1);
   const forecastLine = lastObserved && forecast.length ? [lastObserved, ...forecast] : forecast;
 
+  const bounds = points.length > 1 ? [...line(points), ...refineries.map((r) => [r.lat, r.lon] as [number, number])] : GULF;
+
   return (
-    <MapContainer center={GULF_CENTER} zoom={5} scrollWheelZoom={false} className="h-72 w-full rounded-md">
+    <MapContainer bounds={bounds} boundsOptions={{ padding: [16, 16] }} scrollWheelZoom={false} className="h-72 w-full rounded-md">
       <TileLayer url={TILES} attribution={ATTRIBUTION} />
       <Polyline positions={line(observed)} pathOptions={{ color: "#f59e0b", weight: 3 }} />
       <Polyline positions={line(forecastLine)} pathOptions={{ color: "#f59e0b", weight: 2, dashArray: "6 6" }} />
