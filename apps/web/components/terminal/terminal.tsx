@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MarketEventView, Mode } from "@repo/contracts";
 import { Badge } from "~/components/ui/badge";
@@ -20,7 +21,8 @@ import { DrilldownSheet } from "./drilldown-sheet";
 import { EventCard } from "./event-card";
 import { ForecastPanel } from "./forecast-panel";
 import { HedgeTable } from "./hedge-table";
-import { EventFeed, NewsFeed, SourceHealth, useLiveRefresh } from "./live-panels";
+import { ImpactStrip } from "./impact-strip";
+import { EventFeed, NewsFeed, SourceDots, SourceHealth, useLiveRefresh } from "./live-panels";
 import { ModeSwitch } from "./mode-switch";
 import { PortfolioPanel } from "./portfolio-panel";
 import { QueryBar } from "./query-bar";
@@ -81,10 +83,18 @@ export function Terminal() {
 
   return (
     <RunProvider value={runContext}>
-      <div className="flex h-dvh flex-col bg-background">
-        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b px-4 py-2">
+      <div className="flex h-dvh flex-col">
+        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b bg-background/60 px-4 py-2 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-sm font-bold tracking-[0.25em] text-primary">TEMPEST</span>
+            <span className="flex items-center gap-2.5">
+              <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-warning/70 shadow-[0_0_18px_-4px_var(--primary)]">
+                <Zap className="size-4 text-primary-foreground" aria-hidden />
+              </span>
+              <span className="leading-tight">
+                <span className="block font-mono text-sm font-bold tracking-[0.25em] text-primary">TEMPEST</span>
+                <span className="hidden text-[10px] text-muted-foreground xl:block">Event-driven portfolio intelligence</span>
+              </span>
+            </span>
             {DATA_SOURCE === "fixture" && (
               <Badge
                 variant="outline"
@@ -105,6 +115,7 @@ export function Terminal() {
             onAsOfChange={changeAsOf}
           />
           <div className="flex items-center gap-2">
+            {apiMode && <SourceDots onOpen={() => setTab("sources")} />}
             <Button asChild variant="ghost" size="sm">
               <Link href="/reliability">Reliability</Link>
             </Button>
@@ -129,7 +140,7 @@ export function Terminal() {
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="50%" minSize="30%">
-            <main className="h-full overflow-y-auto">
+            <main className="bg-grid h-full overflow-y-auto">
               <div className="mx-auto max-w-4xl space-y-3 p-3">
                 <QueryBar
                   disabled={stream.isActive}
@@ -141,6 +152,7 @@ export function Terminal() {
                 />
                 <EventCard preview={preset} />
                 <AgentGraph />
+                <ImpactStrip />
                 <AnswerCard />
                 <HedgeTable />
                 <RiskSummary />

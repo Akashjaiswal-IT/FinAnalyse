@@ -152,3 +152,36 @@
   --xy-attribution-background-color-default: transparent;
   font-family: inherit;
 }
+
+/* Depth for the dark terminal: a faint amber glow top left, blue bottom right. */
+.dark body {
+  background:
+    radial-gradient(1100px 520px at 0% -8%, oklch(0.82 0.15 78 / 7%), transparent 62%),
+    radial-gradient(900px 620px at 105% 108%, oklch(0.74 0.12 235 / 8%), transparent 62%),
+    var(--background);
+  background-attachment: fixed;
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(oklch(1 0 0 / 2.5%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 2.5%) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@keyframes node-pulse {
+  0% { box-shadow: 0 0 0 0 oklch(0.74 0.12 235 / 45%); }
+  70% { box-shadow: 0 0 0 7px oklch(0.74 0.12 235 / 0%); }
+  100% { box-shadow: 0 0 0 0 oklch(0.74 0.12 235 / 0%); }
+}
+.animate-node-pulse { animation: node-pulse 1.6s ease-out infinite; }
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise-in { animation: rise-in 360ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-node-pulse, .animate-rise-in { animation: none; }
+}

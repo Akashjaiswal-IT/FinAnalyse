@@ -28,9 +28,9 @@ const TONE = {
   evidence: "border-model/40 bg-model/10 text-model",
 } as const;
 
-function toLine(stamped: StampedEvent, startedAt: number): LogLine {
-  const { event, seq, receivedAt } = stamped;
-  const base = { key: String(seq), offsetMs: receivedAt - startedAt, node: null, detail: null, target: null };
+function toLine(stamped: StampedEvent, offsetMs: number): LogLine {
+  const { event, seq } = stamped;
+  const base = { key: String(seq), offsetMs, node: null, detail: null, target: null };
 
   switch (event.type) {
     case "run.started":
@@ -101,8 +101,27 @@ export function StepLog({ events }: { events: readonly StampedEvent[] }) {
   const scroller = useRef<HTMLDivElement>(null);
 
   const lines = useMemo(() => {
-    const first = events[0]?.receivedAt ?? 0;
-    return events.map((e) => toLine(e, first));
+    // Server times where an event carries one (a step's start, plus its duration), so a run followed again after a
+    // reload keeps its timeline; other events take the time of the event before them.
+    const started = new Map<string, number>();
+    let base: number | null = null;
+    let last = 0;
+    return events.map((e) => {
+      const ev = e.event;
+      let at: number | null = null;
+      if (ev.type === "step.started") {
+        at = Date.parse(ev.at);
+        started.set(ev.node, at);
+      } else if (ev.type === "step.completed" || ev.type === "step.failed") {
+        const s = started.get(ev.node);
+        if (s !== undefined) at = s + ev.durationMs;
+      }
+      if (at !== null) {
+        base ??= at;
+        last = at - base;
+      }
+      return toLine(e, last);
+    });
   }, [events]);
 
   // Follow the log while it grows.
@@ -135,7 +154,7 @@ export function StepLog({ events }: { events: readonly StampedEvent[] }) {
         {lines.length === 0 ? (
           <PanelMessage>No run yet. Each step the agents take appears here as it happens.</PanelMessage>
         ) : (
-          <ol className="space-y-0.5">
+          <ol className="relative space-y-0.5 before:absolute before:top-2 before:bottom-2 before:left-[3.95rem] before:w-px before:bg-border">
             {lines.map((line) => (
               <li key={line.key}>
                 <button

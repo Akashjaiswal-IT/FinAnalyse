@@ -184,3 +184,27 @@ export function SourceHealth() {
     </div>
   );
 }
+
+/** One dot per source in the header; the Sources tab has the detail. */
+export function SourceDots({ onOpen }: { onOpen(): void }) {
+  const status = trpc.system.status.useQuery(undefined, { refetchInterval: STATUS_REFRESH_MS });
+  const sources = status.data?.sources ?? [];
+  if (sources.length === 0) return null;
+  const healthy = sources.filter((s) => s.status === "ok").length;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      title={sources.map((s) => `${s.source}: ${humanize(s.status)}`).join("\n")}
+      className="flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      aria-label={`Data sources: ${healthy} of ${sources.length} healthy. Open the Sources tab`}
+    >
+      <span className="flex gap-1" aria-hidden>
+        {sources.map((s) => (
+          <span key={s.source} className={cn("size-1.5 rounded-full bg-current", HEALTH_TONE[s.status])} />
+        ))}
+      </span>
+      {healthy}/{sources.length} sources
+    </button>
+  );
+}

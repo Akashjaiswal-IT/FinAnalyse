@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type KeyboardEvent } from "react";
-import { CornerDownLeft, LoaderCircle } from "lucide-react";
+import { Activity, CloudLightning, CornerDownLeft, Flame, LoaderCircle, Ship, Swords, Wind } from "lucide-react";
 import { DEFAULT_REPLAY_PRESET_ID, EXAMPLE_QUERIES, MAX_QUERY_LENGTH } from "@repo/contracts";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
@@ -14,6 +14,9 @@ const EXAMPLE_PRESETS: Partial<Record<(typeof EXAMPLE_QUERIES)[number], string>>
   [EXAMPLE_QUERIES[0]]: DEFAULT_REPLAY_PRESET_ID,
   [EXAMPLE_QUERIES[1]]: "disaster-hurricane-ida-2021",
 };
+
+/** One icon per example, in the order of `EXAMPLE_QUERIES`. */
+const EXAMPLE_ICONS = [Swords, CloudLightning, Flame, Ship, Activity, Wind] as const;
 
 interface QueryBarProps {
   /** True from submit until the run completes or fails. */
@@ -60,7 +63,7 @@ export function QueryBar({ disabled, notice, onSubmit, onPickExample }: QueryBar
           maxLength={MAX_QUERY_LENGTH}
           placeholder="Ask about anything that moves markets…"
           aria-label="Question"
-          className="min-h-[3.5rem] resize-none pr-24 pb-6 text-sm"
+          className="min-h-[3.75rem] resize-none bg-card/70 pr-24 pb-6 text-[15px] shadow-[0_0_0_1px_oklch(1_0_0/4%)] backdrop-blur-md transition-shadow focus-visible:shadow-[0_0_24px_-6px_var(--primary)]"
         />
         <span className="pointer-events-none absolute bottom-1.5 left-3 font-mono text-[10px] text-muted-foreground">
           {query.length}/{MAX_QUERY_LENGTH}
@@ -78,18 +81,22 @@ export function QueryBar({ disabled, notice, onSubmit, onPickExample }: QueryBar
       )}
 
       <div className="flex flex-wrap gap-1.5" aria-label="Example questions">
-        {EXAMPLE_QUERIES.map((example) => (
-          <button
-            key={example}
-            type="button"
-            disabled={disabled}
-            onClick={() => pick(example)}
-            title={example}
-            className="max-w-[16rem] cursor-pointer truncate rounded-full border bg-secondary/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {example}
-          </button>
-        ))}
+        {EXAMPLE_QUERIES.map((example, i) => {
+          const Icon = EXAMPLE_ICONS[i] ?? Activity;
+          return (
+            <button
+              key={example}
+              type="button"
+              disabled={disabled}
+              onClick={() => pick(example)}
+              title={example}
+              className="group flex max-w-[17rem] cursor-pointer items-center gap-1.5 rounded-full border bg-card/60 px-2.5 py-1 text-[11px] text-muted-foreground backdrop-blur-md transition-colors hover:border-primary/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Icon className="size-3 shrink-0 text-primary/70 transition-colors group-hover:text-primary" aria-hidden />
+              <span className="truncate">{example}</span>
+            </button>
+          );
+        })}
       </div>
     </form>
   );
