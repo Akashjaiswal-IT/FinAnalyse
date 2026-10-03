@@ -76,7 +76,7 @@ Entries at H7, H12 and H18.
 - GATE A2 checks covered by tests: Ida track (observed + 72 h labelled forecast); news search at the Ukraine as-of returns only items in the 72 h window; analogs search never returns the replayed or a later event.
 
 **Blocked or waiting**
-- GDELT: still refuses most requests from this machine at 1 request per 5 s (end to start); seed step 5 cached 2 of about 100 timelines in 25 minutes. Workaround: anyone on another network runs `pnpm seed --only=analogs` (cached timelines land in `data/cache/gdelt/timeline/`) and zips that folder for the team; events without timelines are seeded with null news features and listed in the log. Seed step 6 (replay news) has the same dependency.
+- GDELT: still refuses most requests from this machine at 1 request per 5 s (end to start); 47 of about 100 timelines are cached so far (26 tone, 21 volume). Workaround: anyone on another network runs `pnpm seed --only=analogs` (cached timelines land in `data/cache/gdelt/timeline/`) and zips that folder for the team; `pnpm seed --only=analogs --gdelt=cache-only` then seeds from the cache alone, with no GDELT requests. Events without timelines are seeded with null news features and listed in the log. Seed step 6 (replay news) has the same dependency.
 - `news.newsFeatures`, `events.detect` and `events.profileFromNews` need `@repo/quant` in `services` (request 2 above); `scoreUnscored` and `profileFromNews` also need Track B's `services/llm`.
 - `@repo/logger` rejects `NODE_ENV=test` at import, so any test that loads the logger fails (the weather service loads it lazily for that reason). The logger has no owner in TEAM.md; Track B, please add `test` to its `NODE_ENV` enum.
 
@@ -239,7 +239,7 @@ From H6 the remaining work of every track was finished on one machine, on branch
 
 **Blocked outside the code**
 - The Anthropic key in `.env` has no credit (`Your credit balance is too low`). Every model step uses its fallback: rule-based plan, fallback hedge, template answer. The eval and drills in RESULTS.md measure that path; re-run them once the key works.
-- GDELT answers this network with HTTP 429, so analog events and replay windows have no news features and model S has no predictions. Re-run `pnpm seed --only=analogs` and `--only=news`, then `pnpm backtest --save --write-results`, from a network GDELT accepts.
+- GDELT answers this network with HTTP 429, so analog events and replay windows have no news features and model S has no predictions. Re-run `pnpm seed --only=analogs` and `--only=news`, then `pnpm backtest --save --write-results`, from a network GDELT accepts (or with a shared `data/cache/gdelt/` and `--gdelt=cache-only`).
 
 **Gotcha found**
 - A shell that exports `ANTHROPIC_API_KEY` or `ANTHROPIC_BASE_URL` wins over `.env` (dotenv does not override). Start the api and worker with those unset.

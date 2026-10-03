@@ -20,7 +20,8 @@ import { seedReplayNews } from "./seed/replay-news";
 import { seedStorms } from "./seed/storms";
 import { seedUniverse } from "./seed/universe";
 
-// `pnpm seed` (idempotent), `pnpm seed --only=<step>`, `--refresh` to refetch cached upstream data (SPEC 10).
+// `pnpm seed` (idempotent), `pnpm seed --only=<step>`, `--refresh` to refetch cached upstream data,
+// `--gdelt=cache-only` to use only GDELT timelines already cached (SPEC 10).
 
 const STEPS = {
   universe: (_: SeedOptions) => seedUniverse(),
@@ -48,7 +49,10 @@ async function counts(): Promise<Record<string, number>> {
 
 async function main(): Promise<void> {
   const only = process.argv.find((a) => a.startsWith("--only="))?.slice("--only=".length);
-  const options: SeedOptions = { refresh: process.argv.includes("--refresh") };
+  const options: SeedOptions = {
+    refresh: process.argv.includes("--refresh"),
+    gdelt: process.argv.includes("--gdelt=cache-only") ? "cache-only" : "fetch",
+  };
   const steps = (only ? only.split(",") : Object.keys(STEPS)) as Step[];
   for (const step of steps) {
     if (!(step in STEPS)) throw new Error(`unknown step ${step}; steps: ${Object.keys(STEPS).join(", ")}`);
