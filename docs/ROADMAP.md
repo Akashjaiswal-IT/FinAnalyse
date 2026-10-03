@@ -50,7 +50,7 @@ Never cut: as-of rules, evidence placeholders and the verifier, fallbacks, the e
 
 ### Working agreement
 
-1. `main` is always green. One branch per track (`track/a-data`, `track/b-agents`, `track/c-quant`, `track/d-web`). Rebase on `main` often; merge at H1:30, H7, H12, H18.
+1. `main` is always green. One branch per track (`track/a-data`, `track/b-agents`, `track/c-quant`, `track/d-web`). Bring `main` in often with `git merge origin/main` (never rebase or force-push a pushed branch); merge at H1:30, H7, H12, H18.
 2. `packages/contracts` belongs to Track B. After H1:30 changes are additive only (no renames), announced in the team chat, and come with updated fixtures.
 3. At every merge point each track appends to `docs/PROGRESS.md`: what works, what is next, blockers. Any deviation from the spec goes in `docs/DECISIONS.md`. `docs/RESULTS.md` is filled only from script output.
 4. Blocked for 30 minutes: tell the team and take the documented fallback.
@@ -61,17 +61,17 @@ Never cut: as-of rules, evidence placeholders and the verifier, fallbacks, the e
 
 - [ ] Keys: Anthropic, Pinecone, Tiingo, FRED, Alpha Vantage. Each person creates their own Tiingo, FRED and Alpha Vantage keys, which spreads quota. Keep keys in `.env` only.
 - [ ] Docker running, Node 22 LTS, pnpm 9 (the template pins `pnpm@9.0.0`).
-- [ ] Anthropic credit of about $20 covers the whole event (a run costs about $0.10; the eval about $2).
+- [ ] Anthropic credit of about $20 covers the whole event (a run costs about $0.10; the eval about $3).
 
 ### Session briefs (paste at the start of a work session)
 
 ```text
 Track A (Data) for Tempest in this repository.
 Read first: docs/SPEC.md sections 0, 1, 3, 4, 5.1 to 5.4, 5.14, 6, 10, 11; docs/ROADMAP.md sections 1, 2, 4 (Track A tasks), 5.
-You own: packages/database, packages/services/clients (except anthropic.ts), packages/services/{market,macro,news,weather,analogs,portfolio,ingest,system,queues}, apps/worker, scripts/seed*, data/.
+You own: packages/database, packages/services/clients (except anthropic.ts), packages/services/{market,macro,news,events,weather,analogs,portfolio,ingest,system,queues}, apps/worker, scripts/seed*, data/.
 Do not edit packages/contracts (ask Track B), packages/agents or apps/web.
 Work through your tasks phase by phase. After each task: typecheck, lint, test what you touched, commit.
-At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 Ambiguity: take the documented default and log it in docs/DECISIONS.md. Never invent data or results.
 ```
 
@@ -81,7 +81,7 @@ Read first: docs/SPEC.md sections 0 to 3, 5 (all, including 5.14), 6, 7; docs/RO
 You own: packages/contracts, packages/services/{llm,runs}, packages/services/clients/anthropic.ts, packages/agents, packages/trpc, apps/api, scripts/{run-query,stream-run}.ts.
 Contract changes after H1:30 are additive only and must update the fixtures; announce them to the team.
 Work through your tasks phase by phase. After each task: typecheck, lint, test what you touched, commit.
-At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 Ambiguity: take the documented default and log it in docs/DECISIONS.md. Never let an LLM produce a number that reaches the user.
 ```
 
@@ -91,7 +91,7 @@ Read first: docs/SPEC.md sections 0, 1, 3, 5.1, 5.8 to 5.11, 5.14, 9, 10.5, 11; 
 You own: packages/quant, scripts/{backtest,eval-queries,ingest-bench,drills}.ts, data/eval/.
 packages/quant stays pure: no I/O, no clock, no unseeded randomness. Every exported function gets a known-answer test.
 Work through your tasks phase by phase. After each task: typecheck, lint, test, commit.
-At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 Report every metric exactly as measured. Never tune the forecast on backtest results beyond the variants the spec allows.
 ```
 
@@ -101,7 +101,7 @@ Read first: docs/SPEC.md sections 0, 1, 2, 5.6, 5.13, 5.14, 7, 8; docs/ROADMAP.m
 You own: apps/web. Import only @repo/contracts and types from @repo/trpc/client.
 Build against packages/contracts/fixtures first, then switch to the real API without changing component interfaces.
 The UI never computes a financial number; it formats what it receives with contracts/format.ts.
-After each task: typecheck, lint, build web, commit. At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+After each task: typecheck, lint, build web, commit. At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 ```
 
 ---
@@ -182,7 +182,7 @@ Contracts v1 was merged in Phase 0 against the hurricane-only spec. SPEC v2 (sec
 - [ ] `schemas/agents.ts`: `Plan` (intents incl. `news_scan`; event source and hint; hypothetical event parameters alongside hypothetical storm parameters); node list with `event` (10 nodes); `ExposureChannel`; hedge `timing` `before_event` instead of `before_landfall`.
 - [ ] `schemas/analog.ts`: `type`, `subtype`, `first_report_at`, `feature_at`, `entities`, `affected_sectors`, `gdelt_query`; features with `vixZ`; forecast output per holding.
 - [ ] `schemas/news.ts`: `query_key`, `prefilter_match`, `peer_tickers`, `event_type`, `entity_sentiment`, `factor_directions`, `market_event_id`. `schemas/live.ts`: `event.detected`, `event.updated`; `news.scored` gains `eventType`. `schemas/runs.ts`: `event_profile`, `market_event_id`; `run.completed` gains `eventProfile`. `schemas/evidence.ts`: kind `event`.
-- [ ] `constants.ts`: the section 11 universe and portfolio, `SECTORS`, `PEERS`, `EXTERNAL_PEERS` (starting list), `FACTORS`, `FORECAST_TARGETS`, `EVENT_TYPES`, `EVENT_SUBTYPES`, `EVENT_KEYWORDS`, `NEWS_QUERIES` and `SENTIMENT_QUERIES` keyed by type, `AV_ROTATION`, `HEDGE_MENU`, `REPLAY_PRESETS` (six), the thresholds in SPEC 11. Remove `MUR`, `PBF`, `BNO` from the universe.
+- [ ] `constants.ts`: the section 11 universe and portfolio, `SECTORS`, `PEERS`, `EXTERNAL_PEERS` (starting list), `FACTORS`, `FORECAST_TARGETS`, `EVENT_TYPES`, `EVENT_SUBTYPES`, `EVENT_KEYWORDS`, `NEWS_QUERIES` keyed by type, `SEVERITY_VOLZ`, `AV_ROTATION`, `HEDGE_MENU`, `REPLAY_PRESETS` (six), the thresholds in SPEC 11. Remove `MUR`, `PBF`, `BNO` from the universe.
 - [ ] Fixtures: keep the Ida run and add the `event` step; add a complete Ukraine run (`fixtures/ukraine-run.ts`, values marked as fixture data) with direct, peer and factor channels; event fixtures for the live feed.
 - [ ] Tests updated; gate commands green. 10-minute team review, merge to `main`, announce in the team chat.
 
@@ -214,7 +214,7 @@ Contracts v1 was merged in Phase 0 against the hurricane-only spec. SPEC v2 (sec
 
 **Track C: Quant and proof**
 - [ ] `quant` modules from SPEC 3: series, stats, risk, exposure, hedge, geo, forecast, detect, backtest. Pure functions only.
-- [ ] Known-answer tests: beta and R² against a hand calculation; VaR and CVaR on a fixed 20-value series; overlapping 5-day sums; haversine against two independently computed distances (within 1 km); grouped kNN weights (identical vectors equal, a far event near zero, a type mismatch adds exactly the `TYPE_WEIGHT` distance, the weather group is used only between two hurricanes, leave-one-out excludes self, effective n formula, the fewer-than-3-analogs fallback); exposure channels (direct, peer via `PEERS` and `EXTERNAL_PEERS`, factor only above `FACTOR_BETA_MIN` and R² 0.1); severity thresholds; hedge sizing respects every limit and yields integers; capacity at risk counts each refinery once and interpolates to 1-hour steps.
+- [ ] Known-answer tests: beta and R² against a hand calculation; VaR and CVaR on a fixed 20-value series; overlapping 5-day sums; haversine against two independently computed distances (within 1 km); grouped kNN weights (identical vectors equal, a far event near zero, a type mismatch adds exactly `TYPE_WEIGHT²` to the type group's squared distance, the weather group is used only between two hurricanes, leave-one-out excludes self, effective n formula, the fewer-than-3-analogs fallback); exposure channels (direct, peer via `PEERS` and `EXTERNAL_PEERS`, factor only above `FACTOR_BETA_MIN` and R² 0.1); detection clustering (same type plus a shared ticker or a title-word Jaccard of at least `DETECT_JACCARD`; no API calls); severity thresholds; hedge sizing respects every limit and yields integers; capacity at risk counts each refinery once and interpolates to 1-hour steps.
 - [ ] Pure event builders: (a) hurricanes: storm points, refineries, price and timeline series in; t0, features, company capacity at risk, reactions and `realized_until` out; (b) curated events: `first_report_at`, timeline and VIX series, prices in; `feature_at`, t0, `volZ`, `toneZ`, `vixZ`, reactions and `realized_until` out. Tested on synthetic data. Seed step 5 calls both.
 
 **GATE C:** `pnpm --filter @repo/quant test` green; every exported function has at least one test.
@@ -236,7 +236,7 @@ Contracts v1 was merged in Phase 0 against the hurricane-only spec. SPEC v2 (sec
 **Track A**
 - [ ] Seed step 5 with Track C's builders: hurricanes 2017 to 2025 and the curated events, all with GDELT timeline features and VIX. Upsert Pinecone `events`.
 - [ ] Seed step 6: replay news for the six presets, prefiltered, scored through `services/llm` (Haiku), upserted to Pinecone `news`.
-- [ ] Services `news.search` (Pinecone, then Postgres hydration, as-of window, event-type filter), `events.profileFromNews`, `weather` (`stormsAt`, `track` with the replay perfect forecast, `hypotheticalTrack`, `refineries`), `analogs.search`, `portfolio.snapshot`.
+- [ ] Services `news.search` (Pinecone, then Postgres hydration, as-of window, event-type filter), `events.profileFromNews`, `events.buildEventQuery`, `news.newsFeatures` (one function for every event's news features, SPEC 5.9), `weather` (`stormsAt`, `track` with the replay perfect forecast, `hypotheticalTrack`, `refineries`), `analogs.search`, `portfolio.snapshot`.
 - [ ] Read routes: `portfolio.get`, `market.bars`, `news.list`, `weather.storms`, `weather.track`, `weather.refineries`, `macro.snapshot`, `analogs.list`.
 
 **GATE A2:** at the Ida as-of, `weather.track` returns observed points plus 72 hours of labelled forecast; at the Ukraine as-of, a news search for "Russia Ukraine invasion" returns only items inside the 72-hour window; `analogs.search` at each preset as-of never returns that event or any later event.
