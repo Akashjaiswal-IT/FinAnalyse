@@ -28,6 +28,7 @@ import { RiskSummary } from "./risk-summary";
 import { RunProvider, type DrilldownTarget } from "./run-context";
 import { StepLog } from "./step-log";
 import { WeatherMap } from "./weather-map";
+import { WhatHappened } from "./what-happened";
 
 /** The terminal: top bar and three resizable columns (portfolio, question and answer, step log). */
 export function Terminal() {
@@ -133,6 +134,7 @@ export function Terminal() {
                 <HedgeTable />
                 <RiskSummary />
                 <ForecastPanel />
+                {apiMode && <WhatHappened presetId={url.presetId} />}
                 {apiMode && <WeatherMap />}
               </div>
             </main>

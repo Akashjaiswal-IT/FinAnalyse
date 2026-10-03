@@ -267,3 +267,39 @@ The reported result is h = 1. The other bandwidths are shown next to it, never i
 | q19 | statement | partial | ok | ok | ok | sentiment, macro, analogs | template |
 | q20 | out_of_scope | partial | ok | ok | ok | none | template |
 <!-- results:eval:end -->
+
+<!-- results:drills:start -->
+## Robustness drills (SPEC 9.4)
+
+- Run: 2026-10-03T13:04:34.525Z on Akashs-MacBook-Air.local, commit `e64a82e (uncommitted changes)`. 26/26 drill runs pass every check.
+- Checks: the run does not fail; a caveat or warning names the missing input (n/a where the input is read from Postgres at run time); confidence is not above the baseline; no unresolved placeholders; no digits outside placeholders.
+
+| Drill | Question | Status | Confidence | Not failed | Caveat | Confidence | Placeholders | Digits |
+|---|---|---|---|---|---|---|---|---|
+| baseline | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| baseline | ida | partial | high | pass | n/a | pass | pass | pass |
+| tiingo disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| tiingo disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| fred disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| fred disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| eia disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| eia disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| alphavantage disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| alphavantage disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| nhc disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| nhc disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| gdelt disabled | ukraine | partial | medium | pass | pass | pass | pass | pass |
+| gdelt disabled | ida | partial | high | pass | pass | pass | pass | pass |
+| openmeteo disabled | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| openmeteo disabled | ida | partial | high | pass | n/a | pass | pass | pass |
+| pinecone unreachable | ukraine | partial | medium | pass | pass | pass | pass | pass |
+| pinecone unreachable | ida | partial | medium | pass | pass | pass | pass | pass |
+| all news sources disabled | ukraine | partial | medium | pass | pass | pass | pass | pass |
+| all news sources disabled | ida | partial | medium | pass | pass | pass | pass | pass |
+| alpha vantage quota at 24 | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| alpha vantage quota at 24 | ida | partial | high | pass | n/a | pass | pass | pass |
+| enrichment quota exhausted | ukraine | partial | medium | pass | n/a | pass | pass | pass |
+| enrichment quota exhausted | ida | partial | high | pass | n/a | pass | pass | pass |
+| invalid ANTHROPIC_API_KEY | ukraine | partial | medium | pass | pass | pass | pass | pass |
+| invalid ANTHROPIC_API_KEY | ida | partial | high | pass | pass | pass | pass | pass |
+<!-- results:drills:end -->
