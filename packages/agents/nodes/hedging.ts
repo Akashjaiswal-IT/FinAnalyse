@@ -187,7 +187,8 @@ export const hedgingNode: NodeImpl = async (state, env) => {
   let hedge: HedgePlan;
   let degraded = false;
   const final = accepted as Accepted | null;
-  if (run.ok && final) {
+  // A plan the submit tool accepted passed every limit check, even if the loop failed after it.
+  if (final) {
     const keys = recordAfter(final);
     hedge = {
       source: "model",
