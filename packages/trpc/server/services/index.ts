@@ -1,3 +1,2 @@
-import UserService from "@repo/services/user";
-
-export const userService = new UserService();
+// Service instances (template pattern: one class per domain) are added here from Phase 1.
+export {};

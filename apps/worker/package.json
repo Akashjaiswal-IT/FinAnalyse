@@ -1,0 +1,28 @@
+{
+  "name": "@repo/worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "dotenv -- tsx watch ./src/index.ts",
+    "build": "tsup",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint --max-warnings 0 ."
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@swc/core": "^1.15.8",
+    "@types/node": "^22.15.3",
+    "dotenv-cli": "^11.0.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@repo/contracts": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/services": "workspace:*",
+    "zod": "^4.3.5"
+  }
+}

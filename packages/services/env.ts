@@ -1,9 +1,15 @@
 import { z } from "zod";
 
+// Shared variables only. Each client validates its own keys on first use, so the api
+// does not need worker-only keys and the reverse (docs/SPEC.md section 3, rule 9).
 const envSchema = z.object({
-  GOOGLE_OAUTH_CLIENT_ID: z.string(),
-  GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
-  GOOGLE_OAUTH_REDIRECT_URI: z.string(),
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  MODEL_REASONING: z.string().default("claude-sonnet-5-5"),
+  MODEL_FAST: z.string().default("claude-haiku-4-5"),
+  DISABLE_SOURCES: z
+    .string()
+    .default("")
+    .transform((v) => v.split(",").map((s) => s.trim()).filter(Boolean)),
 });
 
 function createEnv(env: NodeJS.ProcessEnv) {

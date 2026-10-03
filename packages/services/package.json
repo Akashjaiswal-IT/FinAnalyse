@@ -11,7 +11,11 @@
   "dependencies": {
     "@repo/database": "workspace:*",
     "@repo/logger": "workspace:*",
-    "google-auth-library": "^10.5.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.5",
+    "@repo/contracts": "workspace:*"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "eslint --max-warnings 0 ."
   }
 }
