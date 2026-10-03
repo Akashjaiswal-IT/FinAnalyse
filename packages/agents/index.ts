@@ -9,3 +9,4 @@ export * from "./runner";
 export * from "./state";
 export * from "./verify";
 export * from "./fakes";
+export * from "./services";

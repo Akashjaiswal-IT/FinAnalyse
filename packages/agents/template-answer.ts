@@ -30,7 +30,7 @@ export function buildTemplateAnswer(state: RunStateValue, ledger: Ledger): Answe
 
   const title = ph(TAG.eventTitle);
   bullet([title, ph(TAG.eventArticles), ph(TAG.eventVolZ)], ([t, a, z]) =>
-    `${t} drew ${a} articles in the first day of coverage, a news volume z-score of ${z}.`,
+    `${t} is covered by ${a} retrieved articles, a news volume z-score of ${z}.`,
   );
   bullet([ph(TAG.exposedDirect), ph(TAG.exposedPeer), ph(TAG.exposedFactor)], ([d, p, f]) =>
     `Holdings worth ${d} are directly exposed, ${p} through peers and ${f} through factors.`,

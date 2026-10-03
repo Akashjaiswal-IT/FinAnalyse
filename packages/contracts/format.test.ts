@@ -80,4 +80,14 @@ describe("availability", () => {
     expect(weeklyAvailableAt("2021-08-20").toISOString()).toBe("2021-08-25T00:00:00.000Z");
     expect(weeklyAvailableAt("2021-08-28").toISOString()).toBe("2021-09-02T00:00:00.000Z");
   });
+
+  it("rolls a value that rounds up into the next unit", () => {
+    expect(formatValue("usd", 999_970)).toBe("$1M");
+    expect(formatValue("usd", -999_970)).toBe("-$1M");
+    expect(formatValue("usd", 999_940)).toBe("$999.9K");
+    expect(formatValue("usd", 999.7)).toBe("$1K");
+    expect(formatValue("usd", 999.2)).toBe("$999");
+    expect(formatValue("usd", 999_960_000)).toBe("$1B");
+    expect(formatValue("bpd", 999_996)).toBe("1M b/d");
+  });
 });
