@@ -7,4 +7,6 @@ export * from "./geo";
 export * from "./forecast";
 export * from "./detect";
 export * from "./backtest";
+export * from "./backtest-report";
 export * from "./event-builder";
+export * from "./results-doc";
