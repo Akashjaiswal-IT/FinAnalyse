@@ -44,8 +44,9 @@ export class Ledger {
   }
 
   /** Inserts a row with its own key. For the fixture stubs and tests; real nodes use `add`. */
-  restore(row: Evidence): void {
+  restore(row: Evidence, tag?: string): void {
     this.store(row);
+    if (tag) this.byTag.set(tag, row.key);
   }
 
   private store(row: Evidence): void {
