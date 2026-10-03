@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: cp .env.example .env
+      - run: bash setup.sh
       - run: pnpm install --frozen-lockfile
       - run: pnpm check-types
       - run: pnpm lint
