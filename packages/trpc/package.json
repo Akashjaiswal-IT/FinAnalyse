@@ -9,12 +9,13 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@repo/agents": "workspace:*",
+    "@repo/contracts": "workspace:*",
     "@repo/services": "workspace:*",
     "@trpc/client": "^11.8.1",
     "@trpc/server": "^11.8.1",
     "trpc-to-openapi": "^3.1.0",
-    "zod": "^4.3.5",
-    "@repo/contracts": "workspace:*"
+    "zod": "^4.3.5"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

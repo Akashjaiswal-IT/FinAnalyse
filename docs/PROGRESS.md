@@ -21,3 +21,27 @@ Done by one contributor across all tracks.
 - `components/ui/resizable.tsx` was updated for `react-resizable-panels` v4 (`Group`, `Separator`). The `aria-[orientation=...]` styles are untested until the terminal layout renders them.
 - Root scripts `seed`, `backtest`, `eval`, `bench:ingest` and `drills` point at files that Phase 1 and 2 create.
 - The first Drizzle migration is regenerated in Phase 1, Track A, once the models exist.
+
+## Track A: Data
+
+Entries at H7, H12 and H18.
+
+
+
+## Track B: Agents and API
+
+Entries at H7, H12 and H18.
+
+
+
+## Track C: Quant and proof
+
+Entries at H7, H12 and H18.
+
+
+
+## Track D: Terminal
+
+Entries at H7, H12 and H18.
+
+
