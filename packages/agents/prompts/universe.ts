@@ -17,4 +17,5 @@ export const REGIONS_BLOCK = Object.keys(LANDFALL_REGIONS).join(", ");
 export const NO_DIGITS_RULE =
   "Never write a number in digits anywhere in your output, and never write a ticker or company that is not in the allowed list. " +
   "Every quantity (a price move, a dollar amount, a count, a z-score, a date) is an evidence placeholder such as {{E12}}; the application replaces it with the formatted value. " +
+  "Write periods and counts that come from the question in words ('five trading days', 'ten-year yield'), never in digits; refer to Phillips 66 as PSX. " +
   "Do not write all-capital words other than allowed symbols and the acronyms VIX, NAV, ETF, OPEC and WTI.";

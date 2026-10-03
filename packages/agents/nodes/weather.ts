@@ -1,5 +1,6 @@
 import {
   COAST_ANCHOR_RADIUS_KM,
+  GULF_BOX,
   HUB_FORECAST_HOURS,
   OFFSHORE_BOX,
   SAFFIR_SIMPSON_KT,
@@ -13,6 +14,7 @@ import {
   capacityAtRisk,
   hurricaneShareInBox,
   impactPoints,
+  inBox,
   impactSourcePoints,
   maxWindBetween,
   nearestLandfallRegion,
@@ -54,7 +56,7 @@ async function chooseStorm(state: RunStateValue, env: NodeEnv): Promise<StormTra
   // Several candidates and none named: the one with a position inside the Gulf box.
   for (const s of storms) {
     const t = await deps.weather.track(s.id, when);
-    if (t?.points.some((p) => p.lat >= 18 && p.lat <= 31 && p.lon >= -98 && p.lon <= -80)) return t;
+    if (t?.points.some((p) => inBox(p.lat, p.lon, GULF_BOX))) return t;
   }
   return { reason: "no active Gulf storm at as-of" };
 }
