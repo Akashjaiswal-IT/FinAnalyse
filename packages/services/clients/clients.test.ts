@@ -6,6 +6,8 @@ import { EiaSeriesResponse, parseEiaSeries } from "./eia";
 import { FredObservations, parseFredObservations } from "./fred";
 import {
   formatGdeltDate,
+  GDELT_MIN_INTERVAL_MS,
+  GdeltClient,
   GdeltArtlist,
   GdeltTimeline,
   normaliseArticles,
@@ -101,6 +103,39 @@ describe("gdelt", () => {
   it("formats and parses dates", () => {
     expect(formatGdeltDate(new Date("2021-08-25T06:00:00Z"))).toBe("20210825060000");
     expect(parseGdeltDate("20210826T171500Z")).toBe("2021-08-26T17:15:00.000Z");
+  });
+
+  it("runs one request at a time, 5 s after the previous response, and retries no sooner", async () => {
+    let clock = 0;
+    const events: string[] = [];
+    const replies: (Response | Error)[] = [
+      new Response(JSON.stringify({ articles: [] })),
+      new TypeError("fetch failed"),
+      new Response(JSON.stringify({ articles: [] })),
+    ];
+    const sleep = async (ms: number) => {
+      events.push(`sleep ${ms}`);
+      clock += ms;
+    };
+    const http = new HttpClient({
+      fetch: (async () => {
+        events.push(`fetch at ${clock}`);
+        clock += 12_000; // GDELT responses take 10 to 30 s.
+        const r = replies.shift()!;
+        if (r instanceof Error) throw r;
+        return r;
+      }) as typeof fetch,
+      store: null,
+      now: () => clock,
+      sleep,
+      random: () => 0.5,
+      disabledSources: [],
+      log: () => {},
+    });
+    const gdelt = new GdeltClient(http, () => clock, sleep);
+    await Promise.all([gdelt.artlist("a", { timespan: "1h" }), gdelt.artlist("b", { timespan: "1h" })]);
+    expect(events).toEqual(["fetch at 0", "sleep 5000", "fetch at 17000", "sleep 7500", "fetch at 36500"]);
+    expect(GDELT_MIN_INTERVAL_MS).toBe(5_000);
   });
 
   it("rejects the plain-text throttle body that arrives with HTTP 200", async () => {

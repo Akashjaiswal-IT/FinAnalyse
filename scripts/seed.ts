@@ -12,6 +12,7 @@ import {
 } from "../packages/database/schema";
 import { closeRedis } from "../packages/services/clients/redis";
 import { ensureIndex, getPinecone } from "../packages/services/clients/pinecone";
+import { seedAnalogs } from "./seed/analogs";
 import { log, type SeedOptions } from "./seed/lib";
 import { seedPrices } from "./seed/prices";
 import { seedRefineries } from "./seed/refineries";
@@ -25,6 +26,7 @@ const STEPS = {
   prices: (o: SeedOptions) => seedPrices(o),
   storms: (o: SeedOptions) => seedStorms(o),
   refineries: (_: SeedOptions) => seedRefineries(),
+  analogs: (o: SeedOptions) => seedAnalogs(o),
   pinecone: async (_: SeedOptions) => {
     log("pinecone", `index: ${await ensureIndex()}`);
     log("pinecone", `namespace counts: ${JSON.stringify(await getPinecone().namespaceCounts())}`);

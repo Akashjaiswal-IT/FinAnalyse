@@ -88,6 +88,8 @@ export interface RequestOptions<T> {
   body?: "json" | "text";
   headers?: Record<string, string>;
   timeoutMs?: number;
+  /** Delays before each retry of a network error or 5xx; default 0.5 s then 1.5 s, jittered. */
+  retryDelaysMs?: readonly number[];
   /** Provider throttle bodies with status 200 (Alpha Vantage `Information`/`Note`): return a message or null. */
   throttled?: (body: unknown) => string | null;
 }
@@ -189,9 +191,9 @@ export class HttpClient {
       try {
         return await this.once(options);
       } catch (error) {
-        const delay = RETRY_DELAYS_MS[attempt];
+        const delay = (options.retryDelaysMs ?? RETRY_DELAYS_MS)[attempt];
         if (!(error instanceof UpstreamError) || delay === undefined) throw error;
-        // Jitter of +-25% around 0.5 s, then 1.5 s.
+        // Jitter of +-25% around each delay.
         await this.deps.sleep(Math.round(delay * (0.75 + 0.5 * this.deps.random())));
       }
     }
