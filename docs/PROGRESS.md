@@ -64,7 +64,21 @@ Entries at H7, H12 and H18.
 
 **Team data cache:** `data/cache/tempest-data-cache-2026-10-03.zip` (6.3 MB: Tiingo, FRED, EIA, HURDAT2, EIA refineries). Unzip into `data/cache/`, then `pnpm seed` uses no API quota. Shared inside the team only (Tiingo licence).
 
-**Next (Phase 2):** seed step 5 with Track C's builders, seed step 6, `news.search`, `newsFeatures`, `events.profileFromNews` and `buildEventQuery`, weather, analogs, portfolio, read routes.
+### Phase 2 progress (2026-10-03, 17:20 IST)
+
+**Works**
+- `weather`: `stormsAt`, `track` (observed + perfect-forecast replay for HURDAT2, latest NHC advisory live, persistence fallback), `hypotheticalTrack` (SPEC 5.12), `refineries`, `hubForecasts`; at-risk refineries within 100 km of 64 kt points at 1-hour steps. At the Ida as-of: 6 observed points, 14 forecast points to 2021-08-30 18:00 labelled `perfect_forecast_replay`, 9 refineries at risk.
+- `portfolio.snapshot`: demo portfolio at the Ukraine as-of, 23 positions, cash $501,501 (5%).
+- `analogs`: `search` (Pinecone filter + Postgres re-check), `get`, `list`, `presetEvent` (pre-outcome fields only).
+- `news`: `upsertBatch` (SPEC 5.2: dedupe, prefilter, parallel Postgres and Pinecone writes, `indexed_at`), `search`, `list`, `typeCounts`.
+- Routes `portfolio.get`, `market.instruments`, `market.bars`, `news.list`, `weather.storms`, `weather.track`, `weather.refineries`, `macro.snapshot`, `analogs.list`, each checked with curl against the seeded database.
+- Seed step 5 (`pnpm seed --only=analogs`) with Track C's builders: hurricanes 2017 onward from HURDAT2 and the 36 curated events, into `analog_events` and Pinecone `events`.
+- GATE A2 checks covered by tests: Ida track (observed + 72 h labelled forecast); news search at the Ukraine as-of returns only items in the 72 h window; analogs search never returns the replayed or a later event.
+
+**Blocked or waiting**
+- GDELT: still refuses most requests from this machine at 1 request per 5 s (end to start); seed step 5 cached 2 of about 100 timelines in 25 minutes. Workaround: anyone on another network runs `pnpm seed --only=analogs` (cached timelines land in `data/cache/gdelt/timeline/`) and zips that folder for the team; events without timelines are seeded with null news features and listed in the log. Seed step 6 (replay news) has the same dependency.
+- `news.newsFeatures`, `events.detect` and `events.profileFromNews` need `@repo/quant` in `services` (request 2 above); `scoreUnscored` and `profileFromNews` also need Track B's `services/llm`.
+- `@repo/logger` rejects `NODE_ENV=test` at import, so any test that loads the logger fails (the weather service loads it lazily for that reason). The logger has no owner in TEAM.md; Track B, please add `test` to its `NODE_ENV` enum.
 
 **Blockers**
 - GDELT answers this IP with HTTP 429 or drops the connection on nearly every request since mid-morning. GDELT checks 13 (4 queries) and 15 (3 timelines) are pending. If it does not recover, seed steps 5 and 6 (timeline features and replay news) are blocked; the worker would run on Alpha Vantage only.
