@@ -112,7 +112,7 @@ describe("news.search and news.list (GATE A2)", () => {
     expect(hits.map((h) => h.item.url.replace(URL_PREFIX, "")).sort()).toEqual(["in1", "in2"]);
     expect(hits.every((h) => Date.parse(h.item.publishedAt) >= start && Date.parse(h.item.publishedAt) <= UKRAINE_AS_OF.getTime())).toBe(true);
 
-    const listed = await service.list({ asOf: UKRAINE_AS_OF, limit: 50, ticker: undefined });
+    const listed = await service.list({ asOf: UKRAINE_AS_OF, limit: 10_000, ticker: undefined });
     const ours = listed.filter((n) => n.url.startsWith(URL_PREFIX)).map((n) => n.url.replace(URL_PREFIX, ""));
     expect(ours).toEqual(["in1", "in2", "old"]);
   });
