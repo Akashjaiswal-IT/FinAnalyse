@@ -67,7 +67,7 @@ export function synthesizerContext(state: RunStateValue, query: string, mode: st
 }
 
 function templateOutcome(state: RunStateValue, ledger: Ledger, summary: string): NodeOutcome {
-  const draft: Draft = { draft: buildTemplateAnswer(state, ledger), source: "template", confidence: confidenceFor(state, ledger) };
+  const draft: Draft = { draft: buildTemplateAnswer(state, ledger, "synthesizer"), source: "template", confidence: confidenceFor(state, ledger) };
   return { update: { draft }, status: "degraded", summary, output: draft.draft };
 }
 

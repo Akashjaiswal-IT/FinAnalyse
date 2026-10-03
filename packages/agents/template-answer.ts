@@ -14,7 +14,7 @@ const FORECAST_SENTENCES: readonly [string, string][] = [
 
 /** The deterministic answer used when the model's draft cannot be repaired (SPEC 5.6). Every sentence is built
  * from rows the nodes tagged; a sentence whose rows are missing is left out, never filled with a guess. */
-export function buildTemplateAnswer(state: RunStateValue, ledger: Ledger): AnswerDraft {
+export function buildTemplateAnswer(state: RunStateValue, ledger: Ledger, producer: "synthesizer" | "verifier"): AnswerDraft {
   const k = (tag: string) => ledger.tagged(tag);
   const ph = (tag: string) => {
     const key = k(tag);
@@ -53,7 +53,7 @@ export function buildTemplateAnswer(state: RunStateValue, ledger: Ledger): Answe
   );
 
   if (bullets.length === 0) {
-    const key = ledger.add("synthesizer", {
+    const key = ledger.add(producer, {
       kind: "computation",
       label: "Evidence rows recorded for this run",
       value: ledger.all().length,

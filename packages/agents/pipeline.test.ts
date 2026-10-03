@@ -35,6 +35,17 @@ const handlers = (plan = modelPlan()) => ({
 });
 const tools = { hedging: hedgeLikeAModel };
 
+/** Every key an answer cites or renders must be a persisted evidence row (SPEC 5.6, check 1). */
+function expectGrounded(got: Awaited<ReturnType<ReturnType<typeof newRuntime>["runs"]["get"]>>) {
+  const keys = new Set(got?.evidence.map((e) => e.key));
+  const answer = got?.run.answer;
+  expect(answer).toBeTruthy();
+  const texts = [answer?.headline, answer?.summary, ...(answer?.bullets.map((b) => b.text) ?? []), ...(answer?.caveats ?? [])];
+  const used = texts.flatMap((t) => [...(t?.template.matchAll(/\{\{(E\d+)\}\}/g) ?? [])].map((m) => m[1] as string));
+  const cited = answer?.bullets.flatMap((b) => b.evidenceKeys) ?? [];
+  for (const k of [...used, ...cited]) expect(keys.has(k)).toBe(true);
+}
+
 const stepStatus = (events: { event: RunEvent }[]) =>
   Object.fromEntries(events.flatMap((e) => (e.event.type === "step.completed" ? [[e.event.node, e.event.status]] : [])));
 
@@ -51,6 +62,7 @@ describe("full pipeline with the real nodes and fake services", () => {
     expect(stepStatus(events)).toMatchObject({ planner: "done", event: "done", weather: "skipped", sentiment: "done", macro: "done", analogs: "done", risk: "done", hedging: "done", synthesizer: "done", verifier: "done" });
     expect(run?.status).toBe("succeeded");
     expect(run?.verification?.passed).toBe(true);
+    expectGrounded(got);
     expect(got?.evidence.length).toBeGreaterThanOrEqual(20);
     // Every step says what it read (SPEC 8, drilldown inputs).
     expect(got?.steps.every((s) => s.input !== null && s.input !== undefined)).toBe(true);
@@ -187,5 +199,25 @@ describe("follow-up on a thread", () => {
     expect(peak(redo)).toBe(2);
     expect(redo?.evidence.find((e) => e.label === "Category assumed in the follow-up")).toMatchObject({ value: 2, basis: "assumption" });
     expect(redo?.run.verification?.passed).toBe(true);
+  });
+});
+
+describe("everything down", () => {
+  it("still ends with a grounded template answer when every service and the model fail", async () => {
+    const { runtime, runs } = newRuntime({}, defaultNodes(), "ukraine");
+    const boom = async () => { throw new Error("source is down"); };
+    const deps = (runtime as unknown as { deps: Record<string, Record<string, unknown>> }).deps;
+    for (const name of ["market", "macro", "news", "events", "weather", "analogs", "portfolio"]) {
+      deps[name] = Object.fromEntries(Object.keys(deps[name] as object).map((k) => [k, boom]));
+    }
+    const { runId } = await runtime.start({ query: ukraineQuery, mode: "replay", replayPresetId: "geopolitical-russia-ukraine-2022" });
+    await runtime.finished(runId);
+    const got = await runs.get(runId);
+    expect(got?.run.status).toBe("partial");
+    expect(got?.run.answer?.source).toBe("template");
+    expect(got?.run.confidence).toBe("low");
+    expect(got?.run.verification?.checks.filter((c) => !c.passed && c.name !== "caveats")).toEqual([]);
+    expectGrounded(got);
+    expect(got?.run.answer?.bullets.length).toBeGreaterThan(0);
   });
 });

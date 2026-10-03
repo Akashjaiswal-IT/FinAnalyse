@@ -64,7 +64,7 @@ export const verifierNode: NodeImpl = (state, env) => {
     };
   }
 
-  const fallback: Draft = { draft: buildTemplateAnswer(state, ledger), source: "template", confidence: confidenceFor(state, ledger) };
+  const fallback: Draft = { draft: buildTemplateAnswer(state, ledger, "verifier"), source: "template", confidence: confidenceFor(state, ledger) };
   const templated = check(state, ledger, fallback);
   env.ctx.warnings.push("verifier: template answer used after a failed repair");
   return finish(state, ledger, env.ctx.query, fallback, { ...verification, appendedCaveats: templated.appendedCaveats }, templated.caveats);
@@ -72,7 +72,7 @@ export const verifierNode: NodeImpl = (state, env) => {
 
 /** A verifier crash must not ship an unchecked model draft: fall back to the template answer. */
 export const verifierRecover: Recover = (state, env) => {
-  const fallback: Draft = { draft: buildTemplateAnswer(state, env.ctx.ledger), source: "template", confidence: confidenceFor(state, env.ctx.ledger) };
+  const fallback: Draft = { draft: buildTemplateAnswer(state, env.ctx.ledger, "verifier"), source: "template", confidence: confidenceFor(state, env.ctx.ledger) };
   return finish(
     state,
     env.ctx.ledger,
