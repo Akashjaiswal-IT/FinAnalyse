@@ -61,26 +61,49 @@ export function parseSearch(body: unknown): SearchHit[] {
   return SearchRecordsResponse.parse(body).result.hits.map((h) => ({ id: h._id, score: h._score, fields: h.fields }));
 }
 
+/** Pinecone's SDK reports dropped connections as "Request failed to reach Pinecone"; those are retried. */
+const RETRY_DELAYS_MS = [1_000, 3_000] as const;
+const isConnectionError = (e: unknown) => e instanceof Error && (e.name === "PineconeConnectionError" || /failed to reach pinecone/i.test(e.message));
+
+async function withRetry<T>(fn: () => Promise<T>, sleep: (ms: number) => Promise<void>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const delay = RETRY_DELAYS_MS[attempt];
+      if (delay === undefined || !isConnectionError(error)) throw error;
+      await sleep(delay);
+    }
+  }
+}
+
 export class PineconeClient {
-  constructor(private readonly index: PineconeIndexLike) {}
+  constructor(
+    private readonly index: PineconeIndexLike,
+    private readonly sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+  ) {}
 
   /** Upserts in batches of at most 96 records (ROADMAP gotcha 7). */
   async upsert(namespace: Namespace, records: readonly TextRecord[]): Promise<number> {
     for (const batch of chunk(records, PINECONE_UPSERT_BATCH)) {
-      await this.index.upsertRecords({
-        namespace,
-        records: batch.map((r) => ({ _id: r.id, text: r.text, ...r.metadata })),
-      });
+      await withRetry(
+        () => this.index.upsertRecords({ namespace, records: batch.map((r) => ({ _id: r.id, text: r.text, ...r.metadata })) }),
+        this.sleep,
+      );
     }
     return records.length;
   }
 
   async search(namespace: Namespace, text: string, topK: number, filter?: object, fields?: string[]): Promise<SearchHit[]> {
-    const body = await this.index.searchRecords({
-      namespace,
-      query: { topK, inputs: { text }, ...(filter ? { filter } : {}) },
-      ...(fields ? { fields } : {}),
-    });
+    const body = await withRetry(
+      () =>
+        this.index.searchRecords({
+          namespace,
+          query: { topK, inputs: { text }, ...(filter ? { filter } : {}) },
+          ...(fields ? { fields } : {}),
+        }),
+      this.sleep,
+    );
     return parseSearch(body);
   }
 

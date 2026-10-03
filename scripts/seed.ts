@@ -16,6 +16,7 @@ import { seedAnalogs } from "./seed/analogs";
 import { log, type SeedOptions } from "./seed/lib";
 import { seedPrices } from "./seed/prices";
 import { seedRefineries } from "./seed/refineries";
+import { seedReplayNews } from "./seed/replay-news";
 import { seedStorms } from "./seed/storms";
 import { seedUniverse } from "./seed/universe";
 
@@ -27,6 +28,7 @@ const STEPS = {
   storms: (o: SeedOptions) => seedStorms(o),
   refineries: (_: SeedOptions) => seedRefineries(),
   analogs: (o: SeedOptions) => seedAnalogs(o),
+  news: (o: SeedOptions) => seedReplayNews(o),
   pinecone: async (_: SeedOptions) => {
     log("pinecone", `index: ${await ensureIndex()}`);
     log("pinecone", `namespace counts: ${JSON.stringify(await getPinecone().namespaceCounts())}`);

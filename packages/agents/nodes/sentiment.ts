@@ -3,7 +3,7 @@ import { NEWS_WINDOW_HOURS } from "@repo/contracts";
 import type { NodeEnv, NodeImpl } from "../context";
 import { loadPortfolio } from "../data";
 import { finding, writeFindings } from "../notes";
-import { aggregateSentiment } from "../sentiment-math";
+import { aggregateSentiment, withSourceScores } from "../sentiment-math";
 import type { RunStateValue } from "../state";
 
 const sectorName = (s: Sector) => s.replaceAll("_", " ");
@@ -45,6 +45,7 @@ export const sentimentNode: NodeImpl = async (state: RunStateValue, env) => {
     if (scored.length > 0) items = await gather(env, query, watch);
   }
 
+  items = items.map(withSourceScores);
   const agg = aggregateSentiment(items, env.ctx.asOf, positions);
   if (agg.scoredIds.length === 0) {
     const output: SentimentOutput = { status: "unavailable", reason: "no scored news in the window" };
