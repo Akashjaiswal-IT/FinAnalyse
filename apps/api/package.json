@@ -24,7 +24,6 @@
   "dependencies": {
     "@repo/agents": "workspace:*",
     "@repo/contracts": "workspace:*",
-    "@repo/database": "workspace:*",
     "@repo/logger": "workspace:*",
     "@repo/services": "workspace:*",
     "@repo/trpc": "workspace:*",
