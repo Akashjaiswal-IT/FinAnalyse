@@ -45,7 +45,7 @@ flowchart LR
 |---|---|
 | `apps/api` | Express: `/trpc` (queries, mutations, SSE subscriptions), `/api` (REST), `/openapi.json`, `/docs` (Scalar), `/health`. Runs the agent graph in process. |
 | `apps/worker` | BullMQ ingestion, enrichment and event detection. |
-| `apps/web` | The terminal: live agent graph, event card, answer with evidence chips, hedge table, drilldown. |
+| `apps/web` | The terminal: live agent graph, event card, answer with evidence chips, hedge table, risk and forecast charts, storm map, Events / News / Sources tabs, drilldown, `/reliability`. |
 | `packages/contracts` | Zod schemas, constants, formatters and fixtures shared by every package. Browser-safe. |
 | `packages/agents` | The LangGraph graph, evidence ledger, verifier, fallbacks, prompts. |
 | `packages/quant` | Pure maths: returns, betas, VaR, exposure channels, hedge sizing, kernel kNN forecast, backtest. No I/O, no clock. |
@@ -88,7 +88,7 @@ pnpm stream-run <runId>    # print a run's events; --drop-after=7 shows a reconn
 | `pnpm seed [--only=<step>] [--refresh]` | Load reference data. |
 | `pnpm backtest` | Leave-one-out backtest of the combined forecast against type-only, news-only, regime-only, weather-only and unconditional baselines. |
 | `pnpm eval` | The 20-query orchestration eval (`data/eval/queries.json`). |
-| `pnpm bench:ingest` | Ingestion latency, upstream response received to Postgres and Pinecone writes acknowledged. |
+| `pnpm bench:ingest` | Ingestion latency of the worker's real passes, upstream response received to Postgres and Pinecone writes acknowledged. |
 | `pnpm drills` | Robustness drills with sources disabled. |
 | `pnpm run-query`, `pnpm stream-run` | One run, and a run's event stream. |
 
@@ -105,6 +105,8 @@ pnpm stream-run <runId>    # print a run's events; --drop-after=7 shows a reconn
 | `PORT`, `BASE_URL`, `CORS_ORIGIN`, `DEMO_TOKEN` | api | When `DEMO_TOKEN` is set, `runs.create` and `system.ingestNow` need the `x-demo-token` header. Set it on anything reachable from the internet. |
 | `FAKE_SERVICES` | api | `1` serves fixture data to the agents. |
 | `NEXT_PUBLIC_API_URL` | web | Fixed at build time. |
+
+Variables already exported in your shell win over `.env` (dotenv does not override them). If your shell sets `ANTHROPIC_API_KEY` or `ANTHROPIC_BASE_URL`, start the servers with `env -u ANTHROPIC_API_KEY -u ANTHROPIC_BASE_URL pnpm dev`.
 
 Never commit `.env`, `data/cache/` or any Tiingo data; the licence forbids redistributing it.
 

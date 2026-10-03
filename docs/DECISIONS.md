@@ -131,3 +131,16 @@ Verify-first results (ROADMAP section 2), run on 2026-10-03 with curl and Node `
 | 2026-10-03 | Request to Track B (root file): add `apps/web` to `test.projects` in `vitest.config.mts`. | Track D's tests run with `pnpm --filter web test` only until then, so CI does not run them. |
 | 2026-10-03 | Request to Track B (contracts, additive): `step.completed` gets an optional `input`. | SPEC 8 shows inputs and outputs per step in the drilldown, but the event carries only `output`. The drilldown shows outputs and each evidence row's `payload` for now. |
 | 2026-10-03 | Request to Track B (contracts, additive): a formatter from a log return to a simple percent, for the forecast chart and per-holding forecasts. | `Forecast` holds 5-day log returns. ROADMAP gotcha 15 says the UI shows `e^r - 1`, converted only in `quant` or `format.ts`, so the UI cannot do it. Needed in Phase 3. |
+
+## Completion (all tracks)
+
+| Date | Decision | Reason |
+|---|---|---|
+| 2026-10-03 | Replay news windows are seeded from the Alpha Vantage archive (`time_from`/`time_to`, sorted by relevance, two topics per event type), plus GDELT when it answers. | GDELT returns HTTP 429 to this network; Alpha Vantage covers 2022 onward. Presets before 2022 have news only if GDELT is reachable. |
+| 2026-10-03 | The sentiment node uses Alpha Vantage's per-ticker or overall score, at relevance 0.5, for an item with no Haiku score. | Without model credit no item gets a Haiku score, and the node would report "no scored news". The score model is recorded as `alphavantage`. |
+| 2026-10-03 | `scoreUnscored(limit, ids?)` scores the given items; the sentiment node passes the unscored items it found and the enrich job passes its `newsIds`. | Scoring the newest unscored items scored live news during a replay run. |
+| 2026-10-03 | Ingest latency counts items whose `fetched_at` is in the window. | Replay seeding stamps `fetched_at` with the preset's as-of, which made p50 read years. |
+| 2026-10-03 | Anthropic and Pinecone calls write the same `source:<name>` health hash as `HttpClient`. | The Sources tab showed both as "not called yet" although every run uses them. |
+| 2026-10-03 | The storm map uses Esri's dark gray canvas tiles. | CARTO's dark tiles now ask for an API key. |
+| 2026-10-03 | The ingestion bench reports the worker's real passes (`indexed_at - fetched_at` per source) instead of replaying 500 cached GDELT items. | There is no GDELT cache on this network, and replaying items into the live index would leave duplicates in Pinecone. |
+| 2026-10-03 | Drills run `scripts/run-query.ts` in a child process per drill. | `DISABLE_SOURCES` and the Pinecone and Anthropic clients are read once per process. |
