@@ -14,6 +14,7 @@ Every deviation from `docs/SPEC.md` or `docs/ROADMAP.md`, with the reason.
 | 2026-10-03 | `docker-compose.yml` gets healthchecks on both services. | The Phase 0 gate asks for a healthy stack. |
 | 2026-10-03 | ESLint configs are `eslint.config.mjs`, not `.js`. | The packages are CommonJS; `.mjs` avoids a module-type warning without changing the tsup builds. |
 | 2026-10-03 | `components/ui/resizable.tsx` rewritten for `react-resizable-panels` v4. | The shadcn template used the v3 names, so `check-types` failed. |
+| 2026-10-03 | SPEC v2 (proposal): the market event is the centre of the design, not the Gulf hurricane. Eight event types, multi-sector universe (37 symbols), new `event` node, exposure channels, curated event library, per-type backtest. See SPEC section 0. | PS5 uses the hurricane only as an example ("For example") and asks for global news, geopolitical events and cross-asset impact. Pending team review; contracts v2 is ROADMAP Phase 0b. |
 
 ## Track A: Data
 

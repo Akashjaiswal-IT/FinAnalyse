@@ -11,9 +11,9 @@
 
 | Track | Scope | Owns (files) |
 |---|---|---|
-| **A: Data** | Postgres models, external clients, seeds, Pinecone, worker, live relay source side | `packages/database`, `packages/services/clients/*` (except `anthropic.ts`), `packages/services/{market,macro,news,weather,analogs,portfolio,ingest,system,queues}`, `apps/worker`, `scripts/seed*`, `data/` |
-| **B: Agents and API** | Contracts, LLM layer, LangGraph graph, runs, tRPC, api app | `packages/contracts`, `packages/services/{llm,runs}`, `packages/services/clients/anthropic.ts`, `packages/agents`, `packages/trpc`, `apps/api`, `scripts/{run-query,stream-run}.ts` |
-| **C: Quant and proof** | Pure math, forecast, event builder, backtest, eval, bench, drills | `packages/quant`, `scripts/{backtest,eval-queries,ingest-bench,drills}.ts`, `data/eval/` |
+| **A: Data** | Postgres models, external clients, seeds (including the curated event list), Pinecone, worker, event detection job, live relay source side | `packages/database`, `packages/services/clients/*` (except `anthropic.ts`), `packages/services/{market,macro,news,events,weather,analogs,portfolio,ingest,system,queues}`, `apps/worker`, `scripts/seed*`, `data/` (except `data/eval/`) |
+| **B: Agents and API** | Contracts, LLM layer, LangGraph graph (including the event node), runs, tRPC, api app | `packages/contracts`, `packages/services/{llm,runs}`, `packages/services/clients/anthropic.ts`, `packages/agents`, `packages/trpc`, `apps/api`, `scripts/{run-query,stream-run}.ts` |
+| **C: Quant and proof** | Pure math, exposure channels, detection rules, forecast, event builder, backtest, eval, bench, drills | `packages/quant`, `scripts/{backtest,eval-queries,ingest-bench,drills}.ts`, `data/eval/` |
 | **D: Terminal** | Next.js terminal and pages | `apps/web` |
 
 | Team size | Person 1 | Person 2 | Person 3 | Person 4 |
@@ -26,9 +26,10 @@
 
 | Phase | Hours | Who | Done when |
 |---|---|---|---|
-| 0 Scaffold and contracts | H0:00 to H1:30 | all, led by B | template cleaned, packages created, contracts v1 merged, SSE heartbeat visible in the browser |
+| 0 Scaffold and contracts | H0:00 to H1:30 | all, led by B | template cleaned, packages created, contracts v1 merged, SSE heartbeat visible in the browser (**done**) |
+| 0b Contracts v2 (event model) | 45 minutes before Phase 1 | B, reviewed by all | contracts match SPEC v2; Ukraine and Ida fixtures; `main` green |
 | 1 Foundations in parallel | H1:30 to H7:00 | A, B, C, D | each track's gate green; merge point at H7 |
-| 2 Vertical slice: Ida replay end to end | H7:00 to H12:00 | all | integration gate in the browser; tag `slice-1` |
+| 2 Vertical slice: Ukraine and Ida replays end to end | H7:00 to H12:00 | all | integration gate in the browser; tag `slice-1` |
 | 3 Live data, robustness, proof | H12:00 to H18:00 | all | worker live, eval, drills, backtest and bench recorded; P1 UI done |
 | 4 Polish and demo | H18:00 to H21:00 | all | README, rehearsals, backup video; **freeze at H21** |
 | 5 Buffer and submission | H21:00 to H24:00 | all | bug fixes only, submit |
@@ -38,15 +39,18 @@
 1. Every P2 item.
 2. Open-Meteo hubs.
 3. Alpha Vantage live polling (keep GDELT and NHC live).
-4. Price chart and analog table (keep weather map and news feed).
-5. Automated drills (run them by hand once and record the results).
-6. Eval set reduced to 8 queries.
+4. Live event detection: keep the news-search path for live runs (SPEC 5.14, last paragraph); drop `event-feed`.
+5. Replay presets reduced to 4 (keep Ukraine, Ida, OPEC+ cut, SVB).
+6. Price chart and analog table (keep event card, weather map and news feed).
+7. Automated drills (run them by hand once and record the results).
+8. Eval set reduced to 10 queries (at least one per preset type).
+9. Curated events reduced to 20 (at least 2 per type).
 
-Never cut: as-of rules, evidence placeholders and the verifier, fallbacks, the backtest (it is the reliability proof), the drilldown.
+Never cut: as-of rules, evidence placeholders and the verifier, fallbacks, the event node and exposure channels, the backtest (it is the reliability proof), the drilldown.
 
 ### Working agreement
 
-1. `main` is always green. One branch per track (`track/a-data`, `track/b-agents`, `track/c-quant`, `track/d-web`). Rebase on `main` often; merge at H1:30, H7, H12, H18.
+1. `main` is always green. One branch per track (`track/a-data`, `track/b-agents`, `track/c-quant`, `track/d-web`). Bring `main` in often with `git merge origin/main` (never rebase or force-push a pushed branch); merge at H1:30, H7, H12, H18.
 2. `packages/contracts` belongs to Track B. After H1:30 changes are additive only (no renames), announced in the team chat, and come with updated fixtures.
 3. At every merge point each track appends to `docs/PROGRESS.md`: what works, what is next, blockers. Any deviation from the spec goes in `docs/DECISIONS.md`. `docs/RESULTS.md` is filled only from script output.
 4. Blocked for 30 minutes: tell the team and take the documented fallback.
@@ -57,47 +61,47 @@ Never cut: as-of rules, evidence placeholders and the verifier, fallbacks, the b
 
 - [ ] Keys: Anthropic, Pinecone, Tiingo, FRED, Alpha Vantage. Each person creates their own Tiingo, FRED and Alpha Vantage keys, which spreads quota. Keep keys in `.env` only.
 - [ ] Docker running, Node 22 LTS, pnpm 9 (the template pins `pnpm@9.0.0`).
-- [ ] Anthropic credit of about $20 covers the whole event (a run costs about $0.10; the eval about $2).
+- [ ] Anthropic credit of about $20 covers the whole event (a run costs about $0.10; the eval about $3).
 
 ### Session briefs (paste at the start of a work session)
 
 ```text
 Track A (Data) for Tempest in this repository.
-Read first: docs/SPEC.md sections 1, 3, 4, 5.1 to 5.4, 6, 10, 11; docs/ROADMAP.md sections 1, 2, 4 (Track A tasks), 5.
-You own: packages/database, packages/services/clients (except anthropic.ts), packages/services/{market,macro,news,weather,analogs,portfolio,ingest,system,queues}, apps/worker, scripts/seed*, data/.
+Read first: docs/SPEC.md sections 0, 1, 3, 4, 5.1 to 5.4, 5.14, 6, 10, 11; docs/ROADMAP.md sections 1, 2, 4 (Track A tasks), 5.
+You own: packages/database, packages/services/clients (except anthropic.ts), packages/services/{market,macro,news,events,weather,analogs,portfolio,ingest,system,queues}, apps/worker, scripts/seed*, data/.
 Do not edit packages/contracts (ask Track B), packages/agents or apps/web.
 Work through your tasks phase by phase. After each task: typecheck, lint, test what you touched, commit.
-At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 Ambiguity: take the documented default and log it in docs/DECISIONS.md. Never invent data or results.
 ```
 
 ```text
 Track B (Agents and API) for Tempest in this repository.
-Read first: docs/SPEC.md sections 1 to 3, 5 (all), 6, 7; docs/ROADMAP.md sections 1, 2, 4 (Track B tasks), 5.
+Read first: docs/SPEC.md sections 0 to 3, 5 (all, including 5.14), 6, 7; docs/ROADMAP.md sections 1, 2, 4 (Track B tasks), 5.
 You own: packages/contracts, packages/services/{llm,runs}, packages/services/clients/anthropic.ts, packages/agents, packages/trpc, apps/api, scripts/{run-query,stream-run}.ts.
 Contract changes after H1:30 are additive only and must update the fixtures; announce them to the team.
 Work through your tasks phase by phase. After each task: typecheck, lint, test what you touched, commit.
-At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 Ambiguity: take the documented default and log it in docs/DECISIONS.md. Never let an LLM produce a number that reaches the user.
 ```
 
 ```text
 Track C (Quant and proof) for Tempest in this repository.
-Read first: docs/SPEC.md sections 1, 3, 5.1, 5.8 to 5.11, 9, 10.5, 11; docs/ROADMAP.md sections 1, 2, 4 (Track C tasks), 5.
+Read first: docs/SPEC.md sections 0, 1, 3, 5.1, 5.8 to 5.11, 5.14, 9, 10.5, 11; docs/ROADMAP.md sections 1, 2, 4 (Track C tasks), 5.
 You own: packages/quant, scripts/{backtest,eval-queries,ingest-bench,drills}.ts, data/eval/.
 packages/quant stays pure: no I/O, no clock, no unseeded randomness. Every exported function gets a known-answer test.
 Work through your tasks phase by phase. After each task: typecheck, lint, test, commit.
-At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 Report every metric exactly as measured. Never tune the forecast on backtest results beyond the variants the spec allows.
 ```
 
 ```text
 Track D (Terminal) for Tempest in this repository.
-Read first: docs/SPEC.md sections 1, 2, 5.6, 5.13, 7, 8; docs/ROADMAP.md sections 1, 4 (Track D tasks), 5, 6.
+Read first: docs/SPEC.md sections 0, 1, 2, 5.6, 5.13, 5.14, 7, 8; docs/ROADMAP.md sections 1, 4 (Track D tasks), 5, 6.
 You own: apps/web. Import only @repo/contracts and types from @repo/trpc/client.
 Build against packages/contracts/fixtures first, then switch to the real API without changing component interfaces.
 The UI never computes a financial number; it formats what it receives with contracts/format.ts.
-After each task: typecheck, lint, build web, commit. At each merge point: update docs/PROGRESS.md, rebase on main, merge if green.
+After each task: typecheck, lint, build web, commit. At each merge point: update docs/PROGRESS.md, run git merge origin/main, open a pull request if green.
 ```
 
 ---
@@ -130,14 +134,19 @@ After each task: typecheck, lint, build web, commit. At each merge point: update
 | 10 | LangGraph.js major: `StateSchema`/`ReducedValue` or `Annotation`; `PostgresSaver` package and `setup()` | installed package types | B | Use whichever API is installed |
 | 11 | tRPC version supports `httpSubscriptionLink`, `tracked` and the Express adapter | installed package | B | Must be v11; upgrade within v11 |
 | 12 | BullMQ version supports job schedulers (`upsertJobScheduler`) | installed package | A | Use repeatable jobs |
+| 13 | Each `NEWS_QUERIES` entry (SPEC 11) returns relevant English articles from GDELT `artlist` for the last 24 hours, and the `company_*` chunks are accepted (length) | `curl` per query | A | Narrow or split the query and log it |
+| 14 | Alpha Vantage `NEWS_SENTIMENT` accepts the `AV_ROTATION` topic names and a `tickers=` group on a free key | `curl` | A | Use ticker groups only; log it |
+| 15 | Every replay preset's `first_report_at` matches a source, and GDELT `timelinevol` shows the spike for its `gdelt_query` | source page and one `curl` per preset | A | Fix the timestamp; swap a preset for another sourced event of the same type and log it |
+| 16 | All 37 Tiingo symbols return history from 2015 (or their launch date) | one `curl` per symbol, cached | A | Drop the symbol from the universe, not from the portfolio weights' total; log it |
 
 ## 3. Phase overview
 
 | # | Phase | SPEC | Gate |
 |---|---|---|---|
 | 0 | Scaffold and contracts | 3, 4, 7 | install, check-types, lint, test, build green; compose healthy; SSE heartbeat in the browser |
+| 0b | Contracts v2 (event model) | 0, 5.5, 5.14, 6, 7, 11 | contracts and fixtures match SPEC v2; gate commands green |
 | 1 | Foundations (A, B, C, D in parallel) | 5, 6, 8, 10 | per-track gates below |
-| 2 | Vertical slice: Ida replay end to end | 5, 7, 8 | the PS question answered in the browser, verified, under 90 s |
+| 2 | Vertical slice: Ukraine and Ida replays end to end | 5, 7, 8 | a geopolitical question and the PS hurricane question answered in the browser, verified, under 90 s each |
 | 3 | Live data, robustness, proof | 5.2, 5.3, 9 | worker live 30 minutes, eval and drills pass, backtest and bench recorded |
 | 4 | Polish and demo | 8, 9.5 | fresh clone works from the README; 3 clean rehearsals |
 | 5 | Buffer and submission | none | submitted |
@@ -165,6 +174,20 @@ Gate commands: `pnpm check-types && pnpm lint && pnpm test && pnpm build` (add `
 
 **GATE:** gate commands green; `docker compose up -d` healthy; `curl localhost:8000/health` returns 200; the heartbeat appears in the browser.
 
+### Phase 0b: Contracts v2, event model (45 minutes, B, reviewed by all)
+
+Contracts v1 was merged in Phase 0 against the hurricane-only spec. SPEC v2 (section 0) changes them, so this pass happens once, before the tracks build on them. After it, the additive-only rule applies again.
+
+- [ ] `schemas/event.ts`: `EventType`, `EventSubtype`, `FactorDirection`, `Severity`, `EventProfile`, `MarketEvent`, `EventClassification`.
+- [ ] `schemas/agents.ts`: `Plan` (intents incl. `news_scan`; event source and hint; hypothetical event parameters alongside hypothetical storm parameters); node list with `event` (10 nodes); `ExposureChannel`; hedge `timing` `before_event` instead of `before_landfall`.
+- [ ] `schemas/analog.ts`: `type`, `subtype`, `first_report_at`, `feature_at`, `entities`, `affected_sectors`, `gdelt_query`; features with `vixZ`; forecast output per holding.
+- [ ] `schemas/news.ts`: `query_key`, `prefilter_match`, `peer_tickers`, `event_type`, `entity_sentiment`, `factor_directions`, `market_event_id`. `schemas/live.ts`: `event.detected`, `event.updated`; `news.scored` gains `eventType`. `schemas/runs.ts`: `event_profile`, `market_event_id`; `run.completed` gains `eventProfile`. `schemas/evidence.ts`: kind `event`.
+- [ ] `constants.ts`: the section 11 universe and portfolio, `SECTORS`, `PEERS`, `EXTERNAL_PEERS` (starting list), `FACTORS`, `FORECAST_TARGETS`, `EVENT_TYPES`, `EVENT_SUBTYPES`, `EVENT_KEYWORDS`, `NEWS_QUERIES` keyed by type, `SEVERITY_VOLZ`, `AV_ROTATION`, `HEDGE_MENU`, `REPLAY_PRESETS` (six), the thresholds in SPEC 11. Remove `MUR`, `PBF`, `BNO` from the universe.
+- [ ] Fixtures: keep the Ida run and add the `event` step; add a complete Ukraine run (`fixtures/ukraine-run.ts`, values marked as fixture data) with direct, peer and factor channels; event fixtures for the live feed.
+- [ ] Tests updated; gate commands green. 10-minute team review, merge to `main`, announce in the team chat.
+
+**GATE 0b:** gate commands green; both fixture runs validate against the schemas; every SPEC 11 constant exists.
+
 ### Phase 1: Foundations in parallel (H1:30 to H7:00)
 
 **Track A: Data**
@@ -173,81 +196,84 @@ Gate commands: `pnpm check-types && pnpm lint && pnpm test && pnpm build` (add `
 - [ ] Clients `tiingo`, `fred`, `gdelt`, `alphavantage`, `nhc`, `openmeteo`, `pinecone`, `redis`. Each has a recorded fixture in `data/fixtures/` and a parse test; tests never call live HTTP.
 - [ ] Seed steps 1 to 4 and the Pinecone index (SPEC 10). HURDAT2 parser test on a two-storm sample.
 - [ ] Services `market` and `macro` with as-of filtering; the as-of test from SPEC 5.1.
+- [ ] `data/seed/analog-events.json`: at least 30 curated events (at least 3 per type), each with a confirmed `first_report_at`, entities, sectors, `gdelt_query` and a source URL (SPEC 10.5). Start with the six presets.
+- [ ] Prefilter (`EVENT_KEYWORDS`, `TICKER_ALIASES`, `EXTERNAL_PEERS`) with tests: a matching title passes and gets the right `tickers` and `peer_tickers`; an unrelated title fails.
 - [ ] Zip `data/cache/` and share it inside the team once prices are downloaded.
 
-**GATE A:** seeding twice changes nothing; counts printed; every Tiingo symbol has bars from 2015 (or its launch) to the last close; the as-of test passes; `market.returns` for the universe at the Ida as-of returns 504 aligned rows.
+**GATE A:** seeding twice changes nothing; counts printed; every Tiingo symbol has bars from 2015 (or its launch) to the last close; the as-of test passes; `market.returns` for the universe at the Ida and Ukraine as-ofs returns 504 aligned rows; the curated file validates against the contracts schema and every event has a source URL.
 
 **Track B: Agents and API**
 - [ ] `services/clients/anthropic.ts` and `services/llm`: `parseStructured` (parse, effort, summarized thinking, stop-reason handling, usage and cost) and `runTools` (strict tools, at most 6 iterations). A fake implementation for tests.
 - [ ] `agents/ledger.ts`, `agents/verify.ts`, rendering. Tests: a digit outside a placeholder is rejected; an unknown key is rejected; `S&P 500` passes; missing caveats are appended.
 - [ ] `services/runs`: create, append event with `seq`, add evidence, complete, get, list, `eventsAfter`; in-process EventEmitter.
-- [ ] `agents/context.ts` (registry, `instrumentNode`), `agents/graph.ts` with all 9 nodes as stubs returning fixture outputs, `PostgresSaver`, the `history` reducer, `fallbacks.ts`.
-- [ ] Real planner (prompt and schema) with the rule-based fallback.
+- [ ] `agents/context.ts` (registry, `instrumentNode`), `agents/graph.ts` with all 10 nodes as stubs returning fixture outputs, `PostgresSaver`, the `history` reducer, `fallbacks.ts` (rule-based plan and keyword event classifier).
+- [ ] Real planner (prompt and schema) with the rule-based fallback. Planner tests on one question per event type.
 - [ ] Routes `runs.create/get/list/stream`, `live.feed` (stub), `system.status` (stub), `portfolio.get` (fixture until Track A's service lands). Concurrency guard, `DEMO_TOKEN` check, boot cleanup of `running` runs.
 
 **GATE B:** fake-LLM graph test: the full event order for one run; a node that throws ends `degraded` and the run still completes; an answer with a raw digit triggers exactly one repair, then the template answer. `curl -X POST localhost:8000/api/runs` returns a run id, and `scripts/stream-run.ts <runId>` prints the streamed events, including after a reconnect with `lastEventId`.
 
 **Track C: Quant and proof**
-- [ ] `quant` modules from SPEC 3: series, stats, risk, hedge, geo, forecast, backtest. Pure functions only.
-- [ ] Known-answer tests: beta and R² against a hand calculation; VaR and CVaR on a fixed 20-value series; overlapping 5-day sums; haversine against two independently computed distances (within 1 km); kNN weights (identical vectors equal, a far event near zero, leave-one-out excludes self, effective n formula); hedge sizing respects every limit and yields integers; capacity at risk counts each refinery once and interpolates to 1-hour steps.
-- [ ] Pure event builder: storm points, refineries, price and timeline series in; t0, features, company capacity at risk, reactions and `realized_until` out. Tested on synthetic data. Seed step 5 calls it.
+- [ ] `quant` modules from SPEC 3: series, stats, risk, exposure, hedge, geo, forecast, detect, backtest. Pure functions only.
+- [ ] Known-answer tests: beta and R² against a hand calculation; VaR and CVaR on a fixed 20-value series; overlapping 5-day sums; haversine against two independently computed distances (within 1 km); grouped kNN weights (identical vectors equal, a far event near zero, a type mismatch adds exactly `TYPE_WEIGHT²` to the type group's squared distance, the weather group is used only between two hurricanes, leave-one-out excludes self, effective n formula, the fewer-than-3-analogs fallback); exposure channels (direct, peer via `PEERS` and `EXTERNAL_PEERS`, factor only above `FACTOR_BETA_MIN` and R² 0.1); detection clustering (same type plus a shared ticker or a title-word Jaccard of at least `DETECT_JACCARD`; no API calls); severity thresholds; hedge sizing respects every limit and yields integers; capacity at risk counts each refinery once and interpolates to 1-hour steps.
+- [ ] Pure event builders: (a) hurricanes: storm points, refineries, price and timeline series in; t0, features, company capacity at risk, reactions and `realized_until` out; (b) curated events: `first_report_at`, timeline and VIX series, prices in; `feature_at`, t0, `volZ`, `toneZ`, `vixZ`, reactions and `realized_until` out. Tested on synthetic data. Seed step 5 calls both.
 
 **GATE C:** `pnpm --filter @repo/quant test` green; every exported function has at least one test.
 
 **Track D: Terminal**
 - [ ] Dark terminal theme on the template tokens, tabular numerals, three resizable columns.
-- [ ] `mode-switch` with `REPLAY_PRESETS`; mode and preset kept in the URL query so a reload keeps them.
+- [ ] `mode-switch` with `REPLAY_PRESETS` grouped by event type; mode and preset kept in the URL query so a reload keeps them.
 - [ ] `query-bar` with example chips.
-- [ ] `agent-graph` (fixed positions for the 9 nodes) and `step-log`, driven by a fixture player that replays `fixtures/ida-run.json` with delays.
-- [ ] `answer-card`, `evidence-chip`, `hedge-table`, `drilldown-sheet`, `portfolio-panel` from fixtures; all formatting through `contracts/format.ts`.
+- [ ] `agent-graph` (fixed positions for the 10 nodes) and `step-log`, driven by a fixture player that replays the Ukraine and Ida fixture runs with delays.
+- [ ] `event-card`, `answer-card`, `evidence-chip`, `hedge-table`, `drilldown-sheet`, `portfolio-panel` (sector groups, exposure badges) from fixtures; all formatting through `contracts/format.ts`.
 - [ ] `use-run-stream` with one interface for the fixture player and the real subscription.
 
-**GATE D:** `pnpm --filter web build` green; the fixture run plays end to end in the browser; screenshots in `docs/PROGRESS.md`.
+**GATE D:** `pnpm --filter web build` green; both fixture runs play end to end in the browser; screenshots in `docs/PROGRESS.md`.
 
 **MERGE POINT H7:** every track merged; `main` green.
 
-### Phase 2: Vertical slice, Ida replay end to end (H7:00 to H12:00)
+### Phase 2: Vertical slice, Ukraine and Ida replays end to end (H7:00 to H12:00)
 
 **Track A**
-- [ ] Seed step 5 with Track C's builder: hurricanes 2017 to 2025 with GDELT timeline features, plus `data/seed/analog-events.json` (six parallels, each with a source URL). Upsert Pinecone `events`.
-- [ ] Seed step 6: replay news for the four presets, scored through `services/llm` (Haiku), upserted to Pinecone `news`.
-- [ ] Services `news.search` (Pinecone, then Postgres hydration, as-of window), `weather` (`stormsAt`, `track` with the replay perfect forecast, `hypotheticalTrack`, `refineries`), `analogs.search`, `portfolio.snapshot`.
+- [ ] Seed step 5 with Track C's builders: hurricanes 2017 to 2025 and the curated events, all with GDELT timeline features and VIX. Upsert Pinecone `events`.
+- [ ] Seed step 6: replay news for the six presets, prefiltered, scored through `services/llm` (Haiku), upserted to Pinecone `news`.
+- [ ] Services `news.search` (Pinecone, then Postgres hydration, as-of window, event-type filter), `events.profileFromNews`, `events.buildEventQuery`, `news.newsFeatures` (one function for every event's news features, SPEC 5.9), `weather` (`stormsAt`, `track` with the replay perfect forecast, `hypotheticalTrack`, `refineries`), `analogs.search`, `portfolio.snapshot`.
 - [ ] Read routes: `portfolio.get`, `market.bars`, `news.list`, `weather.storms`, `weather.track`, `weather.refineries`, `macro.snapshot`, `analogs.list`.
 
-**GATE A2:** at the Ida as-of, `weather.track` returns observed points plus 72 hours of labelled forecast; a news search for "Ida refinery" returns only items inside the 72-hour window; `analogs.search` never returns Ida or any later event.
+**GATE A2:** at the Ida as-of, `weather.track` returns observed points plus 72 hours of labelled forecast; at the Ukraine as-of, a news search for "Russia Ukraine invasion" returns only items inside the 72-hour window; `analogs.search` at each preset as-of never returns that event or any later event.
 
 **Track B**
-- [ ] Real `weather`, `sentiment`, `macro` and `analogs` nodes with evidence and Haiku notes; `risk` node; `hedging` node (tools and fallback); `synthesizer` with placeholders; verifier loop and template answer; confidence rule; run totals.
-- [ ] Prompts in `agents/prompts/` state the evidence-key list, the no-digits rule and the allowed symbols.
+- [ ] Real `event` node (preset, news-search and hypothetical paths; Haiku classification with the keyword fallback); real `weather` (skipped for non-weather events), `sentiment`, `macro` and `analogs` nodes with evidence and Haiku notes; `risk` node with exposure channels; `hedging` node (tools and fallback, exposed sleeve); `synthesizer` with placeholders; verifier loop and template answer; confidence rule; run totals.
+- [ ] Prompts in `agents/prompts/` state the evidence-key list, the no-digits rule, the allowed symbols and the event types.
 
-**GATE B2:** `scripts/run-query.ts --preset=hurricane-ida-2021 "<PS question>"` ends `succeeded`, the verifier passes, the answer cites at least 8 evidence rows, and the hedge plan is within limits.
+**GATE B2:** `scripts/run-query.ts --preset=geopolitical-russia-ukraine-2022 "How will the Russian invasion of Ukraine affect our portfolio?"` and `scripts/run-query.ts --preset=disaster-hurricane-ida-2021 "<PS question>"` both end `succeeded`; the verifier passes; each answer cites at least 8 evidence rows and names at least two exposure channels; the Ukraine run shows `weather` as `skipped`; the hedge plans are within limits.
 
 **Track C**
-- [ ] Live forecast (kNN over eligible events), refiner elasticity fit and factor mapping, wired into the `risk` node with Track B.
-- [ ] Backtest script skeleton runs on the seeded events and prints metrics.
-- [ ] Hand-check one VaR and one scenario P&L at the Ida as-of in a spreadsheet; record the check in `docs/PROGRESS.md`.
+- [ ] Live forecast (grouped kNN over eligible events, per holding and per target) and exposure channels, wired into the `analogs` and `risk` nodes with Track B.
+- [ ] Backtest script skeleton runs on the seeded events and prints metrics pooled and per type.
+- [ ] Hand-check one VaR and one scenario P&L at the Ukraine as-of in a spreadsheet; record the check in `docs/PROGRESS.md`.
 
-**GATE C2:** the backtest prints a table for N, S, W and C; the hand-checked numbers match within 1%.
+**GATE C2:** the backtest prints a table for N, T, S, M, W and C, pooled and per type with n; the hand-checked numbers match within 1%.
 
 **Track D**
 - [ ] Real data: `portfolio.get`, `runs.create`, `runs.stream` (resume with `lastEventId`), `runs.get` for the drilldown, `analogs.list`, `news.list`, and `weather.track` for the map if time allows.
 - [ ] Loading, empty and error states; query bar disabled during a run; toast on failure.
 
-**INTEGRATION GATE (whole team, H12):** in the browser: Replay, Ida, the PS question. The graph animates in order; the answer appears with evidence chips; the hedge table is within limits; the drilldown shows steps and evidence; the run takes under 90 s. Reloading mid-run resumes the stream. Merge to `main`; tag `slice-1`.
+**INTEGRATION GATE (whole team, H12):** in the browser: Replay, Ukraine, the geopolitical question; then Replay, Ida, the PS question. The graph animates in order (weather skipped for Ukraine); the event card and the answer appear with evidence chips; exposure badges show on the portfolio; the hedge table is within limits; the drilldown shows steps and evidence; each run takes under 90 s. Reloading mid-run resumes the stream. Merge to `main`; tag `slice-1`.
 **DEMO CHECK:** run it 3 times; note latency and cost from the run rows in `docs/PROGRESS.md`.
 
 ### Phase 3: Live data, robustness, proof (H12:00 to H18:00)
 
 **Track A**
-- [ ] `apps/worker`: queues, job schedulers and per-queue limiters (SPEC 5.2, 5.3); jobs `gdelt`, `alphavantage` (quota counter), `nhc`, `openmeteo`, `fred`, `tiingo`, `enrich`; `LiveEvent` publishing; graceful shutdown.
-- [ ] api side of the relay: one Redis subscriber feeding `live.feed`; `system.status` (Redis hashes plus the latency SQL); `system.ingestNow`.
+- [ ] `apps/worker`: queues, job schedulers and per-queue limiters (SPEC 5.2, 5.3); jobs `gdelt` (one pass over `NEWS_QUERIES`), `alphavantage` (quota counter, `AV_ROTATION`), `nhc`, `openmeteo`, `fred`, `tiingo`, `enrich` (daily cap); `LiveEvent` publishing; graceful shutdown.
+- [ ] `detect` job and `market_events` (SPEC 5.14) with Track C's rules; `events.list`, `events.get`; `event.detected` and `event.updated` on the live channel.
+- [ ] api side of the relay: one Redis subscriber feeding `live.feed`; `system.status` (Redis hashes plus the latency SQL, enrichment quota); `system.ingestNow`.
 - [ ] `scripts/ingest-bench.ts` (SPEC 9.3), with Track C.
 
-**GATE A3:** the worker runs 30 minutes without errors; `news.ingested` events reach the browser; `system.status` shows p50/p95; bench results in `docs/RESULTS.md`.
+**GATE A3:** the worker runs 30 minutes without errors; `news.ingested` events reach the browser; at least one `event.detected` appears from live news (or the thresholds and the reason are logged); `system.status` shows p50/p95; bench results in `docs/RESULTS.md`.
 
 **Track B**
-- [ ] Live mode: `asOf` = now, NHC storms, the no-storm path, hypothetical storms, follow-ups on a thread (what-if category override).
-- [ ] `data/eval/queries.json` (15 queries) and `scripts/eval-queries.ts` (SPEC 9.2), with Track C; results in `docs/RESULTS.md`.
+- [ ] Live mode: `asOf` = now, live market events (`marketEventId`) and the news-search path, `news_scan`, NHC storms and the no-storm path, hypothetical events and storms, follow-ups on a thread (what-if overrides).
+- [ ] `data/eval/queries.json` (20 queries) and `scripts/eval-queries.ts` (SPEC 9.2), with Track C; results in `docs/RESULTS.md`.
 - [ ] `scripts/drills.ts` (SPEC 9.4), with Track C.
 
 **GATE B3:** eval and drills run; every drill passes; results recorded.
@@ -259,7 +285,7 @@ Gate commands: `pnpm check-types && pnpm lint && pnpm test && pnpm build` (add `
 **GATE C3:** re-running the backtest reproduces the recorded numbers exactly.
 
 **Track D**
-- [ ] P1 components: `risk-summary`, `risk-compare-chart`, `forecast-chart`, `weather-map`, `news-feed` (with "Ingest now" and measured latency), `price-chart`, `source-health`, `analog-table`; the reliability page.
+- [ ] P1 components: `event-feed` (with "Analyse"), `risk-summary`, `risk-compare-chart`, `forecast-chart`, `weather-map`, `news-feed` (with "Ingest now" and measured latency), `price-chart`, `source-health`, `analog-table`; the reliability page with per-type tables.
 
 **GATE D3:** every P1 component shows real data in live and replay modes; no console errors.
 
@@ -302,6 +328,9 @@ Gate commands: `pnpm check-types && pnpm lint && pnpm test && pnpm build` (add `
 15. **Returns:** `quant` works in log returns; the UI shows simple percent (`e^r - 1`), converted only in `quant` or `format.ts`.
 16. **tsup** must bundle workspace packages (`noExternal: [/^@repo\//]`).
 17. **Demo network:** replay still needs Anthropic and Pinecone. Keep a phone hotspot ready; a finished run renders from local Postgres without network.
+18. **Broad news volume:** general queries return far more articles than hurricane queries. Keep the prefilter in front of Pinecone and Haiku, watch the Pinecone embedding-token quota (5M per month) and `quota:enrich:{date}`, and never score unfiltered items.
+19. **Curated events and hindsight:** every curated event is chosen knowing it moved markets. Say so in the backtest caveats, and never add or drop events after looking at backtest results.
+20. **Tiingo with 37 symbols:** the seed needs 37 requests (under the 50 per hour limit); a second full run inside the hour hits the limit, so rely on `data/cache/`.
 
 ---
 
@@ -311,21 +340,22 @@ Gate commands: `pnpm check-types && pnpm lint && pnpm test && pnpm build` (add `
 
 | Time | Show | Say |
 |---|---|---|
-| 0:00 | Terminal in live mode: news feed, source health, ingest p95 badge. Press "Ingest now"; new items arrive with their measured latency | The problem in one sentence. Live news and weather are embedded and indexed within the measured latency |
-| 0:30 | Switch to Replay, preset Hurricane Ida, as of Friday 27 Aug 2021 close. The map shows the track and refineries in its path in red | Markets are closed this weekend, so we replay a real Category 4 storm with no look-ahead |
-| 0:45 | Ask the problem-statement question. The graph lights up node by node | Planner, then weather, sentiment and macro in parallel, then analogs from Pinecone, risk, hedging, synthesis, verification |
-| 1:30 | Answer card, hedge table, before/after risk chart | Read the headline sentence. Every number is a chip |
-| 2:00 | Click the capacity-at-risk chip, then a graph node | The refineries summed and their EIA source; the step's inputs, outputs, thinking summary, tokens and cost; "0 ungrounded numbers" |
-| 2:20 | "What happened next" (P2) or the analog table | What the market actually did after this as-of, next to the forecast |
-| 2:35 | Reliability page | Combined model against weather-only and sentiment-only baselines, leave-one-out, with n and caveats |
+| 0:00 | Terminal in live mode: event feed, news feed, source health, ingest p95 badge. Press "Ingest now"; new items arrive with their measured latency and event type | The problem in one sentence. Any market-moving news is embedded and indexed within the measured latency, and grouped into events with the holdings they touch |
+| 0:25 | Switch to Replay, preset "Russia invades Ukraine", as of the day after it began | Markets are closed this weekend, so we replay real events with no look-ahead |
+| 0:35 | Ask "How will the Russian invasion of Ukraine affect our portfolio?". The event card fills in; the graph lights up node by node, weather skipped | Planner, event resolver, then sentiment and macro in parallel, analogs from Pinecone, risk, hedging, synthesis, verification |
+| 1:15 | Event card, exposure badges on the portfolio, answer card, hedge table, before/after risk chart | Read the headline. Direct, peer and factor exposure; every number is a chip |
+| 1:40 | Click an exposure badge, then a graph node | Why the holding is exposed (beta, R², the news that named it); the step's inputs, outputs, thinking summary, tokens and cost; "0 ungrounded numbers" |
+| 2:00 | Switch to preset Hurricane Ida and ask the problem-statement question. The map shows the track and refineries in its path in red | The same graph handles a weather event; now the weather agent runs and refiners get the direct channel |
+| 2:30 | Reliability page | Combined model against type-only, news-only, regime-only and weather-only baselines, pooled and per event type, with n and caveats |
 | 2:50 | A drill run with a source disabled | It still answers, names the gap and lowers confidence |
 
 ### Acceptance matrix (fill the last column with links before submitting)
 
 | Problem-statement item | Built in | Proven by |
 |---|---|---|
-| Multi-modal ingestion: financial APIs, weather APIs, vector database | Track A, phases 1 to 3 | live feed, source health, `docs/RESULTS.md` bench |
+| Multi-modal ingestion: global news feeds, financial APIs, weather APIs, vector database | Track A, phases 1 to 3 | live feed, event feed, source health, `docs/RESULTS.md` bench |
 | Multi-agent engine: sentiment, weather and macro, quant risk, hedging | Track B, phase 2 | live graph, drilldown, eval |
+| Localized and geopolitical events mapped to specific holdings (PS impact section) | Tracks B and C, phase 2 | event card, exposure badges, evidence rows |
 | Historical parallels and cross-asset reactions from the vector database | Tracks A, B, C, phase 2 | analog table, evidence rows sourced from Pinecone |
 | Sentiment, macro trend and quantitative risk across asset classes | Tracks B and C, phase 2 | risk summary, evidence rows |
 | Hedging, reallocation and risk assessment from natural language | Track B, phase 2 | hedge table, before/after chart |
@@ -340,17 +370,18 @@ Gate commands: `pnpm check-types && pnpm lint && pnpm test && pnpm build` (add `
 
 1. **Why TypeScript and LangGraph.js, not Python?** The same graph, state, checkpoints and streaming, with one language and one set of typed contracts from database to UI.
 2. **How do you stop invented numbers?** The LLM never writes digits. It references evidence keys; the verifier rejects anything else; a deterministic template answer is the fallback.
-3. **Is the forecast real?** Kernel kNN over historical Gulf hurricanes using storm and news-coverage features, evaluated leave-one-out against weather-only, sentiment-only and unconditional baselines. Show n and the caveats.
+3. **Is the forecast real?** Grouped kernel kNN over historical events of every type (Gulf hurricanes and sourced curated events) using event type, news-coverage, market-regime and, for storms, weather features, evaluated leave-one-out against type-only, news-only, regime-only, weather-only and unconditional baselines, pooled and per type. Show n and the caveats, including hindsight selection of curated events.
+3b. **Why not only hurricanes?** The problem statement uses the hurricane as an example; analysts face wars, tariffs, accidents and competitor news too. The same graph, evidence rules and backtest cover all of them, and the weather agent still runs when the event is a storm.
 4. **How do you prevent look-ahead?** Every read takes an as-of time; bars count from 21:00 UTC on their date; analog events must be fully realized before the as-of. There is a test.
 5. **What does "sub-second" mean here?** Upstream response received to Postgres and Pinecone writes acknowledged, per batch, p95 from the bench and from live data. Time until searchable is reported separately.
 6. **What about rate limits?** Per-source queue limiters, a daily quota counter, a response cache with stale fallback and a circuit breaker. Show a drill.
 7. **Why Pinecone?** The problem statement asks for it; integrated embedding removes a separate embedding service; metadata filters enforce the as-of window.
-8. **What is simulated?** The portfolio is paper; ETFs stand in for futures; replay uses the best track as a perfect forecast; prices are end-of-day this weekend; hypothetical storms are labelled.
+8. **What is simulated?** The portfolio is paper; ETFs stand in for futures; replay uses the best track as a perfect forecast; prices are end-of-day this weekend; hypothetical events and storms are labelled.
 9. **Cost per question?** Read it from the runs table (`docs/RESULTS.md`).
 10. **How would it scale?** Move runs to a worker queue, run several api instances with run events over Redis, a paid Pinecone tier, and an intraday market data provider.
 
 ### Backup plan
 
 - The backup video (Phase 4) is the first fallback.
-- A finished Ida run renders from local Postgres without network.
+- Finished Ukraine and Ida runs render from local Postgres without network.
 - If the Anthropic API fails during the demo, the fallback path still answers; present it as the robustness drill.

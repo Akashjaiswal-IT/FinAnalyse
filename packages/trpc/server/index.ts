@@ -6,6 +6,7 @@ import { systemRouter } from "./routes/system/route";
 import { portfolioRouter } from "./routes/portfolio/route";
 import { marketRouter } from "./routes/market/route";
 import { newsRouter } from "./routes/news/route";
+import { eventsRouter } from "./routes/events/route";
 import { weatherRouter } from "./routes/weather/route";
 import { macroRouter } from "./routes/macro/route";
 import { analogsRouter } from "./routes/analogs/route";
@@ -19,6 +20,7 @@ export const serverRouter = router({
   portfolio: portfolioRouter,
   market: marketRouter,
   news: newsRouter,
+  events: eventsRouter,
   weather: weatherRouter,
   macro: macroRouter,
   analogs: analogsRouter,
