@@ -10,12 +10,13 @@ import { env } from "./env";
 
 const MINUTE = 60_000;
 
-/** Schedules (SPEC 4 sources table): GDELT every 15 minutes, NHC every 10, Alpha Vantage hourly (24 a day),
+/** Schedules (SPEC 4 sources table): GDELT every 15 minutes, Google News every 10, NHC every 10, Alpha Vantage hourly (24 a day),
  * Open-Meteo hourly, FRED every 6 hours, Tiingo on weekdays after the close, detection every 15 minutes. */
 const SCHEDULES: { key: QueueKey; every?: number; pattern?: string }[] = [
   { key: "gdelt", every: 15 * MINUTE },
   { key: "nhc", every: 10 * MINUTE },
   { key: "alphavantage", every: 60 * MINUTE },
+  { key: "googlenews", every: 10 * MINUTE },
   { key: "openmeteo", every: 60 * MINUTE },
   { key: "fred", every: 6 * 60 * MINUTE },
   { key: "tiingo", pattern: "30 22 * * 1-5" },

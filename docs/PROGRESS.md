@@ -104,6 +104,11 @@ Entries at H7, H12 and H18.
 - Still on the DOC API: `NewsService.newsFeatures` (volume and tone z-scores of a live event) calls the timelines. On a throttled network it returns "unavailable", the step shows degraded and the Sources row for `gdelt` flips to `rate_limited` while the file job stays ok. Computing those z-scores from the article files is the way to remove it; not done.
 - 26 new tests (the zip reader against a hand-built archive, the GKG parser, the filter, file stamps, the 404 and breaker behaviour, `body: "bytes"`); 769 pass.
 
+**Fresh news from Google News (2026-10-04)**
+- Why: GDELT's files are about an hour late and a sample; no stored headline mentioned both India and Trump while Google News had dozens. New source `googlenews` (RSS search, every 10 minutes, no key): 1,068 articles in the first 23 s pass, newest 4 minutes old; the Trump and India tariff stories are in. See DECISIONS for the queries, the look-back rule and the contract and migration changes.
+- **For Akash:** this adds `googlenews` to `NewsSource` and `SourceName` (contracts) and a database migration (`0001_news_source_googlenews`: drops and re-adds `news_items_source_check`). Run `pnpm db:migrate`. Nothing else in the contracts changes.
+- Open: scoring is capped at 2,000 a day and both sources together want about 2,700. Fresh Google News items were queued first today. Raising `ENRICH_DAILY_MAX` is a decision for the team (model cost).
+
 ## Track B: Agents and API
 
 Entries at H7, H12 and H18.

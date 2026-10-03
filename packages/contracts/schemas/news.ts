@@ -2,7 +2,7 @@ import { z } from "zod";
 import { IsoDateTime } from "./common";
 import { FactorDirectionEntry, NewsEventType } from "./event";
 
-export const NewsSource = z.enum(["gdelt", "alphavantage"]);
+export const NewsSource = z.enum(["gdelt", "alphavantage", "googlenews"]);
 export type NewsSource = z.infer<typeof NewsSource>;
 
 export const EntitySentiment = z.object({ symbol: z.string(), score: z.number().min(-1).max(1) });

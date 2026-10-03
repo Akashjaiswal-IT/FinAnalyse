@@ -23,7 +23,7 @@ export interface IngestLatency {
 type Db = typeof defaultDb;
 const LIVE_CHANNEL = "live";
 const HOUR = 3_600_000;
-const INGEST_NOW_SOURCES = ["gdelt", "nhc", "alphavantage"] as const;
+const INGEST_NOW_SOURCES = ["gdelt", "googlenews", "nhc", "alphavantage"] as const;
 
 /** Source health, ingest latency and the live relay (SPEC 5.2, 5.13, TEAM rule 10). */
 export class SystemService {
@@ -77,7 +77,7 @@ export class SystemService {
     return { p50Ms: round(row?.p50), p95Ms: round(row?.p95), count: row?.count ?? 0, windowHours };
   }
 
-  /** Queues immediate GDELT and NHC jobs (and Alpha Vantage if quota remains); returns the queued sources. */
+  /** Queues immediate GDELT, Google News and NHC jobs (and Alpha Vantage if quota remains); returns the queued sources. */
   async ingestNow(sources?: readonly SourceName[]): Promise<SourceName[]> {
     const wanted = (sources ?? INGEST_NOW_SOURCES).filter((s): s is (typeof INGEST_NOW_SOURCES)[number] =>
       (INGEST_NOW_SOURCES as readonly string[]).includes(s),

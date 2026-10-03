@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { boolean, check, index, jsonb, pgTable, real, text, uuid, varchar } from "drizzle-orm/pg-core";
-import { EVENT_TYPES, inList, tstz } from "./columns";
+import { EVENT_TYPES, NEWS_SOURCES, inList, tstz } from "./columns";
 import { marketEvents } from "./market-event";
 
 export const newsItems = pgTable(
@@ -32,7 +32,7 @@ export const newsItems = pgTable(
     scoreModel: varchar("score_model", { length: 64 }),
   },
   (t) => [
-    check("news_items_source_check", inList(t.source, ["gdelt", "alphavantage"])),
+    check("news_items_source_check", inList(t.source, NEWS_SOURCES)),
     check("news_items_event_type_check", inList(t.eventType, [...EVENT_TYPES, "none"])),
     check("news_items_sentiment_check", sql`${t.sentiment} between -1 and 1`),
     check("news_items_relevance_check", sql`${t.relevance} between 0 and 1`),

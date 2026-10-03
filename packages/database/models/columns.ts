@@ -3,6 +3,7 @@ import { timestamp, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 // `database` imports no internal package (SPEC 3, rule 4), so the CHECK lists repeat the values of
 // `@repo/contracts`. A test in `@repo/services` asserts they match.
+export const NEWS_SOURCES = ["gdelt", "alphavantage", "googlenews"] as const;
 export const EVENT_TYPES = [
   "geopolitical",
   "policy",

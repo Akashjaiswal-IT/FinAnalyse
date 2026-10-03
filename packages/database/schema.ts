@@ -16,4 +16,4 @@ export * from "./models/run-event";
 export * from "./models/evidence";
 export * from "./models/backtest";
 export * from "./models/trade";
-export { EVENT_TYPES as DB_EVENT_TYPES } from "./models/columns";
+export { EVENT_TYPES as DB_EVENT_TYPES, NEWS_SOURCES as DB_NEWS_SOURCES } from "./models/columns";
