@@ -25,6 +25,6 @@ export interface RunsRepo {
   maxSeq(runId: string): Promise<number>;
   insertEvidence(runId: string, rows: Evidence[]): Promise<void>;
   listEvidence(runId: string): Promise<Evidence[]>;
-  /** Marks runs left `running` as failed. Returns their ids. */
-  failRunning(reason: string, finishedAt: string): Promise<string[]>;
+  /** Marks runs left `running` as failed. Returns their ids. `onlyIds` limits it to those runs (tests). */
+  failRunning(reason: string, finishedAt: string, onlyIds?: readonly string[]): Promise<string[]>;
 }

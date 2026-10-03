@@ -63,10 +63,10 @@ export class MemoryRunsRepo implements RunsRepo {
     return [...(this.evidence.get(runId) ?? [])];
   }
 
-  async failRunning(reason: string, finishedAt: string): Promise<string[]> {
+  async failRunning(reason: string, finishedAt: string, onlyIds?: readonly string[]): Promise<string[]> {
     const ids: string[] = [];
     for (const [id, run] of this.runs) {
-      if (run.status === "running") {
+      if (run.status === "running" && (!onlyIds || onlyIds.includes(id))) {
         this.runs.set(id, { ...run, status: "failed", error: reason, finishedAt });
         ids.push(id);
       }

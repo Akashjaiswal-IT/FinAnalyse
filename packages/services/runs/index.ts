@@ -147,8 +147,8 @@ export class RunsService {
   }
 
   /** Boot cleanup: a run left `running` by a crashed process becomes `failed` (SPEC 5.5, rule 6). */
-  async failStaleRunning(reason = "server restarted"): Promise<number> {
-    const ids = await this.repo.failRunning(reason, new Date().toISOString());
+  async failStaleRunning(reason = "server restarted", onlyIds?: readonly string[]): Promise<number> {
+    const ids = await this.repo.failRunning(reason, new Date().toISOString(), onlyIds);
     for (const id of ids) await this.appendEvent(id, { type: "run.failed", error: reason });
     return ids.length;
   }

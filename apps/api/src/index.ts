@@ -1,8 +1,10 @@
 import http from "node:http";
 import { logger } from "@repo/logger";
 import { AgentRuntime, createCheckpointer } from "@repo/agents";
+import { db } from "@repo/database";
 import { llm } from "@repo/services/llm";
 import { RunsService } from "@repo/services/runs";
+import { DrizzleRunsRepo } from "@repo/services/runs/drizzle";
 import { setApiRuntime } from "@repo/trpc/server";
 import { app as expressApplication } from "./server";
 
@@ -10,8 +12,7 @@ import { env } from "./env";
 
 async function init() {
   try {
-    // ponytail: runs live in memory until Track A's Drizzle repo replaces MemoryRunsRepo here.
-    const runs = new RunsService();
+    const runs = new RunsService(new DrizzleRunsRepo(db));
     const checkpointer = await createCheckpointer(env.DATABASE_URL);
     const agents = new AgentRuntime({ deps: { llm: llm(), runs, now: () => new Date() }, checkpointer });
     setApiRuntime({ agents, runs, demoToken: env.DEMO_TOKEN || undefined });
