@@ -140,3 +140,49 @@ describe("full pipeline with the real nodes and fake services", () => {
     expect(got?.run.verification?.passed).toBe(true);
   });
 });
+
+describe("degraded inputs reach the answer", () => {
+  it("names the missing news features and continues when the news service is down", async () => {
+    const { runtime, runs, llm } = newRuntime(handlers(), defaultNodes(), "ukraine");
+    (llm as unknown as { tools: unknown }).tools = tools;
+    const down = async () => { throw new Error("source gdelt is down"); };
+    const deps = (runtime as unknown as { deps: { news: Record<string, unknown> } }).deps;
+    deps.news = { ...deps.news, search: down, newsFeatures: down };
+    const { runId } = await runtime.start({ query: ukraineQuery, mode: "replay", replayPresetId: "geopolitical-russia-ukraine-2022" });
+    await runtime.finished(runId);
+    const got = await runs.get(runId);
+    expect(got?.run.eventProfile).toMatchObject({ newsBasis: "unavailable", volZ: null });
+    expect(got?.steps.find((s) => s.node === "sentiment")?.status).toBe("degraded");
+    expect(got?.run.forecast?.groupsUsed).not.toContain("news");
+    const caveats = got?.run.answer?.caveats.map((c) => c.rendered).join(" ") ?? "";
+    expect(caveats).toMatch(/News coverage features were unavailable/);
+    expect(caveats).toMatch(/Sentiment data was unavailable/);
+    expect(got?.run.confidence).not.toBe("high");
+    expect(got?.run.status).toBe("partial");
+    expect(got?.run.verification?.passed).toBe(true);
+  });
+});
+
+describe("follow-up on a thread", () => {
+  it("reuses the event and lowers the storm category with an override", async () => {
+    const first = modelPlan({ type: "disaster", subtype: "hurricane", name: "Hurricane Ida" }, { specialists: { weather: true, sentiment: true, macro: true, analogs: true } });
+    const followUp = modelPlan({ type: "disaster", subtype: "hurricane", name: "Hurricane Ida", categoryOverride: 2 }, { intent: "what_if", specialists: { weather: true, sentiment: true, macro: true, analogs: true } });
+    const { runtime, runs, llm } = newRuntime({ ...handlers(first), planner: (_call, n) => (n === 0 ? first : followUp) }, defaultNodes(), "ida");
+    (llm as unknown as { tools: unknown }).tools = tools;
+    const a = await runtime.start({ query: idaQuery, mode: "replay", replayPresetId: "disaster-hurricane-ida-2021" });
+    await runtime.finished(a.runId);
+    const b = await runtime.start({ query: "What if it only reaches Category 2?", mode: "replay", replayPresetId: "disaster-hurricane-ida-2021", threadId: a.threadId });
+    await runtime.finished(b.runId);
+
+    const original = await runs.get(a.runId);
+    const redo = await runs.get(b.runId);
+    expect(redo?.run.threadId).toBe(original?.run.threadId);
+    expect(redo?.run.eventProfile?.id).toBe(original?.run.eventProfile?.id);
+    expect(redo?.steps.find((s) => s.node === "event")?.summary).toContain("previous run");
+    const peak = (r: typeof redo) => (r?.steps.find((s) => s.node === "weather")?.output as { peakCategory: number }).peakCategory;
+    expect(peak(original)).toBe(4);
+    expect(peak(redo)).toBe(2);
+    expect(redo?.evidence.find((e) => e.label === "Category assumed in the follow-up")).toMatchObject({ value: 2, basis: "assumption" });
+    expect(redo?.run.verification?.passed).toBe(true);
+  });
+});

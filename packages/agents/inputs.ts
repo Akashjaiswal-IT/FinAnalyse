@@ -77,6 +77,20 @@ export function requiredCaveats(state: RunStateValue, ledger: Ledger): CaveatNee
       text: "The storm impact model uses wind distance only and ignores flooding.",
     });
   }
+  if (state.eventOut?.status === "ok" && state.eventOut.profile.newsBasis === "unavailable") {
+    needs.push({
+      name: "news_features",
+      words: ["news coverage", "news feature", "news volume"],
+      text: "News coverage features were unavailable, so the forecast uses event type and market regime only.",
+    });
+  }
+  if (state.analogsOut?.status === "ok" && Object.values(state.analogsOut.forecast.holdings).some((h) => h.fallback)) {
+    needs.push({
+      name: "beta_fallback",
+      words: ["beta", "too few comparable"],
+      text: "Some holdings had too few comparable past events, so their forecast follows the market forecast scaled by their beta.",
+    });
+  }
   if (state.analogsOut?.status === "ok" && state.analogsOut.forecast.effectiveN < 4) {
     needs.push({
       name: "small_sample",

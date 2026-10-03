@@ -30,4 +30,5 @@ export const serverRouter = router({
 
 export { createContext } from "./context";
 export { setApiRuntime, type ApiRuntime } from "./runtime";
+export { publishLiveEvent } from "./live-bus";
 export type ServerRouter = typeof serverRouter;

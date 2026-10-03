@@ -108,6 +108,7 @@ export class AgentRuntime {
     const done = this.execute(ctx).finally(() => {
       unregisterRun(runId);
       this.busyThreads.delete(threadId);
+      setTimeout(() => this.finishedRuns.delete(runId), 60_000).unref();
     });
     this.finishedRuns.set(runId, done);
     return { runId, threadId };

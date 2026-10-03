@@ -28,7 +28,7 @@ const TYPE_SIGNALS: Record<EventType, RegExp> = {
   policy: /\b(tariffs?|trade war|taxes|tax|law|laws|regulat\w*|legislat\w*|executive order|subsid\w*|ban|bill|congress)\b/i,
   macro: /\b(fed|federal reserve|rates?|rate hike|rate cut|inflation|cpi|recession|jobs report|payrolls|unemployment|pandemic|gdp|central bank|bond yields?)\b/i,
   statement: /\b(says?|said|remarks?|speech|testif\w*|comments?|warns?|press conference|interview|tweet\w*)\b/i,
-  accident: /\b(explosion|explodes?|outage|cyber\w*|hack\w*|crash\w*|recall\w*|spill|derail\w*|blowout|accident|fire|leak|shutdown)\b/i,
+  accident: /\b(explosion|explodes?|outage|cyber\w*|hack\w*|crash\w*|recall\w*|spill|derail\w*|blowout|blew out|blown out|accident|fire|leak|shutdown|grounded|emergency landing|mid-?flight)\b/i,
   disaster: /\b(hurricanes?|tropical storm|typhoon|earthquake|flood\w*|wildfire\w*|winter storm|cyclone|tornado|category \d|storm surge)\b/i,
   corporate: /\b(earnings|guidance|merger|acquisition|acquire\w*|takeover|bankrupt\w*|lawsuit|sues?|chief executive|ceo|layoffs|collapse[sd]?|competitor|ipo|buyback|dividend)\b/i,
   supply_shock: /\b(opec\+?|production cuts?|output cuts?|supply disruption|export ban|shortage|pipeline|embargo|supply)\b/i,
@@ -57,7 +57,7 @@ const SUBTYPE_SIGNALS: readonly [EventType, string, RegExp][] = [
   ["statement", "ceo", /\b(ceo|chief executive)\b/i],
   ["statement", "government", /\b(president|minister|white house|kremlin)\b/i],
   ["accident", "cyber", /\b(cyber\w*|hack\w*)\b/i],
-  ["accident", "transport", /\b(crash\w*|derail\w*|airline|flight)\b/i],
+  ["accident", "transport", /\b(crash\w*|derail\w*|airline|flight|mid-?flight|grounded|emergency landing|door panel)\b/i],
   ["accident", "recall", /\brecall\w*\b/i],
   ["accident", "industrial", /\b(explosion|explodes?|refinery|plant|spill|blowout|fire|leak)\b/i],
   ["disaster", "hurricane", /\bhurricanes?\b/i],
@@ -154,11 +154,13 @@ export function classifyEventByKeywords(text: string): EventClassification | nul
       bestScore = s;
     }
   }
+  const entities = mentionedSymbols(text);
+  const externalNames = mentionedExternal(text);
+  // A named company and no other signal: company-specific news.
+  if (!best && (entities.length > 0 || externalNames.length > 0)) best = "corporate";
   if (!best) return null;
   const type = best;
   const subtype = SUBTYPE_SIGNALS.find(([t, , re]) => t === type && re.test(text))?.[1] ?? null;
-  const entities = mentionedSymbols(text);
-  const externalNames = mentionedExternal(text);
   const sectors = new Set<Sector>(SECTOR_SIGNALS.filter(([, re]) => re.test(text)).map(([s]) => s));
   for (const e of entities) {
     const sector = UNIVERSE.find((u) => u.symbol === e)?.sector;
@@ -186,8 +188,8 @@ const FINANCE_WORDS =
 function intentOf(q: string, hasEvent: boolean, hasPrevious: boolean): Plan["intent"] {
   if (/\b(what if|what happens if|suppose|imagine|hypothetical\w*)\b/i.test(q) || (hasPrevious && /^\s*(and\s+)?(if|what about)\b/i.test(q))) return "what_if";
   if (/\b(hedg\w*|protect|rebalanc\w*|reallocat\w*|reduce (our )?(risk|exposure)|offset)\b/i.test(q)) return "hedge";
-  if (/\b(moving|happening today|what.s going on|scan|headlines|top events|biggest events)\b/i.test(q) && !hasEvent) return "news_scan";
-  if (/\b(explain|why did|how does|what is a)\b/i.test(q) && !hasEvent) return "explain";
+  if (/\b(scan|what.s moving|what is moving|moving our|happening today|what.s going on|headlines|top events|biggest events)\b/i.test(q)) return "news_scan";
+  if (/\b(explain|why did|how does|what is a)\b/i.test(q) && !hasEvent && FINANCE_WORDS.test(q)) return "explain";
   if (hasEvent) return "event_impact";
   if (FINANCE_WORDS.test(q)) return "portfolio_risk";
   return "out_of_scope";

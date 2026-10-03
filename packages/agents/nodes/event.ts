@@ -74,7 +74,9 @@ async function searchNews(env: NodeEnv, text: string): Promise<Hits> {
     const hits = await env.ctx.deps.news.search(text, { asOf: new Date(env.ctx.asOf), windowHours: NEWS_WINDOW_HOURS, topK: 50 });
     return { items: hits.map((h) => h.item), failed: null };
   } catch (err) {
-    return { items: [], failed: err instanceof Error ? err.message : String(err) };
+    const failed = err instanceof Error ? err.message : String(err);
+    env.ctx.warnings.push(`event: news search failed (${failed})`);
+    return { items: [], failed };
   }
 }
 

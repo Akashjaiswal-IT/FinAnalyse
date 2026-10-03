@@ -170,7 +170,10 @@ export function instrumentNode(node: NodeName, impl: NodeImpl, recover?: Recover
       }
       outcome = { ...outcome, status: "degraded" };
     }
-    if (outcome.status === "degraded") ctx.degraded.add(node);
+    if (outcome.status === "degraded") {
+      ctx.degraded.add(node);
+      if (!ctx.warnings.some((w) => w.startsWith(`${node}:`))) ctx.warnings.push(`${node}: ${outcome.summary}`);
+    }
 
     const usage = sink.summed();
     await safeEmit(ctx, {
