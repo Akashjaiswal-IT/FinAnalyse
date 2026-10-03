@@ -76,6 +76,11 @@ function requestOptions(tier: ModelTier, signal: AbortSignal | undefined) {
   return tier === "fast" ? { signal, timeout: 15_000, maxRetries: 1 } : { signal };
 }
 
+/** A 429 from the API (the SDK has already retried it). */
+const isRateLimited = (err: unknown) => (err as { status?: unknown } | null)?.status === 429;
+/** After a 429 on the reasoning model, reasoning calls go straight to the fast model for this long. */
+const RATE_LIMIT_COOLDOWN_MS = 5 * 60_000;
+
 function systemBlock(text: string) {
   return [{ type: "text" as const, text, cache_control: { type: "ephemeral" as const } }];
 }
@@ -85,18 +90,32 @@ function failure(reason: LlmFailure["reason"], detail: string, usage: LlmFailure
 }
 
 export class LlmService implements Llm {
+  private reasoningLimitedUntil = 0;
+
   constructor(
     private readonly getClient: () => Anthropic = anthropic,
     private readonly record: SourceRecorder = () => undefined,
+    private readonly now: () => number = Date.now,
   ) {}
 
-  async parseStructured<T>(call: StructuredCall<T>, retried = false): Promise<StructuredResult<T>> {
-    const { params, effort } = tierParams(call.tier, call.effort);
+  private limited(): boolean {
+    return this.now() < this.reasoningLimitedUntil;
+  }
+
+  private noteRateLimit(): void {
+    this.reasoningLimitedUntil = this.now() + RATE_LIMIT_COOLDOWN_MS;
+  }
+
+  /** `downgraded` sends a reasoning call to the fast model, with the reasoning call's timeouts, after a 429. */
+  async parseStructured<T>(call: StructuredCall<T>, retried = false, downgraded = false): Promise<StructuredResult<T>> {
+    if (call.tier === "reasoning" && !downgraded && this.limited()) return this.parseStructured(call, retried, true);
+    const tier = downgraded ? "fast" : call.tier;
+    const { params, effort } = tierParams(tier, call.effort);
     const started = Date.now();
     try {
       const message = await this.getClient().beta.messages.parse(
         {
-          model: modelFor(call.tier),
+          model: modelFor(tier),
           max_tokens: call.maxTokens,
           system: systemBlock(call.system),
           messages: [{ role: "user", content: call.user }],
@@ -113,7 +132,7 @@ export class LlmService implements Llm {
       }
       if (message.stop_reason === "max_tokens") {
         if (retried) return failure("max_tokens", `${call.label}: output hit ${call.maxTokens} tokens twice`, usage);
-        const again = await this.parseStructured({ ...call, maxTokens: call.maxTokens * 2 }, true);
+        const again = await this.parseStructured({ ...call, maxTokens: call.maxTokens * 2 }, true, downgraded);
         return again.ok
           ? { ...again, usage: addUsage(usage, again.usage) }
           : { ...again, usage: again.usage ? addUsage(usage, again.usage) : usage };
@@ -124,12 +143,18 @@ export class LlmService implements Llm {
       const detail = err instanceof Error ? err.message : String(err);
       logger.warn("llm call failed", { label: call.label, detail });
       this.record(err, Date.now() - started);
+      if (call.tier === "reasoning" && !downgraded && isRateLimited(err)) {
+        this.noteRateLimit();
+        return this.parseStructured(call, retried, true);
+      }
       return failure("error", detail, null);
     }
   }
 
-  async runTools(call: ToolCall): Promise<ToolsResult> {
-    const { params, effort } = tierParams(call.tier, call.effort);
+  async runTools(call: ToolCall, downgraded = false): Promise<ToolsResult> {
+    if (call.tier === "reasoning" && !downgraded && this.limited()) return this.runTools(call, true);
+    const tier = downgraded ? "fast" : call.tier;
+    const { params, effort } = tierParams(tier, call.effort);
     const maxIterations = Math.min(call.maxIterations ?? MAX_TOOL_ITERATIONS, MAX_TOOL_ITERATIONS);
     let usage: LlmFailure["usage"] = null;
     let thinking: string | null = null;
@@ -139,7 +164,7 @@ export class LlmService implements Llm {
     try {
       const runner = this.getClient().beta.messages.toolRunner(
         {
-          model: modelFor(call.tier),
+          model: modelFor(tier),
           max_tokens: call.maxTokens,
           system: systemBlock(call.system),
           messages: [{ role: "user", content: call.user }],
@@ -174,6 +199,11 @@ export class LlmService implements Llm {
       const detail = err instanceof Error ? err.message : String(err);
       logger.warn("llm tool loop failed", { label: call.label, detail });
       this.record(err, Date.now() - started);
+      // The tools are pure computations, so the loop can start over on the fast model.
+      if (call.tier === "reasoning" && !downgraded && isRateLimited(err)) {
+        this.noteRateLimit();
+        return this.runTools(call, true);
+      }
       return failure("error", detail, usage);
     }
   }
