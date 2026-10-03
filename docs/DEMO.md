@@ -15,23 +15,25 @@ About five minutes. Rehearse it twice on the machine you present from.
 4. If the Anthropic key has no credit, answers are built from templates and the run ends `partial`. Say so if asked; the numbers are the same, only the prose differs.
 5. If the network fails during the demo, restart web with `NEXT_PUBLIC_DATA_SOURCE=fixture` to play the recorded Ukraine and Ida runs. The header then shows a "fixture data" badge.
 
-A run takes about a minute. If the page is reloaded mid-run, it follows the same run again (the run id is in the URL). A finished run opens instantly from its URL, which is the quickest fallback when the model or network is slow: on the demo machine, the Ida run `05647989-c68a-4e39-af9a-0ad1d2a60612` is at `/?mode=replay&preset=disaster-hurricane-ida-2021&run=05647989-c68a-4e39-af9a-0ad1d2a60612`. Run ids exist only in the database that ran them.
+A run takes about a minute. If the page is reloaded mid-run, it follows the same run again (the run id is in the URL). A finished run opens instantly from its URL, which is the quickest fallback when the model or network is slow: on the demo machine, the Ida run `05647989-c68a-4e39-af9a-0ad1d2a60612` is at `/analyze?mode=replay&preset=disaster-hurricane-ida-2021&run=05647989-c68a-4e39-af9a-0ad1d2a60612`. Run ids exist only in the database that ran them.
 
 A recorded walkthrough (Ukraine, Ida, Live tabs, Reliability; 4 minutes, 1600x1000) is kept outside the repository as `tempest-demo-backup.webm`; it plays in Chrome.
 
 ## The story
 
 1. **The problem (30 s).** A portfolio manager hears about an event and needs to know, in minutes, which holdings it reaches, how far markets moved after similar events, and what to hedge. Hurricanes are one case; wars, tariffs, central-bank surprises, accidents and competitor news are the others.
-2. **Replay: Russia invades Ukraine (90 s).** Replay, preset "Russia invades Ukraine (2022)". The as-of is 25 Feb 2022, 02:40 UTC; nothing after that time can be read. Ask the example question.
-   - The agent graph: planner, event, then weather (skipped: not a storm), sentiment and macro in parallel, then analogs, risk, hedging, synthesizer, verifier.
-   - The portfolio panel: direct, peer and factor exposure badges per holding.
-   - The answer: every number is a chip. Hover one to show its source and as-of time; click to open the evidence row. The verifier line says how many numbers were ungrounded (zero).
-   - Risk: scenario P&L by sector, VaR, and the hedge plan's before and after.
-   - Analog forecast: the closest past events and their weights.
-3. **Replay: Hurricane Ida (60 s).** Pick the hurricane example. Weather runs this time: the storm track, the refineries inside the impact radius, Gulf refining capacity at risk, then the hedge on the energy sleeve.
-4. **Live (45 s).** Switch to Live. Sources tab: health and last latency per source. News tab: "Ingest now" queues GDELT, NHC and Alpha Vantage; the measured ingest latency is above the list. Events tab: clusters the worker detected; "Analyse" runs the graph on one.
-5. **Proof (45 s).** Click Reliability. A leave-one-out backtest over 64 past events against five baselines, with the caveats printed under the tables. Then `docs/RESULTS.md`: the eval over 20 questions and the robustness drills, each with date and commit.
-6. **Close (15 s).** Real data end to end, numbers never written by the model, and each claim traceable to a source.
+2. **Dashboard (30 s).** The portfolio now: value, cash, volatility regime, the heatmap (box size is weight, colour is today's move), holdings tagged short-term or long-term with their recent prices. Click a box: the stock drawer shows the price chart with news days marked and every article with its source.
+3. **An alert arrives (20 s).** Alerts, then "Simulate an incoming alert": the toast and the bell show an event that reached the refiners, with the holdings, the expected direction, the confidence and the sources. Nobody asked a question.
+4. **Analysis (90 s).** "Run the full analysis" opens Analyze and starts the run. Replay fixes the clock at the event's time; nothing later can be read.
+   - The agent graph: planner, event, then weather, sentiment and macro in parallel, then analogs, risk, hedging, synthesizer, verifier, with a progress bar.
+   - The headline numbers: scenario result before and after hedges, value at risk, exposed value by channel, confidence.
+   - The answer: every number is a chip. Hover one for its source and time; click it for the evidence row. The verifier line says how many numbers were ungrounded (zero).
+   - Hurricane Ida adds the storm track and the refineries inside the impact radius; "What happened next" compares the forecast with what markets did.
+5. **Ideas (30 s).** What to sell and what to buy, each with its reasons, sources, horizon and the risk before and after.
+6. **Proof (45 s).** Reliability: the backtest against five baselines with its caveats; then `docs/RESULTS.md`: the eval over 20 questions and the robustness drills.
+7. **Close (15 s).** Light mode for the projector (the sun icon), the tour for a new user (Tour), and the line: real data end to end, numbers never written by the model, every claim traceable to a source.
+
+The Alerts and Ideas pages show preview data (a label says so) until their services are built; their buttons run the real analysis.
 
 ## Likely questions
 
