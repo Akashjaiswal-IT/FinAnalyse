@@ -10,6 +10,7 @@ import { useTerminalUrl } from "~/hooks/use-terminal-url";
 import { DATA_SOURCE, runDriver } from "~/lib/data-source";
 import { formatDateTime } from "~/lib/display";
 import { fixturePortfolioAt } from "~/lib/fixture-data";
+import { trpc } from "~/trpc/client";
 import { findPreset } from "~/lib/url-state";
 import { AgentGraph } from "./agent-graph";
 import { AnswerCard } from "./answer-card";
@@ -32,7 +33,9 @@ export function Terminal() {
   const runContext = useMemo(() => ({ view: stream.view, openDrilldown }), [stream.view, openDrilldown]);
 
   const preset = findPreset(url.presetId);
-  const snapshot = useMemo(() => fixturePortfolioAt(url.asOf), [url.asOf]);
+  const fixtureSnapshot = useMemo(() => fixturePortfolioAt(url.asOf), [url.asOf]);
+  const portfolio = trpc.portfolio.get.useQuery(url.asOf ? { asOf: url.asOf } : {}, { enabled: DATA_SOURCE === "api" });
+  const snapshot = DATA_SOURCE === "api" ? (portfolio.data ?? null) : fixtureSnapshot;
 
   // A new mode, preset or as-of makes the previous answer describe a different question, so it is cleared.
   const { reset } = stream;
@@ -76,10 +79,16 @@ export function Terminal() {
 
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
           <ResizablePanel defaultSize="22%" minSize="15%" maxSize="38%">
-            <PortfolioPanel
-              snapshot={snapshot}
-              asOfLabel={url.asOf ? `As of ${formatDateTime(url.asOf)}` : "Live"}
-            />
+            {snapshot ? (
+              <PortfolioPanel
+                snapshot={snapshot}
+                asOfLabel={url.asOf ? `As of ${formatDateTime(url.asOf)}` : "Live"}
+              />
+            ) : (
+              <div className="p-4 text-sm text-muted-foreground">
+                {portfolio.error ? `Portfolio unavailable: ${portfolio.error.message}` : "Loading portfolio…"}
+              </div>
+            )}
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="50%" minSize="30%">

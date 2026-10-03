@@ -44,6 +44,11 @@ function toNumber(value: string | number | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** `2022-02-24T02:40:00Z` to `20220224T0240` (Alpha Vantage time filter). */
+export function avTime(d: Date): string {
+  return d.toISOString().slice(0, 16).replace(/[-:]/g, "");
+}
+
 export function rotationQueryKey(entry: AvRotationEntry): string {
   return `av_${entry.kind}_${entry.value}`;
 }
@@ -75,15 +80,20 @@ export function normaliseAvFeed(items: readonly AvFeedItem[], queryKey: string, 
 export class AlphaVantageClient {
   constructor(private readonly http: HttpClient) {}
 
-  async news(entry: AvRotationEntry, limit = 50): Promise<AvFeedItem[]> {
+  /** `window` asks for the archive (replay news); without it the newest items come back. */
+  async news(entry: AvRotationEntry, limit = 50, window?: { from: Date; to: Date }): Promise<AvFeedItem[]> {
     const { ALPHAVANTAGE_API_KEY } = AvEnv.parse(process.env);
     const params = new URLSearchParams({
       function: "NEWS_SENTIMENT",
       [entry.kind]: entry.value,
-      sort: "LATEST",
+      sort: window ? "RELEVANCE" : "LATEST",
       limit: String(limit),
       apikey: ALPHAVANTAGE_API_KEY,
     });
+    if (window) {
+      params.set("time_from", avTime(window.from));
+      params.set("time_to", avTime(window.to));
+    }
     const body = await this.http.request({
       source: "alphavantage",
       url: `https://www.alphavantage.co/query?${params}`,

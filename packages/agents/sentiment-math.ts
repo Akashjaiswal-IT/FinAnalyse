@@ -14,6 +14,23 @@ export function itemWeight(item: Pick<NewsItem, "relevance" | "publishedAt">, as
 
 type Scored = NewsItem & { sentiment: number };
 
+/** Relevance given to an Alpha Vantage item that Claude has not scored: it is already finance news on a topic. */
+export const SOURCE_SCORE_RELEVANCE = 0.5;
+const UNIVERSE_SYMBOLS = new Set(UNIVERSE.map((u) => u.symbol));
+
+/** Alpha Vantage's own scores stand in when Claude has not scored an item (SPEC 5.5, `sentiment`). */
+export function withSourceScores(item: NewsItem): NewsItem {
+  if (item.sentiment !== null || item.sourceSentiment === null) return item;
+  const tickerScores = Object.entries(item.tickerSentiment ?? {}).filter(([symbol]) => UNIVERSE_SYMBOLS.has(symbol));
+  return {
+    ...item,
+    sentiment: Math.max(-1, Math.min(1, item.sourceSentiment)),
+    relevance: item.relevance ?? SOURCE_SCORE_RELEVANCE,
+    entitySentiment: item.entitySentiment ?? (tickerScores.length ? tickerScores.map(([symbol, score]) => ({ symbol, score })) : null),
+    scoreModel: item.scoreModel ?? "alphavantage",
+  };
+}
+
 const isScored = (i: NewsItem): i is Scored => i.sentiment !== null && i.relevance !== null;
 
 /** Sentiment of an item about one symbol: the per-entity score when the scorer gave one, else the item's own. */
