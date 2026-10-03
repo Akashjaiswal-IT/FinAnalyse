@@ -52,6 +52,9 @@ describe("full pipeline with the real nodes and fake services", () => {
     expect(run?.status).toBe("succeeded");
     expect(run?.verification?.passed).toBe(true);
     expect(got?.evidence.length).toBeGreaterThanOrEqual(20);
+    // Every step says what it read (SPEC 8, drilldown inputs).
+    expect(got?.steps.every((s) => s.input !== null && s.input !== undefined)).toBe(true);
+    expect(got?.steps[0]?.input).toMatchObject({ question: ukraineQuery, mode: "replay" });
 
     const profile = run?.eventProfile;
     expect(profile).toMatchObject({ id: "geopolitical-russia-ukraine-2022", source: "replay", type: "geopolitical", newsBasis: "observed" });

@@ -5,6 +5,7 @@ import { logger } from "@repo/logger";
 import type { Mode, NodeName, NodeStatus, RunEvent, Usage } from "@repo/contracts";
 import type { AgentDeps } from "./deps";
 import { Ledger, type NewEvidence } from "./ledger";
+import { stepInput } from "./step-input";
 import type { RunStateUpdate, RunStateValue } from "./state";
 
 /** Per-run state that cannot enter the graph state: it is not serialisable (SPEC 5.5, rule 3). The graph
@@ -182,6 +183,7 @@ export function instrumentNode(node: NodeName, impl: NodeImpl, recover?: Recover
       status: outcome.status,
       durationMs: Date.now() - started,
       summary: outcome.summary,
+      input: safeInput(node, state, ctx),
       output: outcome.output,
       ...(usage ? { usage } : {}),
       ...(sink.thinking ? { thinkingSummary: sink.thinking } : {}),
@@ -193,6 +195,15 @@ export function instrumentNode(node: NodeName, impl: NodeImpl, recover?: Recover
     }
     return outcome.update;
   };
+}
+
+/** The description of a node's input must never take the node down. */
+function safeInput(node: NodeName, state: RunStateValue, ctx: RunContext): unknown {
+  try {
+    return stepInput(node, state, ctx);
+  } catch {
+    return undefined;
+  }
 }
 
 async function safeEmit(ctx: RunContext, event: RunEvent): Promise<void> {

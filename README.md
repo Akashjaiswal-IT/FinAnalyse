@@ -1,135 +1,121 @@
-# Turborepo starter
+# Tempest
 
-This Turborepo starter is maintained by the Turborepo core team.
+A financial intelligence terminal for a portfolio manager, built for Codeutsav problem statement 5 (`docs/PS5.md`).
 
-## Using this example
+Ask a question in plain English about anything that moves markets: a war, a tariff package, a competitor's refinery explosion, a Category 4 hurricane in the Gulf. A graph of specialised agents identifies the event, reads news, macro series, prices and (for storms) the storm track, retrieves similar past events from a vector index, maps how the event reaches each holding, computes portfolio risk, proposes hedges, and answers. **The model never writes a number.** Every figure in an answer is an evidence row computed or read by a node and linked to its source; a verifier rejects anything else.
 
-Run the following command:
+Hurricanes are one event type among eight (geopolitical, policy, macro, statement, accident, disaster, corporate, supply shock). The weather agent runs only when the event is a storm.
+
+## What is real and what is simulated
+
+- Real: news (GDELT, Alpha Vantage), daily prices (Tiingo), macro series (FRED, EIA), storm tracks (NHC, HURDAT2), a Pinecone index of past events, the Claude models.
+- Simulated: the portfolio is paper and fixed (23 positions, 95% invested). Hedges use ETFs in place of futures and nothing is sent to a broker. Replay mode uses the best track as a perfect forecast and says so. Prices are end-of-day. Hypothetical events and storms are labelled.
+- Every read takes an as-of time. Replay mode cannot see anything dated after it (`docs/SPEC.md` 5.1; a test enforces it).
+
+## Architecture
+
+```mermaid
+flowchart LR
+  S([start]) --> planner --> event
+  event --> weather & sentiment & macro
+  weather & sentiment & macro --> analogs
+  analogs --> risk --> hedging --> synthesizer --> verifier
+  verifier -->|pass, or repair already used| E([end])
+  verifier -->|first failure| synthesizer
+```
+
+The graph has the same shape on every run; a node the question does not need ends `skipped`. A node that fails ends `degraded`, the run continues, and the answer names the gap and lowers its confidence.
+
+```mermaid
+flowchart LR
+  subgraph sources
+    GDELT; AV[Alpha Vantage]; NHC; OM[Open-Meteo]; FRED; EIA; Tiingo
+  end
+  sources --> worker[apps/worker<br/>BullMQ jobs]
+  worker --> PG[(Postgres)]
+  worker --> PC[(Pinecone)]
+  worker -->|Redis channel live| api
+  PG --> api[apps/api<br/>Express + tRPC + SSE]
+  PC --> api
+  api -->|agent graph, in process| LLM[Claude]
+  api -->|/trpc, SSE| web[apps/web<br/>Next.js terminal]
+```
+
+| Path | What |
+|---|---|
+| `apps/api` | Express: `/trpc` (queries, mutations, SSE subscriptions), `/api` (REST), `/openapi.json`, `/docs` (Scalar), `/health`. Runs the agent graph in process. |
+| `apps/worker` | BullMQ ingestion, enrichment and event detection. |
+| `apps/web` | The terminal: live agent graph, event card, answer with evidence chips, hedge table, drilldown. |
+| `packages/contracts` | Zod schemas, constants, formatters and fixtures shared by every package. Browser-safe. |
+| `packages/agents` | The LangGraph graph, evidence ledger, verifier, fallbacks, prompts. |
+| `packages/quant` | Pure maths: returns, betas, VaR, exposure channels, hedge sizing, kernel kNN forecast, backtest. No I/O, no clock. |
+| `packages/services` | All I/O: Postgres, Redis, Pinecone, HTTP clients, the Anthropic client (`llm/`), runs. |
+| `packages/trpc`, `packages/database` | Routes and Drizzle models. |
+| `scripts` | Seed, backtest, eval, benchmarks, drills, `run-query`, `stream-run`. |
+| `docs` | `SPEC.md` (what), `ROADMAP.md` (order and gates), `DECISIONS.md` (deviations), `PROGRESS.md`, `RESULTS.md` (measured numbers). |
+
+## Quickstart
+
+Requirements: Node 22, pnpm 9, Docker.
 
 ```sh
-npx create-turbo@latest
+cp .env.example .env     # then fill in the keys (see the table below); .env is gitignored
+./setup.sh               # links .env into every app and package
+docker compose up -d     # Postgres 15 and Redis 7
+pnpm install
+pnpm db:migrate
+pnpm seed                # prices, macro, storms, refineries, curated events, Pinecone index (idempotent)
+pnpm dev                 # api on :8000, web on :3000, worker
 ```
 
-## What's inside?
+Open <http://localhost:3000>, pick Replay, choose "Russia invades Ukraine" and ask the example question.
 
-This Turborepo includes the following packages/apps:
+Without the seed or while a data source is down, `FAKE_SERVICES=1 pnpm dev` serves the agent graph from fixture data. It is for interface work and offline rehearsal, never for a demo.
 
-### Apps and Packages
+Run one question from the terminal:
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```sh
+pnpm run-query --preset=geopolitical-russia-ukraine-2022 "How will the Russian invasion of Ukraine affect our portfolio?"
+pnpm run-query --preset=disaster-hurricane-ida-2021 "How will the forecasted Category 4 hurricane in the Gulf of Mexico affect our current energy holdings?"
+pnpm stream-run <runId>    # print a run's events; --drop-after=7 shows a reconnect with lastEventId
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Scripts
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+| Command | What |
+|---|---|
+| `pnpm check-types && pnpm lint && pnpm test && pnpm build` | The gate. CI runs it with Postgres and Redis. |
+| `pnpm seed [--only=<step>] [--refresh]` | Load reference data. |
+| `pnpm backtest` | Leave-one-out backtest of the combined forecast against type-only, news-only, regime-only, weather-only and unconditional baselines. |
+| `pnpm eval` | The 20-query orchestration eval (`data/eval/queries.json`). |
+| `pnpm bench:ingest` | Ingestion latency, upstream response received to Postgres and Pinecone writes acknowledged. |
+| `pnpm drills` | Robustness drills with sources disabled. |
+| `pnpm run-query`, `pnpm stream-run` | One run, and a run's event stream. |
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Environment
 
-### Develop
+| Variable | Used by | Notes |
+|---|---|---|
+| `DATABASE_URL`, `REDIS_URL` | everything | Defaults match `docker-compose.yml`. |
+| `ANTHROPIC_API_KEY`, `MODEL_REASONING`, `MODEL_FAST` | api, scripts | Sonnet for planner, hedging and synthesizer; Haiku for classification, notes and news scoring. |
+| `PINECONE_API_KEY`, `PINECONE_INDEX` | api, worker, seed | Integrated-embedding index, created by the seed. |
+| `TIINGO_API_KEY`, `FRED_API_KEY`, `EIA_API_KEY`, `ALPHAVANTAGE_API_KEY` | worker, seed | Free tiers; see `docs/SPEC.md` section 4 for limits. |
+| `NOAA_USER_AGENT` | worker | NOAA asks for a contact address. |
+| `DISABLE_SOURCES` | services | Comma list of sources forced offline, for the drills. |
+| `PORT`, `BASE_URL`, `CORS_ORIGIN`, `DEMO_TOKEN` | api | When `DEMO_TOKEN` is set, `runs.create` and `system.ingestNow` need the `x-demo-token` header. Set it on anything reachable from the internet. |
+| `FAKE_SERVICES` | api | `1` serves fixture data to the agents. |
+| `NEXT_PUBLIC_API_URL` | web | Fixed at build time. |
 
-To develop all apps and packages, run the following command:
+Never commit `.env`, `data/cache/` or any Tiingo data; the licence forbids redistributing it.
 
-```
-cd my-turborepo
+## How an answer is made trustworthy
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+1. Nodes add evidence rows (`E1`, `E2`, ...) with value, unit, source, as-of time, basis (observed, computed, model, assumption) and the node that produced them.
+2. The synthesizer writes text with placeholders such as `{{E12}}`. The server stores the template and the rendering. Digits outside placeholders are rejected.
+3. The verifier checks that every placeholder exists, no digit escaped, every hedge action is inside the limits and cites evidence, only universe symbols appear, and every unavailable or stale input is named in a caveat.
+4. A failed answer gets one repair. A second failure ships a deterministic template built from the structured data, and the run ends `partial`.
+5. Confidence is computed from which inputs were available, never written by the model.
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+## Results
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+Measured numbers (backtest, eval, ingestion latency, drills, cost per run) are in [`docs/RESULTS.md`](docs/RESULTS.md). That file is written only from script output.

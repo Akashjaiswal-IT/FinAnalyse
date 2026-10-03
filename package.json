@@ -14,7 +14,9 @@
     "backtest": "dotenv -- tsx scripts/backtest.ts",
     "eval": "dotenv -- tsx scripts/eval-queries.ts",
     "bench:ingest": "dotenv -- tsx scripts/ingest-bench.ts",
-    "drills": "dotenv -- tsx scripts/drills.ts"
+    "drills": "dotenv -- tsx scripts/drills.ts",
+    "run-query": "dotenv -- tsx scripts/run-query.ts",
+    "stream-run": "dotenv -- tsx scripts/stream-run.ts"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   barAvailableAt,
   extractPlaceholders,
+  formatLogReturn,
   formatValue,
   renderTemplate,
+  simpleFromLog,
   weeklyAvailableAt,
 } from "./format";
 
@@ -89,5 +91,14 @@ describe("availability", () => {
     expect(formatValue("usd", 999.2)).toBe("$999");
     expect(formatValue("usd", 999_960_000)).toBe("$1B");
     expect(formatValue("bpd", 999_996)).toBe("1M b/d");
+  });
+
+  it("converts a log return to a simple percent", () => {
+    expect(simpleFromLog(Math.log(1.05))).toBeCloseTo(0.05, 12);
+    expect(formatLogReturn(Math.log(1.05))).toBe("+5.0%");
+    expect(formatLogReturn(Math.log(0.9))).toBe("-10.0%");
+    expect(formatLogReturn(0)).toBe("0.0%");
+    expect(formatLogReturn(null)).toBe("n/a");
+    expect(formatLogReturn(Number.NaN)).toBe("n/a");
   });
 });

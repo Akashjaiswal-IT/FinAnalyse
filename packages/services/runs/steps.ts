@@ -5,7 +5,7 @@ export function deriveSteps(events: readonly RunEvent[]): Step[] {
   const steps = new Map<string, Step>(
     NODE_ORDER.map((node) => [
       node,
-      { node, status: "pending", startedAt: null, durationMs: null, summary: null, output: null, usage: null, thinkingSummary: null, error: null },
+      { node, status: "pending", startedAt: null, durationMs: null, summary: null, input: null, output: null, usage: null, thinkingSummary: null, error: null },
     ]),
   );
   for (const e of events) {
@@ -20,6 +20,7 @@ export function deriveSteps(events: readonly RunEvent[]): Step[] {
           status: e.status,
           durationMs: e.durationMs,
           summary: e.summary,
+          input: e.input ?? null,
           output: e.output ?? null,
           usage: e.usage ?? null,
           thinkingSummary: e.thinkingSummary ?? null,
