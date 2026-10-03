@@ -10,6 +10,8 @@ import { cachedJson, chunked, log, type SeedOptions } from "./lib";
 export const SEED_START = "2015-01-01";
 /** Weekly inventories come from the EIA API; FRED does not carry them (docs/DECISIONS.md). */
 export const EIA_SERIES = ["WGTSTUS1", "WCESTUS1"] as const;
+/** The 5-year same-week inventory average needs 5 years before the earliest replay (2017). */
+export const EIA_START = "2012-01-01";
 
 async function upsertBars(rows: NewPriceBarRow[]): Promise<void> {
   for (const batch of chunked(rows, 2_000)) {
@@ -73,7 +75,7 @@ export async function seedPrices(options: SeedOptions): Promise<void> {
   for (const seriesId of MACRO_SERIES) {
     const isEia = (EIA_SERIES as readonly string[]).includes(seriesId);
     const obs = isEia
-      ? await cachedJson(`eia/${seriesId}.json`, options, () => eia.weekly(seriesId, SEED_START))
+      ? await cachedJson(`eia/${seriesId}-${EIA_START}.json`, options, () => eia.weekly(seriesId, EIA_START))
       : await cachedJson(`fred/${seriesId}.json`, options, () => fred.observations(seriesId, SEED_START));
     await upsertMacro(obs);
     log("prices", `${seriesId} (${isEia ? "eia" : "fred"}): ${obs.length} observations to ${obs.at(-1)?.date}`);
