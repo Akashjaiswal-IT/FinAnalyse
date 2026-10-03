@@ -1,0 +1,482 @@
+[
+  {
+    "id": "geopolitical-russia-ukraine-2022",
+    "type": "geopolitical",
+    "subtype": "war",
+    "name": "Russia invades Ukraine",
+    "firstReportAt": "2022-02-24T02:40:00.000Z",
+    "region": "Eastern Europe",
+    "entities": [],
+    "affectedSectors": ["energy", "defense", "airlines", "commodity_proxy", "agriculture", "gold"],
+    "gdeltQuery": "Russia Ukraine (invasion OR invade OR invaded OR invades) sourcelang:english",
+    "sources": [
+      "https://thedefensepost.com/2022/02/23/russia-military-operation-ukraine/",
+      "http://en.kremlin.ru/events/president/news/67843",
+      "https://en.wikipedia.org/wiki/On_conducting_a_special_military_operation"
+    ]
+  },
+  {
+    "id": "supply-opec-cut-2023",
+    "type": "supply_shock",
+    "subtype": "production_cut",
+    "name": "OPEC+ surprise production cut",
+    "firstReportAt": "2023-04-02T13:57:00.000Z",
+    "region": "Saudi Arabia",
+    "entities": [],
+    "affectedSectors": ["energy", "refiner", "commodity_proxy"],
+    "gdeltQuery": "OPEC (\"production cut\" OR \"output cut\" OR \"surprise cut\") sourcelang:english",
+    "sources": [
+      "https://web.archive.org/web/20230508041921/https://sp.spa.gov.sa/viewfullstory.php?lang=en&newsid=2440264",
+      "https://www.cnbc.com/2023/04/02/saudi-arabia-and-opec-producers-announce-voluntary-oil-output-cuts.html"
+    ]
+  },
+  {
+    "id": "policy-us-tariffs-2025",
+    "type": "policy",
+    "subtype": "tariff",
+    "name": "US \"Liberation Day\" tariffs",
+    "firstReportAt": "2025-04-02T20:06:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["market", "tech", "semis", "consumer", "china"],
+    "gdeltQuery": "(\"Liberation Day\" OR \"reciprocal tariffs\") sourcelang:english",
+    "sources": ["https://www.presidency.ucsb.edu/documents/remarks-announcing-additional-united-states-tariff-actions-foreign-imports"]
+  },
+  {
+    "id": "corporate-svb-2023",
+    "type": "corporate",
+    "subtype": "failure",
+    "name": "Silicon Valley Bank collapse",
+    "firstReportAt": "2023-03-08T21:06:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["banks"],
+    "gdeltQuery": "\"Silicon Valley Bank\" sourcelang:english",
+    "sources": [
+      "https://www.prnewswire.com/news-releases/svb-financial-group-announces-proposed-offerings-of-common-stock-and-mandatory-convertible-preferred-stock-301766247.html",
+      "https://www.sec.gov/Archives/edgar/data/719739/000119312523064680/0001193125-23-064680-index.htm"
+    ]
+  },
+  {
+    "id": "accident-boeing-door-2024",
+    "type": "accident",
+    "subtype": "transport",
+    "name": "Alaska Airlines 737 MAX 9 door-plug blowout",
+    "firstReportAt": "2024-01-06T01:12:33.000Z",
+    "region": "United States",
+    "entities": ["BA"],
+    "affectedSectors": ["aerospace", "airlines"],
+    "gdeltQuery": "\"Alaska Airlines\" (\"door plug\" OR blowout OR \"737 MAX 9\") sourcelang:english",
+    "sources": [
+      "https://www.ntsb.gov/investigations/AccidentReports/Reports/AIR2504.pdf",
+      "https://data.ntsb.gov/carol-repgen/api/Aviation/ReportMain/GenerateNewestReport/193617/pdf"
+    ]
+  },
+  {
+    "id": "geopolitical-abqaiq-attack-2019",
+    "type": "geopolitical",
+    "subtype": "attack",
+    "name": "Drone attack on Saudi Aramco's Abqaiq and Khurais facilities",
+    "firstReportAt": "2019-09-14T01:00:00.000Z",
+    "region": "Saudi Arabia",
+    "entities": [],
+    "affectedSectors": ["energy", "refiner", "commodity_proxy"],
+    "gdeltQuery": "(Abqaiq OR Khurais) (attack OR drone OR drones) sourcelang:english",
+    "sources": [
+      "https://www.aljazeera.com/economy/2019/9/14/houthi-drone-attacks-on-2-saudi-aramco-oil-facilities-spark-fires",
+      "https://en.wikipedia.org/wiki/Abqaiq%E2%80%93Khurais_attack"
+    ]
+  },
+  {
+    "id": "geopolitical-soleimani-strike-2020",
+    "type": "geopolitical",
+    "subtype": "attack",
+    "name": "US strike kills Qasem Soleimani",
+    "firstReportAt": "2020-01-02T21:47:00.000Z",
+    "region": "Middle East",
+    "entities": [],
+    "affectedSectors": ["energy", "defense", "gold"],
+    "gdeltQuery": "Soleimani (killed OR strike OR airstrike) sourcelang:english",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Assassination_of_Qasem_Soleimani",
+      "https://www.globalsecurity.org/military/library/news/2020/01/mil-200102-dod03.htm"
+    ]
+  },
+  {
+    "id": "geopolitical-hamas-attack-2023",
+    "type": "geopolitical",
+    "subtype": "war",
+    "name": "Hamas attack on Israel",
+    "firstReportAt": "2023-10-07T03:30:00.000Z",
+    "region": "Middle East",
+    "entities": [],
+    "affectedSectors": ["defense", "energy", "gold"],
+    "gdeltQuery": "Hamas Israel (attack OR war) sourcelang:english",
+    "sources": ["https://www.timesofisrael.com/incoming-rocket-sirens-sound-across-southern-central-israel/"]
+  },
+  {
+    "id": "geopolitical-red-sea-shipping-2023",
+    "type": "geopolitical",
+    "subtype": "attack",
+    "name": "Red Sea shipping attacks: Maersk pauses transits",
+    "firstReportAt": "2023-12-15T16:02:17.000Z",
+    "region": "Red Sea",
+    "entities": [],
+    "affectedSectors": ["energy", "commodity_proxy", "consumer"],
+    "gdeltQuery": "\"Red Sea\" (Houthi OR Houthis) (shipping OR ships) sourcelang:english",
+    "sources": ["https://www.cnbc.com/2023/12/15/maersk-to-pause-all-container-ship-traffic-through-the-red-sea.html"]
+  },
+  {
+    "id": "geopolitical-iran-strikes-israel-2024",
+    "type": "geopolitical",
+    "subtype": "attack",
+    "name": "Iran's drone and missile strike on Israel",
+    "firstReportAt": "2024-04-13T20:00:00.000Z",
+    "region": "Middle East",
+    "entities": [],
+    "affectedSectors": ["defense", "energy", "gold"],
+    "gdeltQuery": "Iran Israel (drones OR missiles) (attack OR strike) sourcelang:english",
+    "sources": ["https://www.aljazeera.com/news/2024/4/14/iran-attacks-israel-with-over-300-drones-missiles-what-you-need-to-know"]
+  },
+  {
+    "id": "policy-steel-aluminum-tariffs-2018",
+    "type": "policy",
+    "subtype": "tariff",
+    "name": "US Section 232 steel and aluminium tariffs announced",
+    "firstReportAt": "2018-03-01T18:25:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["market", "china"],
+    "gdeltQuery": "tariffs (steel OR aluminum) Trump sourcelang:english",
+    "sources": ["https://www.nbcnews.com/business/business-news/trump-slaps-tariffs-steel-aluminum-starting-next-week-n852341"]
+  },
+  {
+    "id": "policy-inflation-reduction-act-2022",
+    "type": "policy",
+    "subtype": "legislation",
+    "name": "Inflation Reduction Act signed",
+    "firstReportAt": "2022-08-16T19:49:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["energy"],
+    "gdeltQuery": "\"Inflation Reduction Act\" sourcelang:english",
+    "sources": [
+      "https://bidenwhitehouse.archives.gov/briefing-room/speeches-remarks/2022/08/16/remarks-by-president-biden-at-signing-of-h-r-5376-the-inflation-reduction-act-of-2022/"
+    ]
+  },
+  {
+    "id": "macro-fed-emergency-cut-2020-03",
+    "type": "macro",
+    "subtype": "rates",
+    "name": "Fed emergency 50 bp rate cut",
+    "firstReportAt": "2020-03-03T15:00:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["banks", "rates", "market"],
+    "gdeltQuery": "\"Federal Reserve\" (\"emergency rate cut\" OR \"emergency cut\" OR \"half point\") sourcelang:english",
+    "sources": ["https://www.federalreserve.gov/newsevents/pressreleases/monetary20200303a.htm"]
+  },
+  {
+    "id": "macro-fed-cut-to-zero-2020",
+    "type": "macro",
+    "subtype": "rates",
+    "name": "Fed cuts rates to near zero",
+    "firstReportAt": "2020-03-15T21:00:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["banks", "rates", "market"],
+    "gdeltQuery": "\"Federal Reserve\" (\"near zero\" OR \"zero percent\" OR \"emergency cut\") sourcelang:english",
+    "sources": ["https://www.federalreserve.gov/newsevents/pressreleases/monetary20200315a.htm"]
+  },
+  {
+    "id": "macro-who-pandemic-2020",
+    "type": "macro",
+    "subtype": "pandemic",
+    "name": "WHO declares COVID-19 a pandemic",
+    "firstReportAt": "2020-03-11T23:59:00.000Z",
+    "region": "Global",
+    "entities": [],
+    "affectedSectors": ["airlines", "energy", "consumer", "market"],
+    "gdeltQuery": "\"World Health Organization\" pandemic (coronavirus OR COVID) sourcelang:english",
+    "sources": ["https://pmc.ncbi.nlm.nih.gov/articles/PMC7569573/"]
+  },
+  {
+    "id": "macro-fed-75bp-hike-2022",
+    "type": "macro",
+    "subtype": "rates",
+    "name": "First 75 bp Fed hike",
+    "firstReportAt": "2022-06-15T18:00:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["banks", "rates", "tech", "market"],
+    "gdeltQuery": "\"Federal Reserve\" (\"75 basis points\" OR \"three-quarter point\" OR \"three-quarters of a percentage point\") sourcelang:english",
+    "sources": ["https://www.federalreserve.gov/newsevents/pressreleases/monetary20220615a.htm"]
+  },
+  {
+    "id": "macro-uk-mini-budget-2022",
+    "type": "macro",
+    "subtype": "credit",
+    "name": "UK mini-budget and gilt crisis",
+    "firstReportAt": "2022-09-23T23:59:00.000Z",
+    "region": "United Kingdom",
+    "entities": [],
+    "affectedSectors": ["rates", "fx", "banks"],
+    "gdeltQuery": "(\"mini-budget\" OR \"mini budget\" OR Kwarteng) (gilts OR pound OR sterling) sourcelang:english",
+    "sources": [
+      "https://www.gov.uk/government/speeches/the-growth-plan-2022-speech",
+      "https://en.wikipedia.org/wiki/September_2022_United_Kingdom_mini-budget"
+    ]
+  },
+  {
+    "id": "statement-trump-china-tariff-tweets-2019",
+    "type": "statement",
+    "subtype": "government",
+    "name": "Trump posts that tariffs on Chinese goods will rise to 25%",
+    "firstReportAt": "2019-05-05T16:08:46.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["china", "semis", "tech", "market"],
+    "gdeltQuery": "Trump China tariffs (tweet OR tweets OR tweeted) sourcelang:english",
+    "sources": [
+      "https://www.presidency.ucsb.edu/documents/tweets-may-5-2019",
+      "https://www.nbcnews.com/politics/donald-trump/trump-announces-china-tariff-increase-trade-talks-n1002156"
+    ]
+  },
+  {
+    "id": "statement-powell-jackson-hole-2022",
+    "type": "statement",
+    "subtype": "central_bank",
+    "name": "Powell's Jackson Hole speech",
+    "firstReportAt": "2022-08-26T14:00:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["rates", "tech", "banks", "market"],
+    "gdeltQuery": "Powell \"Jackson Hole\" sourcelang:english",
+    "sources": [
+      "https://www.cnbc.com/2022/08/26/watch-federal-reserve-chair-jerome-powell-speak-live-at-jackson-hole.html",
+      "https://www.federalreserve.gov/newsevents/speech/powell20220826a.htm"
+    ]
+  },
+  {
+    "id": "statement-saudi-minister-opec-cut-2022",
+    "type": "statement",
+    "subtype": "opec",
+    "name": "Saudi energy minister says OPEC+ could cut output",
+    "firstReportAt": "2022-08-22T23:59:00.000Z",
+    "region": "Saudi Arabia",
+    "entities": [],
+    "affectedSectors": ["energy", "commodity_proxy"],
+    "gdeltQuery": "(\"Abdulaziz bin Salman\" OR \"Saudi energy minister\") OPEC (cut OR cuts OR cutting) sourcelang:english",
+    "sources": [
+      "https://www.thenationalnews.com/business/energy/2022/08/22/opec-equipped-to-deal-with-challenges-and-can-cut-output-if-required-saudi-minister/"
+    ]
+  },
+  {
+    "id": "accident-ethiopian-737max-2019",
+    "type": "accident",
+    "subtype": "transport",
+    "name": "Ethiopian Airlines 737 MAX 8 crash",
+    "firstReportAt": "2019-03-10T05:44:00.000Z",
+    "region": "Ethiopia",
+    "entities": ["BA"],
+    "affectedSectors": ["aerospace", "airlines"],
+    "gdeltQuery": "\"Ethiopian Airlines\" (crash OR \"737 MAX\") sourcelang:english",
+    "sources": ["https://leehamnews.com/wp-content/uploads/2019/04/Preliminary-Report-B737-800MAX-ET-AVJ.pdf"]
+  },
+  {
+    "id": "accident-colonial-pipeline-2021",
+    "type": "accident",
+    "subtype": "cyber",
+    "name": "Colonial Pipeline ransomware shutdown",
+    "firstReportAt": "2021-05-07T23:59:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["energy", "refiner", "commodity_proxy", "airlines"],
+    "gdeltQuery": "\"Colonial Pipeline\" (ransomware OR cyberattack OR shutdown) sourcelang:english",
+    "sources": ["https://thehackernews.com/2021/05/ransomware-cyber-attack-forced-largest.html"]
+  },
+  {
+    "id": "accident-ever-given-suez-2021",
+    "type": "accident",
+    "subtype": "transport",
+    "name": "Ever Given blocks the Suez Canal",
+    "firstReportAt": "2021-03-23T05:40:00.000Z",
+    "region": "Egypt",
+    "entities": [],
+    "affectedSectors": ["energy", "commodity_proxy", "consumer"],
+    "gdeltQuery": "\"Suez Canal\" (\"Ever Given\" OR blocked OR blockage) sourcelang:english",
+    "sources": [
+      "https://gcaptain.com/grounded-mega-ship-blocking-suez-canal-in-both-directions/",
+      "https://en.wikipedia.org/wiki/2021_Suez_Canal_obstruction"
+    ]
+  },
+  {
+    "id": "accident-freeport-lng-2022",
+    "type": "accident",
+    "subtype": "industrial",
+    "name": "Freeport LNG explosion",
+    "firstReportAt": "2022-06-08T16:40:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": ["commodity_proxy", "energy"],
+    "gdeltQuery": "\"Freeport LNG\" (explosion OR fire OR outage) sourcelang:english",
+    "sources": [
+      "https://www.prnewswire.com/news-releases/freeport-lng-provides-update-on-june-8-incident-at-its-liquefaction-site-301567658.html"
+    ]
+  },
+  {
+    "id": "accident-baltimore-bridge-2024",
+    "type": "accident",
+    "subtype": "transport",
+    "name": "Francis Scott Key Bridge collapse in Baltimore",
+    "firstReportAt": "2024-03-26T05:29:00.000Z",
+    "region": "United States",
+    "entities": [],
+    "affectedSectors": [],
+    "gdeltQuery": "Baltimore (\"Key Bridge\" OR \"bridge collapse\") sourcelang:english",
+    "sources": ["https://www.ntsb.gov/investigations/Pages/DCA24MM031.aspx"]
+  },
+  {
+    "id": "accident-crowdstrike-outage-2024",
+    "type": "accident",
+    "subtype": "cyber",
+    "name": "CrowdStrike faulty update causes global IT outage",
+    "firstReportAt": "2024-07-19T04:09:00.000Z",
+    "region": "Global",
+    "entities": ["MSFT", "DAL"],
+    "affectedSectors": ["tech", "airlines", "banks"],
+    "gdeltQuery": "CrowdStrike (outage OR update OR crash) sourcelang:english",
+    "sources": ["https://www.crowdstrike.com/blog/falcon-update-for-windows-hosts-technical-details/"]
+  },
+  {
+    "id": "disaster-winter-storm-uri-2021",
+    "type": "disaster",
+    "subtype": "winter_storm",
+    "name": "Winter Storm Uri and the Texas grid emergency",
+    "firstReportAt": "2021-02-15T07:25:00.000Z",
+    "region": "Texas",
+    "entities": [],
+    "affectedSectors": ["energy", "refiner", "commodity_proxy"],
+    "gdeltQuery": "(ERCOT OR \"Winter Storm Uri\") (\"rolling outages\" OR blackouts OR \"power outages\") sourcelang:english",
+    "sources": [
+      "https://www.ksat.com/news/local/2021/02/15/rotating-outages-underway-in-texas-after-energy-emergency-alert-level-3-issued-ercot-says/"
+    ]
+  },
+  {
+    "id": "disaster-hualien-earthquake-2024",
+    "type": "disaster",
+    "subtype": "earthquake",
+    "name": "Hualien earthquake in Taiwan",
+    "firstReportAt": "2024-04-02T23:58:12.000Z",
+    "region": "Taiwan",
+    "entities": ["TSM"],
+    "affectedSectors": ["semis"],
+    "gdeltQuery": "Taiwan earthquake (Hualien OR TSMC OR chip) sourcelang:english",
+    "sources": ["https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us7000m9g4&format=geojson"]
+  },
+  {
+    "id": "disaster-turkey-syria-earthquake-2023",
+    "type": "disaster",
+    "subtype": "earthquake",
+    "name": "Turkey-Syria earthquake",
+    "firstReportAt": "2023-02-06T01:17:34.000Z",
+    "region": "Turkey",
+    "entities": [],
+    "affectedSectors": [],
+    "gdeltQuery": "(Turkey OR Syria) earthquake sourcelang:english",
+    "sources": ["https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us6000jllz&format=geojson"]
+  },
+  {
+    "id": "corporate-credit-suisse-ubs-2023",
+    "type": "corporate",
+    "subtype": "m&a",
+    "name": "UBS rescue of Credit Suisse",
+    "firstReportAt": "2023-03-19T19:00:00.000Z",
+    "region": "Switzerland",
+    "entities": [],
+    "affectedSectors": ["banks"],
+    "gdeltQuery": "\"Credit Suisse\" UBS sourcelang:english",
+    "sources": ["https://www.ubs.com/global/en/media/display-page-ndp/en-20230319-tree.html"]
+  },
+  {
+    "id": "corporate-nvidia-guidance-2023",
+    "type": "corporate",
+    "subtype": "earnings",
+    "name": "NVIDIA guidance surprise",
+    "firstReportAt": "2023-05-24T20:22:18.000Z",
+    "region": "United States",
+    "entities": ["NVDA"],
+    "affectedSectors": ["semis", "tech"],
+    "gdeltQuery": "Nvidia (guidance OR forecast OR revenue) sourcelang:english",
+    "sources": [
+      "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000087/0001045810-23-000087-index.htm",
+      "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2024"
+    ]
+  },
+  {
+    "id": "corporate-deepseek-2025",
+    "type": "corporate",
+    "subtype": null,
+    "name": "DeepSeek R1 release and AI chip sell-off",
+    "firstReportAt": "2025-01-20T23:59:00.000Z",
+    "region": "China",
+    "entities": [],
+    "affectedSectors": ["semis", "tech"],
+    "gdeltQuery": "DeepSeek sourcelang:english",
+    "sources": [
+      "https://api-docs.deepseek.com/news/news250120",
+      "https://www.cnbc.com/2025/01/27/nvidia-sheds-almost-600-billion-in-market-cap-biggest-drop-ever.html"
+    ]
+  },
+  {
+    "id": "supply-opec-2mbd-cut-2022",
+    "type": "supply_shock",
+    "subtype": "production_cut",
+    "name": "OPEC+ 2 million b/d production cut",
+    "firstReportAt": "2022-10-05T23:59:00.000Z",
+    "region": "OPEC+",
+    "entities": [],
+    "affectedSectors": ["energy", "refiner", "commodity_proxy"],
+    "gdeltQuery": "OPEC (\"production cut\" OR \"output cut\" OR \"2 million barrels\") sourcelang:english",
+    "sources": ["https://www.opec.org/pr-detail/73-05-oct-2022.html"]
+  },
+  {
+    "id": "supply-negative-wti-2020",
+    "type": "supply_shock",
+    "subtype": "disruption",
+    "name": "WTI futures trade below zero",
+    "firstReportAt": "2020-04-20T23:59:00.000Z",
+    "region": "United States",
+    "entities": ["USO"],
+    "affectedSectors": ["energy", "commodity_proxy"],
+    "gdeltQuery": "oil (\"negative prices\" OR \"below zero\" OR \"negative territory\") sourcelang:english",
+    "sources": ["https://www.eia.gov/todayinenergy/detail.php?id=43495"]
+  },
+  {
+    "id": "supply-nord-stream-2022",
+    "type": "supply_shock",
+    "subtype": "disruption",
+    "name": "Nord Stream pipeline damage",
+    "firstReportAt": "2022-09-26T23:59:00.000Z",
+    "region": "Europe",
+    "entities": [],
+    "affectedSectors": ["commodity_proxy", "energy"],
+    "gdeltQuery": "\"Nord Stream\" (leak OR leaks OR explosion OR sabotage) sourcelang:english",
+    "sources": [
+      "https://www.aljazeera.com/news/2022/9/27/qa-what-is-known-so-far-about-the-nord-stream-gas-pipeline-leak",
+      "https://en.wikipedia.org/wiki/Nord_Stream_pipelines_sabotage"
+    ]
+  },
+  {
+    "id": "supply-russia-fuel-export-ban-2023",
+    "type": "supply_shock",
+    "subtype": "export_ban",
+    "name": "Russia bans gasoline and diesel exports",
+    "firstReportAt": "2023-09-21T23:59:00.000Z",
+    "region": "Russia",
+    "entities": [],
+    "affectedSectors": ["refiner", "energy", "commodity_proxy"],
+    "gdeltQuery": "Russia (diesel OR gasoline) \"export ban\" sourcelang:english",
+    "sources": ["https://www.rigzone.com/news/wire/russia_temporarily_bans_diesel_exports-21-sep-2023-174083-article"]
+  }
+]

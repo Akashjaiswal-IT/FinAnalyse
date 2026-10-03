@@ -1,0 +1,2478 @@
+{
+ "type": "FeatureCollection",
+ "source": "https://www.eia.gov/maps/map_data/Petroleum_Refineries_US_EIA.zip",
+ "period": "As of Jan. 1 2021",
+ "capacityField": "AD_Mbpd: atmospheric crude distillation capacity, thousand barrels per calendar day",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.88847,
+     29.96046
+    ]
+   },
+   "properties": {
+    "site_id": 83,
+    "company": "TOTAL PETROCHEMICALS & REFINING USA",
+    "corp": "TOTAL SA",
+    "site": "Port Arthur",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 245
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -101.415073,
+     32.270992
+    ]
+   },
+   "properties": {
+    "site_id": 84,
+    "company": "ALON USA ENERGY INC",
+    "corp": "DELEK GROUP LTD",
+    "site": "Big Spring",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 74
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.596408,
+     38.376602
+    ]
+   },
+   "properties": {
+    "site_id": 87,
+    "company": "MARATHON PETROLEUM CO LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Catlettsburg",
+    "state": "Kentucky",
+    "padd": 2,
+    "ad_mbpd": 306
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.413878,
+     40.772929
+    ]
+   },
+   "properties": {
+    "site_id": 89,
+    "company": "MARATHON PETROLEUM CO LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Canton",
+    "state": "Ohio",
+    "padd": 2,
+    "ad_mbpd": 102
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -92.994345,
+     44.851007
+    ]
+   },
+   "properties": {
+    "site_id": 92,
+    "company": "ST PAUL PARK REFINING CO LLC",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Saint Paul",
+    "state": "Minnesota",
+    "padd": 2,
+    "ad_mbpd": 108
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.236677,
+     33.818578
+    ]
+   },
+   "properties": {
+    "site_id": 97,
+    "company": "TESORO REFINING & MARKETING CO",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Carson",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 382
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.734766,
+     48.884624
+    ]
+   },
+   "properties": {
+    "site_id": 98,
+    "company": "BP West Coast Products LLC",
+    "corp": "BP PLC",
+    "site": "Ferndale",
+    "state": "Washington",
+    "padd": 5,
+    "ad_mbpd": 251
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -149.604069,
+     70.324832
+    ]
+   },
+   "properties": {
+    "site_id": 99,
+    "company": "CONOCOPHILLIPS ALASKA INC",
+    "corp": "CONOCOPHILLIPS",
+    "site": "Prudhoe Bay",
+    "state": "Alaska",
+    "padd": 5,
+    "ad_mbpd": 16
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -148.37813,
+     70.253586
+    ]
+   },
+   "properties": {
+    "site_id": 100,
+    "company": "HILCORP NORTH SLOPE LLC",
+    "corp": "HILCORP ENERGY CO",
+    "site": "Prudhoe Bay",
+    "state": "Alaska",
+    "padd": 5,
+    "ad_mbpd": 8
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.511874,
+     32.59107
+    ]
+   },
+   "properties": {
+    "site_id": 110,
+    "company": "CALUMET PRINCETON REFINING LLC",
+    "corp": "CALUMET SPECIALTY PRODUCTS PARTNERS, L.P.",
+    "site": "Princeton",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 8.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.411128,
+     32.798531
+    ]
+   },
+   "properties": {
+    "site_id": 111,
+    "company": "CALUMET COTTON VALLEY REFINING LLC",
+    "corp": "CALUMET SPECIALTY PRODUCTS PARTNERS, L.P.",
+    "site": "Cotton Valley",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 14
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.67768,
+     38.341628
+    ]
+   },
+   "properties": {
+    "site_id": 115,
+    "company": "CHS MCPHERSON REFINERY INC",
+    "corp": "CHS INC",
+    "site": "Mcpherson",
+    "state": "Kansas",
+    "padd": 2,
+    "ad_mbpd": 114.9
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -108.7681,
+     45.658374
+    ]
+   },
+   "properties": {
+    "site_id": 116,
+    "company": "Cenex Harvest States Coop",
+    "corp": "CHS INC",
+    "site": "Laurel",
+    "state": "Montana",
+    "padd": 4,
+    "ad_mbpd": 63.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.410994,
+     33.911422
+    ]
+   },
+   "properties": {
+    "site_id": 119,
+    "company": "CHEVRON USA INC",
+    "corp": "CHEVRON CORP",
+    "site": "El Segundo",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 290.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.398665,
+     37.94978
+    ]
+   },
+   "properties": {
+    "site_id": 120,
+    "company": "CHEVRON USA INC",
+    "corp": "CHEVRON CORP",
+    "site": "Richmond",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 257.2
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -106.395613,
+     31.767512
+    ]
+   },
+   "properties": {
+    "site_id": 123,
+    "company": "WESTERN REFINING COMPANY LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "El Paso",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 138
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -111.923936,
+     40.824744
+    ]
+   },
+   "properties": {
+    "site_id": 124,
+    "company": "CHEVRON USA INC",
+    "corp": "CHEVRON CORP",
+    "site": "Salt Lake City",
+    "state": "Utah",
+    "padd": 4,
+    "ad_mbpd": 57.6
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -88.489914,
+     30.344744
+    ]
+   },
+   "properties": {
+    "site_id": 125,
+    "company": "CHEVRON USA INC",
+    "corp": "CHEVRON CORP",
+    "site": "Pascagoula",
+    "state": "Mississippi",
+    "padd": 3,
+    "ad_mbpd": 375.2
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.281964,
+     32.360432
+    ]
+   },
+   "properties": {
+    "site_id": 147,
+    "company": "DELEK REFINING LTD",
+    "corp": "DELEK GROUP LTD",
+    "site": "Tyler",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 76
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.206799,
+     29.721442
+    ]
+   },
+   "properties": {
+    "site_id": 148,
+    "company": "PASADENA REFINING SYSTEMS INC",
+    "corp": "CHEVRON CORP",
+    "site": "Pasadena",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 115.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -111.910603,
+     40.867508
+    ]
+   },
+   "properties": {
+    "site_id": 150,
+    "company": "Silver Eagle Refining",
+    "corp": "SILVER EAGLE REFINING INC",
+    "site": "Woods Cross",
+    "state": "Utah",
+    "padd": 4,
+    "ad_mbpd": 15.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -98.459995,
+     29.347637
+    ]
+   },
+   "properties": {
+    "site_id": 153,
+    "company": "THE SAN ANTONIO REFINERY LLC",
+    "corp": "STARLIGHT RELATIVITY ACQUISITION CO",
+    "site": "San Antonio",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 21
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.907845,
+     32.385998
+    ]
+   },
+   "properties": {
+    "site_id": 159,
+    "company": "ERGON REFINING INC",
+    "corp": "ERGON INC",
+    "site": "Vicksburg",
+    "state": "Mississippi",
+    "padd": 3,
+    "ad_mbpd": 27.3
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -91.169797,
+     30.486272
+    ]
+   },
+   "properties": {
+    "site_id": 161,
+    "company": "EXXONMOBIL REFINING & SUPPLY CO",
+    "corp": "EXXON MOBIL CORP",
+    "site": "Baton Rouge",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 542
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -108.434778,
+     45.814531
+    ]
+   },
+   "properties": {
+    "site_id": 162,
+    "company": "EXXONMOBIL REFINING & SUPPLY CO",
+    "corp": "EXXON MOBIL CORP",
+    "site": "Billings",
+    "state": "Montana",
+    "padd": 4,
+    "ad_mbpd": 62.9
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -94.976798,
+     29.761431
+    ]
+   },
+   "properties": {
+    "site_id": 163,
+    "company": "EXXONMOBIL REFINING & SUPPLY CO",
+    "corp": "EXXON MOBIL CORP",
+    "site": "Baytown",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 584
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.138319,
+     38.072007
+    ]
+   },
+   "properties": {
+    "site_id": 164,
+    "company": "VALERO REFINING CO CALIFORNIA",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Benicia",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 149
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.605823,
+     37.049525
+    ]
+   },
+   "properties": {
+    "site_id": 168,
+    "company": "COFFEYVILLE RESOURCES RFG & MKTG",
+    "corp": "CVR ENERGY",
+    "site": "Coffeyville",
+    "state": "Kansas",
+    "padd": 2,
+    "ad_mbpd": 136
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -111.920665,
+     40.838556
+    ]
+   },
+   "properties": {
+    "site_id": 176,
+    "company": "BIG WEST OIL CO",
+    "corp": "FJ MANAGEMENT INC",
+    "site": "North Salt Lake",
+    "state": "Utah",
+    "padd": 4,
+    "ad_mbpd": 33
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.167756,
+     34.632945
+    ]
+   },
+   "properties": {
+    "site_id": 177,
+    "company": "WYNNEWOOD REFINING CO",
+    "corp": "CVR ENERGY",
+    "site": "Wynnewood",
+    "state": "Oklahoma",
+    "padd": 2,
+    "ad_mbpd": 78
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -104.390979,
+     32.844821
+    ]
+   },
+   "properties": {
+    "site_id": 185,
+    "company": "HOLLYFRONTIER NAVAJO REFINING LLC",
+    "corp": "HOLLYFRONTIER CORP",
+    "site": "Artesia",
+    "state": "New Mexico",
+    "padd": 3,
+    "ad_mbpd": 124
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -111.295316,
+     47.523212
+    ]
+   },
+   "properties": {
+    "site_id": 187,
+    "company": "CALUMET MONTANA REFINING LLC",
+    "corp": "CALUMET SPECIALTY PRODUCTS PARTNERS, L.P.",
+    "site": "Great Falls",
+    "state": "Montana",
+    "padd": 4,
+    "ad_mbpd": 37
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -87.611011,
+     33.200487
+    ]
+   },
+   "properties": {
+    "site_id": 190,
+    "company": "HUNT REFINING CO",
+    "corp": "HUNT CONSLD INC",
+    "site": "Tuscaloosa",
+    "state": "Alabama",
+    "padd": 3,
+    "ad_mbpd": 50
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.236861,
+     33.798301
+    ]
+   },
+   "properties": {
+    "site_id": 191,
+    "company": "VALERO REFINING CO CALIFORNIA",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Wilmington Asphalt Plant",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 6.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.917953,
+     35.294719
+    ]
+   },
+   "properties": {
+    "site_id": 202,
+    "company": "KERN OIL & REFINING CO",
+    "corp": "KERN OIL & REFINING CO",
+    "site": "Bakersfield",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 27
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.0391,
+     44.7633
+    ]
+   },
+   "properties": {
+    "site_id": 203,
+    "company": "Flint Hills Resources LP",
+    "corp": "KOCH INDUSTRIES INC",
+    "site": "Saint Paul",
+    "state": "Minnesota",
+    "padd": 2,
+    "ad_mbpd": 375
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.525965,
+     27.832974
+    ]
+   },
+   "properties": {
+    "site_id": 204,
+    "company": "Flint Hills Resources LP",
+    "corp": "KOCH INDUSTRIES INC",
+    "site": "Corpus Christi West",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 275
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.424842,
+     27.804365
+    ]
+   },
+   "properties": {
+    "site_id": 205,
+    "company": "FLINT HILLS RESOURCES LP",
+    "corp": "KOCH INDUSTRIES INC",
+    "site": "Corpus Christi East",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 75
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -88.0562,
+     30.7886
+    ]
+   },
+   "properties": {
+    "site_id": 206,
+    "company": "SHELL CHEMICAL LP",
+    "corp": "ROYAL DUTCH/SHELL GROUP",
+    "site": "Saraland",
+    "state": "Alabama",
+    "padd": 3,
+    "ad_mbpd": 90.6
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.233663,
+     33.779055
+    ]
+   },
+   "properties": {
+    "site_id": 209,
+    "company": "ULTRAMAR INC",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Wilmington Refinery",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 87
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.082597,
+     35.084704
+    ]
+   },
+   "properties": {
+    "site_id": 217,
+    "company": "VALERO REF COMPANY TENNESSEE LLC",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Memphis",
+    "state": "Tennessee",
+    "padd": 2,
+    "ad_mbpd": 185
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.257767,
+     39.840304
+    ]
+   },
+   "properties": {
+    "site_id": 223,
+    "company": "PAULSBORO REFINING CO LLC",
+    "corp": "PBF ENERGY CO LLC",
+    "site": "Paulsboro",
+    "state": "New Jersey",
+    "padd": 1,
+    "ad_mbpd": 105
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -94.074933,
+     30.064923
+    ]
+   },
+   "properties": {
+    "site_id": 225,
+    "company": "EXXONMOBIL REFINING & SUPPLY CO",
+    "corp": "EXXON MOBIL CORP",
+    "site": "Beaumont",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 384.4
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.332317,
+     33.853208
+    ]
+   },
+   "properties": {
+    "site_id": 226,
+    "company": "TORRANCE REFINING CO LLC",
+    "corp": "PBF ENERGY CO LLC",
+    "site": "Torrance",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 166.2
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -88.183309,
+     41.41471
+    ]
+   },
+   "properties": {
+    "site_id": 227,
+    "company": "EXXONMOBIL REFINING & SUPPLY CO",
+    "corp": "EXXON MOBIL CORP",
+    "site": "Joliet",
+    "state": "Illinois",
+    "padd": 2,
+    "ad_mbpd": 275
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.974393,
+     29.935151
+    ]
+   },
+   "properties": {
+    "site_id": 228,
+    "company": "Chalmette Refining LLC",
+    "corp": "PBF ENERGY CO LLC",
+    "site": "Chalmette",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 197
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.941198,
+     29.933813
+    ]
+   },
+   "properties": {
+    "site_id": 237,
+    "company": "VALERO REFINING - MERAUX LLC",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Meraux",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 128
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -92.067312,
+     46.690572
+    ]
+   },
+   "properties": {
+    "site_id": 238,
+    "company": "SUPERIOR REFINING COMPANY LLC",
+    "corp": "HUSKY ENERGY INC",
+    "site": "Superior",
+    "state": "Wisconsin",
+    "padd": 2,
+    "ad_mbpd": 50
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.792592,
+     32.467561
+    ]
+   },
+   "properties": {
+    "site_id": 244,
+    "company": "CALUMET SHREVEPORT REFINING LLC",
+    "corp": "CALUMET SPECIALTY PRODUCTS PARTNERS, L.P.",
+    "site": "Shreveport",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 60
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -101.365597,
+     35.693187
+    ]
+   },
+   "properties": {
+    "site_id": 255,
+    "company": "WRB REFINING LP",
+    "corp": "WRB REFINING LP",
+    "site": "Borger",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 157
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.747538,
+     29.077881
+    ]
+   },
+   "properties": {
+    "site_id": 256,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Sweeny",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 278.9
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -111.904823,
+     40.886581
+    ]
+   },
+   "properties": {
+    "site_id": 257,
+    "company": "HOLLYFRONTIER WOODS CROSS REFINING L",
+    "corp": "HOLLYFRONTIER CORP",
+    "site": "Woods Cross",
+    "state": "Utah",
+    "padd": 4,
+    "ad_mbpd": 41.4
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -91.210811,
+     30.477376
+    ]
+   },
+   "properties": {
+    "site_id": 262,
+    "company": "PLACID REFINING CO",
+    "corp": "PLACID OIL CO",
+    "site": "Port Allen",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 82.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.629399,
+     40.610826
+    ]
+   },
+   "properties": {
+    "site_id": 266,
+    "company": "ERGON WEST VIRGINIA INC",
+    "corp": "ERGON INC",
+    "site": "Newell",
+    "state": "West Virginia",
+    "padd": 1,
+    "ad_mbpd": 23
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -119.047922,
+     35.38733
+    ]
+   },
+   "properties": {
+    "site_id": 271,
+    "company": "SAN JOAQUIN REFINING CO INC",
+    "corp": "SAN JOAQUIN REFINING CO INC",
+    "site": "Bakersfield",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 25
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.067283,
+     38.845944
+    ]
+   },
+   "properties": {
+    "site_id": 275,
+    "company": "WRB REFINING LP",
+    "corp": "WRB REFINING LP",
+    "site": "Wood River",
+    "state": "Illinois",
+    "padd": 2,
+    "ad_mbpd": 367.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.40413,
+     30.001717
+    ]
+   },
+   "properties": {
+    "site_id": 276,
+    "company": "SHELL OIL PRODUCTS US",
+    "corp": "ROYAL DUTCH/SHELL GROUP",
+    "site": "Norco",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 250
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.562522,
+     48.494369
+    ]
+   },
+   "properties": {
+    "site_id": 278,
+    "company": "TESORO REFINING & MARKETING CO",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Anacortes",
+    "state": "Washington",
+    "padd": 5,
+    "ad_mbpd": 120
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.111017,
+     38.019952
+    ]
+   },
+   "properties": {
+    "site_id": 279,
+    "company": "MARTINEZ REFINING CO LLC",
+    "corp": "PBF ENERGY CO LLC",
+    "site": "Martinez",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 157
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.453963,
+     41.680021
+    ]
+   },
+   "properties": {
+    "site_id": 287,
+    "company": "BP-HUSKY REFINING LLC",
+    "corp": "BP HUSKY REFINING LLC",
+    "site": "Toledo",
+    "state": "Ohio",
+    "padd": 2,
+    "ad_mbpd": 160
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -84.12464,
+     40.715965
+    ]
+   },
+   "properties": {
+    "site_id": 288,
+    "company": "LIMA REFINING COMPANY",
+    "corp": "HUSKY ENERGY INC",
+    "site": "Lima",
+    "state": "Ohio",
+    "padd": 2,
+    "ad_mbpd": 185
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.979839,
+     29.684405
+    ]
+   },
+   "properties": {
+    "site_id": 289,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Belle Chasse",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 269.1
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -87.480268,
+     41.668103
+    ]
+   },
+   "properties": {
+    "site_id": 297,
+    "company": "BP PRODUCTS NORTH AMERICA INC",
+    "corp": "BP PLC",
+    "site": "Whiting",
+    "state": "Indiana",
+    "padd": 2,
+    "ad_mbpd": 440
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.883767,
+     46.849832
+    ]
+   },
+   "properties": {
+    "site_id": 300,
+    "company": "TESORO REFINING & MARKETING CO",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Mandan",
+    "state": "North Dakota",
+    "padd": 2,
+    "ad_mbpd": 74
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -94.933456,
+     29.374692
+    ]
+   },
+   "properties": {
+    "site_id": 301,
+    "company": "MARATHON PETROLEUM CO LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Galveston Bay",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 625
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -111.905455,
+     40.792315
+    ]
+   },
+   "properties": {
+    "site_id": 302,
+    "company": "TESORO REFINING & MARKETING CO",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Salt Lake City",
+    "state": "Utah",
+    "padd": 4,
+    "ad_mbpd": 66.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.50492,
+     41.62889
+    ]
+   },
+   "properties": {
+    "site_id": 308,
+    "company": "TOLEDO REFINING CO LLC",
+    "corp": "PBF ENERGY CO LLC",
+    "site": "Toledo",
+    "state": "Ohio",
+    "padd": 2,
+    "ad_mbpd": 180
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -96.022697,
+     36.139133
+    ]
+   },
+   "properties": {
+    "site_id": 309,
+    "company": "HOLLYFRONTIER TULSA REFINING LLC",
+    "corp": "HOLLYFRONTIER CORP",
+    "site": "Tulsa West",
+    "state": "Oklahoma",
+    "padd": 2,
+    "ad_mbpd": 91
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -151.376675,
+     60.682335
+    ]
+   },
+   "properties": {
+    "site_id": 314,
+    "company": "TESORO ALASKA COMPANY LLC",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Kenai",
+    "state": "Alaska",
+    "padd": 5,
+    "ad_mbpd": 72
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -96.872662,
+     37.797473
+    ]
+   },
+   "properties": {
+    "site_id": 317,
+    "company": "HOLLYFRONTIER EL DORADO REFINING LLC",
+    "corp": "HOLLYFRONTIER CORP",
+    "site": "El Dorado",
+    "state": "Kansas",
+    "padd": 2,
+    "ad_mbpd": 165
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.556244,
+     48.470693
+    ]
+   },
+   "properties": {
+    "site_id": 322,
+    "company": "Shell Oil Products US",
+    "corp": "ROYAL DUTCH/SHELL GROUP",
+    "site": "Anacortes",
+    "state": "Washington",
+    "padd": 5,
+    "ad_mbpd": 149
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.397126,
+     47.255786
+    ]
+   },
+   "properties": {
+    "site_id": 329,
+    "company": "US OIL & REFINING CO",
+    "corp": "PAR PETROLEUM INC",
+    "site": "Tacoma",
+    "state": "Washington",
+    "padd": 5,
+    "ad_mbpd": 42
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.696618,
+     48.830501
+    ]
+   },
+   "properties": {
+    "site_id": 333,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Ferndale",
+    "state": "Washington",
+    "padd": 5,
+    "ad_mbpd": 110.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -74.22235,
+     40.635876
+    ]
+   },
+   "properties": {
+    "site_id": 335,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Linden",
+    "state": "New Jersey",
+    "padd": 1,
+    "ad_mbpd": 272.1
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.403896,
+     39.819143
+    ]
+   },
+   "properties": {
+    "site_id": 336,
+    "company": "MONROE ENERGY LLC",
+    "corp": "DELTA AIR LINES INC",
+    "site": "Trainer",
+    "state": "Pennsylvania",
+    "padd": 1,
+    "ad_mbpd": 208
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.101794,
+     34.2044
+    ]
+   },
+   "properties": {
+    "site_id": 339,
+    "company": "VALERO REFINING CO OKLAHOMA",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Ardmore",
+    "state": "Oklahoma",
+    "padd": 2,
+    "ad_mbpd": 88
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -104.944705,
+     39.801794
+    ]
+   },
+   "properties": {
+    "site_id": 340,
+    "company": "SUNCOR ENERGY (USA) INC",
+    "corp": "SUNCOR ENERGY INC",
+    "site": "Commerce City East",
+    "state": "Colorado",
+    "padd": 4,
+    "ad_mbpd": 38.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.255632,
+     38.043474
+    ]
+   },
+   "properties": {
+    "site_id": 342,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Rodeo",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 128
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.243473,
+     33.810856
+    ]
+   },
+   "properties": {
+    "site_id": 343,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Wilmington",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 147
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.484505,
+     27.816758
+    ]
+   },
+   "properties": {
+    "site_id": 351,
+    "company": "VALERO REFINING CO TEXAS LP",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Corpus Christi",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 297
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.629424,
+     41.966715
+    ]
+   },
+   "properties": {
+    "site_id": 353,
+    "company": "AMERICAN REFINING GROUP INC",
+    "corp": "AMERICAN REFINING GROUP INC",
+    "site": "Bradford",
+    "state": "Pennsylvania",
+    "padd": 1,
+    "ad_mbpd": 11.8
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -104.213903,
+     43.848521
+    ]
+   },
+   "properties": {
+    "site_id": 356,
+    "company": "HERMES CONSOLIDATED LLC",
+    "corp": "PAR PETROLEUM INC",
+    "site": "New Castle",
+    "state": "Wyoming",
+    "padd": 4,
+    "ad_mbpd": 18.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -115.617898,
+     38.621486
+    ]
+   },
+   "properties": {
+    "site_id": 362,
+    "company": "FORELAND REFINING CORP",
+    "corp": "FORELAND REFINING CORP",
+    "site": "Ely",
+    "state": "Nevada",
+    "padd": 5,
+    "ad_mbpd": 5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -158.0914,
+     21.303769
+    ]
+   },
+   "properties": {
+    "site_id": 363,
+    "company": "PAR HAWAII REFINING LLC",
+    "corp": "PAR PETROLEUM INC",
+    "site": "Kapolei",
+    "state": "Hawaii",
+    "padd": 5,
+    "ad_mbpd": 152
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -87.928877,
+     37.906028
+    ]
+   },
+   "properties": {
+    "site_id": 381,
+    "company": "COUNTRYMARK COOPERATIVE INC",
+    "corp": "COUNTRYMARK COOP INC",
+    "site": "Mount Vernon",
+    "state": "Indiana",
+    "padd": 2,
+    "ad_mbpd": 30.8
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -92.712123,
+     33.363209
+    ]
+   },
+   "properties": {
+    "site_id": 382,
+    "company": "CROSS OIL REFINING & MARKETING INC",
+    "corp": "MARTIN RESOURCE MANAGEMENT GRP",
+    "site": "Smackover",
+    "state": "Arkansas",
+    "padd": 3,
+    "ad_mbpd": 7.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.126797,
+     29.731441
+    ]
+   },
+   "properties": {
+    "site_id": 385,
+    "company": "DEER PARK REFINING LTD PARTNERSHIP",
+    "corp": "DEER PARK REFINING LTD PTNRSHP",
+    "site": "Deer Park",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 340
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -101.880991,
+     35.95563
+    ]
+   },
+   "properties": {
+    "site_id": 386,
+    "company": "DIAMOND SHAMROCK REFINING CO LP",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Sunray",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 200
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -98.188265,
+     28.45921
+    ]
+   },
+   "properties": {
+    "site_id": 387,
+    "company": "DIAMOND SHAMROCK REFINING CO LP",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Three Rivers",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 91
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -104.946497,
+     39.803311
+    ]
+   },
+   "properties": {
+    "site_id": 391,
+    "company": "SUNCOR ENERGY (USA) INC",
+    "corp": "SUNCOR ENERGY INC",
+    "site": "Commerce City West",
+    "state": "Colorado",
+    "padd": 4,
+    "ad_mbpd": 73
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.271135,
+     30.241215
+    ]
+   },
+   "properties": {
+    "site_id": 392,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Westlake",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 273
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -108.490143,
+     45.78057
+    ]
+   },
+   "properties": {
+    "site_id": 393,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Billings",
+    "state": "Montana",
+    "padd": 4,
+    "ad_mbpd": 69.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.079264,
+     36.675939
+    ]
+   },
+   "properties": {
+    "site_id": 394,
+    "company": "PHILLIPS 66 COMPANY",
+    "corp": "PHILLIPS 66 COMPANY",
+    "site": "Ponca City",
+    "state": "Oklahoma",
+    "padd": 2,
+    "ad_mbpd": 226.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.962546,
+     29.857368
+    ]
+   },
+   "properties": {
+    "site_id": 434,
+    "company": "PREMCOR REFINING GROUP INC",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Port Arthur",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 415
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -92.673774,
+     33.199731
+    ]
+   },
+   "properties": {
+    "site_id": 442,
+    "company": "LION OIL CO",
+    "corp": "DELEK GROUP LTD",
+    "site": "El Dorado",
+    "state": "Arkansas",
+    "padd": 3,
+    "ad_mbpd": 85
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.251761,
+     29.701556
+    ]
+   },
+   "properties": {
+    "site_id": 444,
+    "company": "HOUSTON REFINING LP",
+    "corp": "ACCESS INDUSTRIES",
+    "site": "Houston",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 289
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -147.748499,
+     64.85276
+    ]
+   },
+   "properties": {
+    "site_id": 461,
+    "company": "PETRO STAR INC",
+    "corp": "ARCTIC SLOPE REGIONAL CORP",
+    "site": "North Pole",
+    "state": "Alaska",
+    "padd": 5,
+    "ad_mbpd": 22.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -146.381762,
+     61.081919
+    ]
+   },
+   "properties": {
+    "site_id": 462,
+    "company": "PETRO STAR INC",
+    "corp": "ARCTIC SLOPE REGIONAL CORP",
+    "site": "Valdez",
+    "state": "Alaska",
+    "padd": 5,
+    "ad_mbpd": 60
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.332596,
+     30.181174
+    ]
+   },
+   "properties": {
+    "site_id": 465,
+    "company": "CITGO PETROLEUM CORP",
+    "corp": "PDV AMERICA INC",
+    "site": "Lake Charles",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 440
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.428434,
+     27.809474
+    ]
+   },
+   "properties": {
+    "site_id": 478,
+    "company": "CITGO REFINING & CHEMICAL INC",
+    "corp": "PDV AMERICA INC",
+    "site": "Corpus Christi",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 175.6
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -120.51108,
+     34.930191
+    ]
+   },
+   "properties": {
+    "site_id": 489,
+    "company": "CALIFORNIA ASPHALT PRODUCTION INC",
+    "corp": "GREKA ENERGY",
+    "site": "Santa Maria",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 10
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -107.109511,
+     41.780163
+    ]
+   },
+   "properties": {
+    "site_id": 496,
+    "company": "SINCLAIR WYOMING REFINING CO",
+    "corp": "SINCLAIR OIL CORP",
+    "site": "Sinclair",
+    "state": "Wyoming",
+    "padd": 4,
+    "ad_mbpd": 92
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.999949,
+     36.116749
+    ]
+   },
+   "properties": {
+    "site_id": 497,
+    "company": "HOLLYFRONTIER TULSA REFINING LLC",
+    "corp": "HOLLYFRONTIER CORP",
+    "site": "Tulsa East",
+    "state": "Oklahoma",
+    "padd": 2,
+    "ad_mbpd": 75.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -106.242437,
+     42.858453
+    ]
+   },
+   "properties": {
+    "site_id": 499,
+    "company": "LITTLE AMERICA REFINING CO",
+    "corp": "SINCLAIR OIL CORP",
+    "site": "Evansville",
+    "state": "Wyoming",
+    "padd": 4,
+    "ad_mbpd": 30
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -91.748001,
+     30.526508
+    ]
+   },
+   "properties": {
+    "site_id": 501,
+    "company": "ALON REFINING KROTZ SPRINGS INC",
+    "corp": "DELEK GROUP LTD",
+    "site": "Krotz Springs",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 83
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.255585,
+     29.722805
+    ]
+   },
+   "properties": {
+    "site_id": 502,
+    "company": "VALERO REFINING CO TEXAS LP",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Houston",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 210
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -94.895337,
+     29.378096
+    ]
+   },
+   "properties": {
+    "site_id": 503,
+    "company": "VALERO REFINING CO TEXAS LP",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Texas City",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 231
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.631323,
+     39.587733
+    ]
+   },
+   "properties": {
+    "site_id": 506,
+    "company": "DELAWARE CITY REFINING CO LLC",
+    "corp": "PBF ENERGY CO LLC",
+    "site": "Delaware City",
+    "state": "Delaware",
+    "padd": 1,
+    "ad_mbpd": 180
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.960709,
+     29.884891
+    ]
+   },
+   "properties": {
+    "site_id": 507,
+    "company": "Motiva Enterprises LLC",
+    "corp": "SAUDI ARAMCO",
+    "site": "Port Arthur",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 639.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.320068,
+     30.132389
+    ]
+   },
+   "properties": {
+    "site_id": 510,
+    "company": "CALCASIEU REFINING CO",
+    "corp": "TRANSWORLD OIL USA INC",
+    "site": "Lake Charles",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 137
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -94.228208,
+     30.398348
+    ]
+   },
+   "properties": {
+    "site_id": 512,
+    "company": "SOUTH HAMPTON RESOURCES INC",
+    "corp": "TEXAS OIL & CHEMICAL CO",
+    "site": "Silsbee",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.423202,
+     30.002368
+    ]
+   },
+   "properties": {
+    "site_id": 517,
+    "company": "VALERO REFINING NEW ORLEANS LLC",
+    "corp": "VALERO ENERGY CORP",
+    "site": "Norco",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 220
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.128024,
+     41.832187
+    ]
+   },
+   "properties": {
+    "site_id": 523,
+    "company": "UNITED REFINING CO",
+    "corp": "RED APPLE GROUP INC",
+    "site": "Warren",
+    "state": "Pennsylvania",
+    "padd": 1,
+    "ad_mbpd": 70
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.787248,
+     29.261622
+    ]
+   },
+   "properties": {
+    "site_id": 525,
+    "company": "LAZARUS ENERGY LLC",
+    "corp": "BLUE DOLPHIN ENERGY CO",
+    "site": "Nixon",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 15
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -88.04655,
+     41.655625
+    ]
+   },
+   "properties": {
+    "site_id": 526,
+    "company": "PDV Midwest Refining LLC",
+    "corp": "PDV AMERICA INC",
+    "site": "Lemont",
+    "state": "Illinois",
+    "padd": 2,
+    "ad_mbpd": 188.7
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.158493,
+     42.2837
+    ]
+   },
+   "properties": {
+    "site_id": 528,
+    "company": "MARATHON PETROLEUM CO LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Detroit",
+    "state": "Michigan",
+    "padd": 2,
+    "ad_mbpd": 147
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.595952,
+     30.060139
+    ]
+   },
+   "properties": {
+    "site_id": 530,
+    "company": "MARATHON PETROLEUM CO LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Garyville",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 608
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -87.715851,
+     38.997284
+    ]
+   },
+   "properties": {
+    "site_id": 531,
+    "company": "MARATHON PETROLEUM CO LP",
+    "corp": "MARATHON PETROLEUM CORP",
+    "site": "Robinson",
+    "state": "Illinois",
+    "padd": 2,
+    "ad_mbpd": 266
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.009189,
+     31.814884
+    ]
+   },
+   "properties": {
+    "site_id": 538,
+    "company": "HUNT SOUTHLAND REFINING CO",
+    "corp": "HUNT CONSLD INC",
+    "site": "Sandersville",
+    "state": "Mississippi",
+    "padd": 3,
+    "ad_mbpd": 12.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.166647,
+     33.946372
+    ]
+   },
+   "properties": {
+    "site_id": 550,
+    "company": "LUNDAY THAGARD CO",
+    "corp": "WORLD OIL CO",
+    "site": "South Gate",
+    "state": "California",
+    "padd": 5,
+    "ad_mbpd": 10
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -110.806321,
+     41.261142
+    ]
+   },
+   "properties": {
+    "site_id": 2468,
+    "company": "Silver Eagle Refining",
+    "corp": "SILVER EAGLE REFINING INC",
+    "site": "Evanston",
+    "state": "Wyoming",
+    "padd": 4,
+    "ad_mbpd": 3.4
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -87.363,
+     31.072
+    ]
+   },
+   "properties": {
+    "site_id": 3008,
+    "company": "GOODWAY REFINING LLC",
+    "corp": "GOODWAY REFINING LLC",
+    "site": "Atmore",
+    "state": "Alabama",
+    "padd": 3,
+    "ad_mbpd": 5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -93.339019,
+     30.188295
+    ]
+   },
+   "properties": {
+    "site_id": 3109,
+    "company": "EXCEL PARALUBES",
+    "corp": "EXCEL PARALUBES",
+    "site": "Westlake",
+    "state": "Louisiana",
+    "padd": 3,
+    "ad_mbpd": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.113566,
+     29.82338
+    ]
+   },
+   "properties": {
+    "site_id": 3215,
+    "company": "EQUISTAR CHEMICALS LP",
+    "corp": "ACCESS INDUSTRIES",
+    "site": "Channelview",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.219682,
+     29.733018
+    ]
+   },
+   "properties": {
+    "site_id": 4998,
+    "company": "KINDER MORGAN CRUDE & CONDENSATE",
+    "corp": "KINDER MORGAN ENERGY PTNRS LP",
+    "site": "Galena Park",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 100
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.123221,
+     29.75377
+    ]
+   },
+   "properties": {
+    "site_id": 5037,
+    "company": "PETROMAX REFINING CO LLC",
+    "corp": "PETROMAX REFINING CO LLC",
+    "site": "Houston",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 27.5
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.505532,
+     27.817895
+    ]
+   },
+   "properties": {
+    "site_id": 5048,
+    "company": "BUCKEYE TEXAS PROCESSING LLC",
+    "corp": "BUCKEYE PARTNERS LP",
+    "site": "Corpus Christi",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 65
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -97.439103,
+     27.806936
+    ]
+   },
+   "properties": {
+    "site_id": 5082,
+    "company": "MAGELLAN TERMINAL HOLDINGS LP",
+    "corp": "MAGELLAN MIDSTREAM PARTNERS LP",
+    "site": "Corpus Christi",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 50
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -95.103,
+     29.7646
+    ]
+   },
+   "properties": {
+    "site_id": 5199,
+    "company": "HARTREE CHANNELVIEW LLC",
+    "corp": "HARTREE PARTNERS LP",
+    "site": "Channelview",
+    "state": "Texas",
+    "padd": 3,
+    "ad_mbpd": 38
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -64.74876,
+     17.70857
+    ]
+   },
+   "properties": {
+    "site_id": 5315,
+    "company": "LIMETREE BAY REFINING LLC",
+    "corp": "LIMETREE BAY HOLDINGS LLC",
+    "site": "Kingshill",
+    "state": "Virgin Islands",
+    "padd": 6,
+    "ad_mbpd": 180
+   }
+  }
+ ]
+}

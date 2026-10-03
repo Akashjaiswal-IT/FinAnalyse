@@ -1,0 +1,65 @@
+{
+ "response": {
+  "total": 1917,
+  "dateFormat": "YYYY-MM-DD",
+  "frequency": "weekly",
+  "data": [
+   {
+    "period": "2026-09-25",
+    "duoarea": "NUS",
+    "area-name": "U.S.",
+    "product": "EPM0",
+    "product-name": "Total Gasoline",
+    "process": "SAE",
+    "process-name": "Ending Stocks",
+    "series": "WGTSTUS1",
+    "series-description": "U.S. Ending Stocks of Total Gasoline (Thousand Barrels)",
+    "value": 204362,
+    "units": "MBBL"
+   },
+   {
+    "period": "2026-09-18",
+    "duoarea": "NUS",
+    "area-name": "U.S.",
+    "product": "EPM0",
+    "product-name": "Total Gasoline",
+    "process": "SAE",
+    "process-name": "Ending Stocks",
+    "series": "WGTSTUS1",
+    "series-description": "U.S. Ending Stocks of Total Gasoline (Thousand Barrels)",
+    "value": 206046,
+    "units": "MBBL"
+   },
+   {
+    "period": "2026-09-11",
+    "duoarea": "NUS",
+    "area-name": "U.S.",
+    "product": "EPM0",
+    "product-name": "Total Gasoline",
+    "process": "SAE",
+    "process-name": "Ending Stocks",
+    "series": "WGTSTUS1",
+    "series-description": "U.S. Ending Stocks of Total Gasoline (Thousand Barrels)",
+    "value": 207732,
+    "units": "MBBL"
+   },
+   {
+    "period": "2026-09-04",
+    "duoarea": "NUS",
+    "area-name": "U.S.",
+    "product": "EPM0",
+    "product-name": "Total Gasoline",
+    "process": "SAE",
+    "process-name": "Ending Stocks",
+    "series": "WGTSTUS1",
+    "series-description": "U.S. Ending Stocks of Total Gasoline (Thousand Barrels)",
+    "value": 206938,
+    "units": "MBBL"
+   }
+  ],
+  "description": "EIA petroleum gas survey data",
+  "id": "petroleum"
+ },
+ "apiVersion": "2.1.14",
+ "ExcelAddInVersion": "2.1.0"
+}
